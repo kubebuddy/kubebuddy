@@ -1,4 +1,5 @@
 """
+DRJ
 URL configuration for kubebuddy project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -16,7 +17,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from main.views import login_view, integrate_with, logout_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # APP URLS
+    path('', login_view, name='login'),  # Route for the login page
+    path('logout/', logout_view, name='logout'),
+    path('integrate/', integrate_with, name='integrate'),
 ]

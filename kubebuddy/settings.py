@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-=jtovz0t-m9vomqr88v-y%$62@b1g#wjua2l%&u3k2i5^pwrq6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,9 +37,35 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Prometheus Monitoring
+    # 'django_prometheus',
+
+    # Celery Beat
+    # 'django_celery_beat',
+
+    # My Apps
+
+    # third party apps
+    # 'rest_framework',
+    # 'rest_framework.authtoken',
+    # 'django_extensions'
 ]
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework.authentication.TokenAuthentication',
+#         'rest_framework.authentication.SessionAuthentication',
+#     ),
+#     'DEFAULT_PERMISSION_CLASSES': (
+#         'rest_framework.permissions.IsAuthenticated'
+#     )
+# }
+
 MIDDLEWARE = [
+    # Prometheus Monitoring, Before Middleware
+    # 'django_prometheus.middleware.PrometheusBeforeMiddleware',
+ 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -47,6 +73,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+ 
+    # Prometheus Monitoring, After Middleware
+    # 'django_prometheus.middleware.PrometheusAfterMiddleware',
+ 
 ]
 
 ROOT_URLCONF = 'kubebuddy.urls'
@@ -54,7 +84,7 @@ ROOT_URLCONF = 'kubebuddy.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -121,3 +151,19 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+LOGIN_REDIRECT_URL = '/LoginRedirect'
+LOGIN_URL = 'login'
+LOGOUT_REDIRECT_URL = 'login'
+
+
+################# Email alerts if we have to add in future
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 
+# user = EMAIL_HOST_USER
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_PASSWORD = 

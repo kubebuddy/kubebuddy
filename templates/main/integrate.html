@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/11231/11231852.png">
-  <title>Admin Login</title>
+  <title>KubeBuddy</title>
   <style>
     :root{
       --base-color: white;
@@ -190,20 +190,35 @@
     </header>
       
     <div class="container">
-        <div class="box">
-            <label for="path">Enter Kube Config File path: <br><span style="font-size: small; font-weight: 100;">eg. /home/ubuntu/.kube/config</span></label>
-            
-            <div class="data">
-                <input type="text" class="input-box" id="path" value="~/.kube/config" readonly>
+      <form method="POST">
+          {% csrf_token %}
+          <div class="box">
+              <label for="path">Enter Kube Config File path: 
+                  <br>
+                  <span style="font-size: small; font-weight: 100;">eg. /home/ubuntu/.kube/config</span>
+              </label>
+  
+              <div class="data">
+                  <input type="text" class="input-box" id="path" name="path" value="/.kube/config" readonly required>
+                  <select id="path-type" name="path_type" onchange="updateInputField()">
+                      <option value="default" selected>Default</option>
+                      <option value="manual">Manual</option>
+                  </select>
+              </div>
+              <button type="submit" class="btn">Go</button>
+          </div>
+          <!-- Error Message -->
+          {% if error_message %}
+          <div class="error" style="color: red; margin-top: 10px; text-align: center;">
+              {{ error_message }}
+          </div>
+          {% endif %}
+      </form>
 
-                <select id="path-type" onchange="updateInputField()">
-                    <option value="default" selected>Default</option>
-                    <option value="manual">Manual</option>
-                </select>
-            </div>
-            <button type="submit" class="btn">Go</button>
-        </div>
-    </div>
+    
+
+  </div>
+  
   
     <footer>
         <p>Powered by Thinknyx Technologies LLP</p>
@@ -241,7 +256,7 @@
             pathInput.value = '';
         } else {
             pathInput.setAttribute('readonly', 'readonly');
-            pathInput.value = '/drj/col';
+            pathInput.value = '/.kube/config';
         }
     }
 

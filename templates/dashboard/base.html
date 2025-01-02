@@ -1,0 +1,174 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Dheeraj Sain">
+  <title>Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/3388/3388738.png">
+
+  <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/sidebars/">
+
+  <!-- Bootstrap core CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link rel="stylesheet" href="{% static 'css/sidebars.css' %}">
+</head>
+<body>
+
+  <main class="d-flex">
+
+    <!-- Sidebar -->
+    <div class="sidebar flex-shrink-0 p-3 bg-white border-end" style="width: 280px;">
+      <a href="#" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+        <img src="https://cdn-icons-png.flaticon.com/512/11231/11231852.png" width="30" height="30" alt="KubeBuddy Logo">
+        <span class="fs-5 p-2 fw-semibold">KubeBuddy</span>
+      </a>
+
+      <!-- Scrollable List Section -->
+
+      <ul class="list-unstyled ps-0 scrollable-list">
+        <!-- Workloads Section -->
+        <li class="mb-1">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#workload-collapse" aria-expanded="true">
+            Workloads
+          </button>
+          <div class="collapse show" id="workload-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li><a href="#" class="link-dark rounded">Pod</a></li>
+              <li><a href="#" class="link-dark rounded">ReplicaSet</a></li>
+              <li><a href="#" class="link-dark rounded">Deployment</a></li>
+              <li><a href="#" class="link-dark rounded">StatefulSet</a></li>
+              <li><a href="#" class="link-dark rounded">DaemonSet</a></li>
+              <li><a href="#" class="link-dark rounded">Job</a></li>
+              <li><a href="#" class="link-dark rounded">CronJob</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <!-- Services Section -->
+        <li class="mb-1">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#services-collapse" aria-expanded="false">
+            Services
+          </button>
+          <div class="collapse" id="services-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li><a href="#" class="link-dark rounded">Service</a></li>
+              <li><a href="#" class="link-dark rounded">Endpoints</a></li>
+              <li><a href="#" class="link-dark rounded">ServiceAccount</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <!-- Config & Secrets Section -->
+        <li class="mb-1">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#config-secrets-collapse" aria-expanded="false">
+            Config & Secrets
+          </button>
+          <div class="collapse" id="config-secrets-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li><a href="#" class="link-dark rounded">ConfigMap</a></li>
+              <li><a href="#" class="link-dark rounded">Secret</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <!-- Persistent Storage Section -->
+        <li class="mb-1">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#ps-collapse" aria-expanded="false">
+            Persistent Storage
+          </button>
+          <div class="collapse" id="ps-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li><a href="#" class="link-dark rounded">PersistentVolume</a></li>
+              <li><a href="#" class="link-dark rounded">PersistentVolumeClaim</a></li>
+              <li><a href="#" class="link-dark rounded">StorageClass</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <!-- Networking Section -->
+        <li class="mb-1">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#networking-collapse" aria-expanded="false">
+            Networking
+          </button>
+          <div class="collapse" id="networking-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li><a href="#" class="link-dark rounded">Ingress</a></li>
+              <li><a href="#" class="link-dark rounded">NetworkPolicy</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <!-- Cluster Management Section -->
+        <li class="mb-1">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#cluster-mgmt-collapse" aria-expanded="false">
+            Cluster Management
+          </button>
+          <div class="collapse" id="cluster-mgmt-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li><a href="#" class="link-dark rounded">Node</a></li>
+              <li><a href="#" class="link-dark rounded">PodDisruptionBudget</a></li>
+              <li><a href="#" class="link-dark rounded">LimitRange</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <!-- RBAC Section -->
+        <li class="mb-1">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#rbac-collapse" aria-expanded="false">
+            RBAC
+          </button>
+          <div class="collapse" id="rbac-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li><a href="#" class="link-dark rounded">Role</a></li>
+              <li><a href="#" class="link-dark rounded">RoleBinding</a></li>
+              <li><a href="#" class="link-dark rounded">ClusterRole</a></li>
+              <li><a href="#" class="link-dark rounded">ClusterRoleBinding</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <!-- Metrics Section -->
+        <li class="mb-1">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#metrics-collapse" aria-expanded="false">
+            Metrics
+          </button>
+          <div class="collapse" id="metrics-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li><a href="#" class="link-dark rounded">PodMetrics</a></li>
+            </ul>
+          </div>
+        </li>
+
+        <li class="border-top my-3"></li>
+      </ul>
+
+      <!-- Account Section (Fixed at the bottom) -->
+      <div class="account-section">
+        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#account-collapse" aria-expanded="false">
+          Account
+        </button>
+        <div class="collapse" id="account-collapse">
+          <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+            <li><a href="#" class="link-dark rounded">Profile</a></li>
+            <li><a href="#" class="link-dark rounded">Settings</a></li>
+            <li><a href="/logout" class="link-dark rounded">Sign out</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content m-4 flex-grow-1">
+      {% block content %}{% endblock %}
+    </div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{% static 'js/sidebars.js' %}"></script>
+</body>
+</html>

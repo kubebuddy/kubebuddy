@@ -23,7 +23,7 @@
 
     <!-- Sidebar -->
     <div class="sidebar flex-shrink-0 p-3 bg-white border-end" style="width: 280px;">
-      <a href="#" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+      <a href="/dashboard" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
         <img src="https://cdn-icons-png.flaticon.com/512/11231/11231852.png" width="30" height="30" alt="KubeBuddy Logo">
         <span class="fs-5 p-2 fw-semibold">KubeBuddy</span>
       </a>
@@ -38,17 +38,31 @@
           </button>
           <div class="collapse show" id="workload-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="#" class="link-dark rounded">Pod</a></li>
+              <li><a href="/pods" class="link-dark rounded">Pods</a></li>
               <li><a href="#" class="link-dark rounded">ReplicaSet</a></li>
-              <li><a href="#" class="link-dark rounded">Deployment</a></li>
-              <li><a href="#" class="link-dark rounded">StatefulSet</a></li>
+              <li><a href="#" class="link-dark rounded">Deployments</a></li>
+              <li><a href="#" class="link-dark rounded">StatefulSets</a></li>
               <li><a href="#" class="link-dark rounded">DaemonSet</a></li>
-              <li><a href="#" class="link-dark rounded">Job</a></li>
+              <li><a href="#" class="link-dark rounded">Jobs</a></li>
               <li><a href="#" class="link-dark rounded">CronJob</a></li>
             </ul>
           </div>
         </li>
 
+        <!-- Cluster Management Section -->
+        <li class="mb-1">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#cluster-mgmt-collapse" aria-expanded="false">
+            Cluster Management
+          </button>
+          <div class="collapse show" id="cluster-mgmt-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li><a href="/nodes" class="link-dark rounded">Nodes</a></li>
+              <li><a href="#" class="link-dark rounded">PodDisruptionBudget</a></li>
+              <li><a href="#" class="link-dark rounded">LimitRange</a></li>
+            </ul>
+          </div>
+        </li>
+        
         <!-- Services Section -->
         <li class="mb-1">
           <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#services-collapse" aria-expanded="false">
@@ -70,8 +84,8 @@
           </button>
           <div class="collapse" id="config-secrets-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="#" class="link-dark rounded">ConfigMap</a></li>
-              <li><a href="#" class="link-dark rounded">Secret</a></li>
+              <li><a href="#" class="link-dark rounded">ConfigMaps</a></li>
+              <li><a href="#" class="link-dark rounded">Secrets</a></li>
             </ul>
           </div>
         </li>
@@ -99,20 +113,6 @@
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               <li><a href="#" class="link-dark rounded">Ingress</a></li>
               <li><a href="#" class="link-dark rounded">NetworkPolicy</a></li>
-            </ul>
-          </div>
-        </li>
-
-        <!-- Cluster Management Section -->
-        <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#cluster-mgmt-collapse" aria-expanded="false">
-            Cluster Management
-          </button>
-          <div class="collapse" id="cluster-mgmt-collapse">
-            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="#" class="link-dark rounded">Node</a></li>
-              <li><a href="#" class="link-dark rounded">PodDisruptionBudget</a></li>
-              <li><a href="#" class="link-dark rounded">LimitRange</a></li>
             </ul>
           </div>
         </li>

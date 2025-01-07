@@ -1,0 +1,17 @@
+<!-- templates/dashboard/dashboard.html -->
+{% extends 'dashboard/base.html' %}
+
+{% block title %}pods{% endblock %}
+
+{% block content %}
+  <h1>This is the Pods Page!</h1>
+  <br><br>
+  <h3>There are total {{ nc }} node(s) in your cluster.</h3>
+  <br><br>
+  <h4>Nodes List</h4>
+    <ul>
+        {% for node in nodes %}
+            <li>{{ node }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

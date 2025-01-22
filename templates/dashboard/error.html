@@ -1,0 +1,15 @@
+<!-- templates/dashboard/dashboard.html -->
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Error !!{% endblock %}
+
+{% block content %}
+  <h1>OOPS !!! We are facing an error</h1>
+  
+  <img src="https://cdn-icons-png.flaticon.com/512/4539/4539472.png" alt="Error">
+
+  <div class="alert alert-warning" role="alert">
+    <b>{{ error }}</b>
+    </div>
+  
+{% endblock %}

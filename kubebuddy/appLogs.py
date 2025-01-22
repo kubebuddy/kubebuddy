@@ -11,9 +11,7 @@ FILE_NAME = "KubeBuddy.log"
 # {DATE}_KubeBuddy.log
 LOG_FILE_PATH = os.path.join(LOGGING_DIR,FILE_NAME)
 
-# # Defining file handler to save log data and set level to DEBUG
-# file_handler = logging.FileHandler(LOG_FILE_PATH)
-# file_handler.setLevel(logging.DEBUG)
+# Defining file handler to save log data and set level to DEBUG
 
 timed_rotating_file_handler = logging.handlers.TimedRotatingFileHandler(
     LOG_FILE_PATH,
@@ -23,8 +21,13 @@ timed_rotating_file_handler = logging.handlers.TimedRotatingFileHandler(
     encoding='utf8',
 )
 
-timed_rotating_file_handler.setLevel(logging.DEBUG)
+# Overwriting namer method of timed rotating file handler 
+def namer(name):
+    return name.replace(".log", "") + ".log"
 
+timed_rotating_file_handler.setLevel(logging.DEBUG)
+timed_rotating_file_handler.suffix = "%Y-%m-%d"
+timed_rotating_file_handler.namer = namer
 # Defining format of log data and setting it to file_handler
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 

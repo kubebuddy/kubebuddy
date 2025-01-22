@@ -6,7 +6,7 @@ import datetime
 # Defining directory where logs are to be stored.
 LOGGING_DIR = os.path.join(os.path.dirname(Path(__file__).resolve().parent),'logs')
 # Defining Log file name
-DATE_TIME = str(datetime.date.today()) + '.log'
+DATE_TIME = "KB_" + str(datetime.date.today().strftime("%d-%m-%Y")) + '.log'
 # Defining complete path to Log file
 LOG_FILE_PATH = os.path.join(LOGGING_DIR,DATE_TIME)
 
@@ -15,7 +15,7 @@ file_handler = logging.FileHandler(LOG_FILE_PATH)
 file_handler.setLevel(logging.DEBUG)
 
 # Defining format of log data and setting it to file_handler
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
 file_handler.setFormatter(formatter)
 

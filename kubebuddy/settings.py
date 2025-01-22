@@ -80,6 +80,7 @@ MIDDLEWARE = [
  
 ]
 
+
 ROOT_URLCONF = 'kubebuddy.urls'
 
 TEMPLATES = [
@@ -170,3 +171,7 @@ LOGOUT_REDIRECT_URL = 'login'
 # user = EMAIL_HOST_USER
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_PASSWORD = 
+
+
+# Prevent logs printing in terminal
+LOGGING_CONFIG = None

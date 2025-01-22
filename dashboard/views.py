@@ -2,7 +2,7 @@ from django.shortcuts import render
 from main.models import KubeConfig
 from .src import k8s_pods, k8s_nodes
 from django.contrib.auth.decorators import login_required
-
+from kubebuddy.appLogs import logger
 from kubernetes import config, client
 
 
@@ -37,9 +37,8 @@ def dashboard(request):
 
 def pods(request):
 
-
-
     pods, pc = k8s_pods.getpods()
+    logger.info(f"pods : {pods}")
     return render(request, 'dashboard/pods.html', { "pods": pods, "pc": pc})
 
 def nodes(request):

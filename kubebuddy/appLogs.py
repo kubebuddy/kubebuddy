@@ -4,7 +4,7 @@ from pathlib import Path
 # Defining directory where logs are to be stored
 # Defining complete path to Log file
 # Defining Log file name
-LOGGING_DIR = Path(__file__).resolve().parent / 'logs'
+LOGGING_DIR = Path(__file__).resolve().parent.parent / 'logs'
 FILE_NAME = "KubeBuddy.log"
 LOG_FILE_PATH = LOGGING_DIR / FILE_NAME
 

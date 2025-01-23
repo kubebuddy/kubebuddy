@@ -47,6 +47,7 @@ ehthumbs.db
 nosetests.xml
 coverage.xml
 *.cover
+test.py
 
 # Backup files
 *~

@@ -17,7 +17,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from main.views import login_view, integrate_with, logout_view
+from main.views import login_view, integrate_with, logout_view, change_pass
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +25,7 @@ urlpatterns = [
     # APP URLS
     path('', login_view, name='login'),  # Route for the login page
     path('logout/', logout_view, name='logout'),
+    path('update-password/', change_pass, name='update-password'),
     path('integrate/', integrate_with, name='integrate'),
     path('', include('dashboard.urls')),
 ]

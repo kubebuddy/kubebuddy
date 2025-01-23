@@ -13,13 +13,20 @@ def dashboard(request):
     cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future 
     data = KubeConfig.objects.filter(cluster_id=cluster_id).values().first()
     path = data['path']
-    print(path)
+    logger.info(f"kube config file path  : {path}")
 
-    # try:
     config.load_kube_config(config_file=path)  # Load the kube config
     v1 = client.CoreV1Api()
     namespaces = v1.list_namespace()
-    return render(request, 'dashboard/dashboard.html')
+    logger.info(f"Namespaces  : {len(namespaces.items)}")
+
+    # check if the user is using default username and password
+    if request.user.username == "admin" and request.user.check_password("admin"):
+        warning_message = "Warning: You're using the default username & password. Please change it for security reasons."
+    else:
+        warning_message = None
+
+    return render(request, 'dashboard/dashboard.html', {'warning': warning_message})
     # cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future 
     # data = KubeConfig.objects.filter(cluster_id=cluster_id).values().first()
     # path = data['path']

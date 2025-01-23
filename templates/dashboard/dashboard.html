@@ -4,6 +4,15 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+  <!-- Deafault username password block -->
+  {% if warning %}
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    {{ warning }} 
+    <a href="/update-password"><strong>Click here to update</strong></a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endif %}
+
   <h1>Welcome to the Dashboard!</h1>
   <h4>Powered by Thinknyx Technologies</h4>
 {% endblock %}

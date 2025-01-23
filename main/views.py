@@ -7,6 +7,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 
+from kubebuddy.appLogs import logger
+from django.contrib import messages
+
+from django.contrib.auth.models import User
+
 from kubernetes import config, client
 from kubernetes.config.config_exception import ConfigException
 
@@ -28,8 +33,13 @@ def login_view(request):
                     # Check for kubeconfig file in the KubeConfig model
                     kube_config_entry = KubeConfig.objects.first()
                     if kube_config_entry and os.path.isfile(kube_config_entry.path):
-                        # Redirect to dashboard if a valid kubeconfig file exists
-                        return redirect('/dashboard')
+                        if username == 'admin' and password == 'admin':
+                            # Redirect to the dashboard with a warning message
+                            request.session['warning'] = "You're using the default password. Please change it for security reasons."
+                            return redirect('/dashboard')
+                        else:
+                            # Redirect to the dashboard if credentials are valid
+                            return redirect('/dashboard')
                     else:
                         # Redirect to integrate page if no valid kubeconfig file exists
                         return redirect('/integrate')
@@ -39,8 +49,8 @@ def login_view(request):
             form.add_error(None, 'Invalid credentials.')
     else:
         form = AuthenticationForm()
-    
-    return render(request, 'main/login.html', {'form': form})
+    messages_storage = messages.get_messages(request)
+    return render(request, 'main/login.html', {'form': form, 'messages' : messages_storage})
 
 
 @login_required
@@ -80,3 +90,42 @@ def logout_view(request):
     logout(request)
     form = AuthenticationForm()
     return render(request, 'main/logout.html', {'form': form})
+
+@login_required
+def change_pass(request):
+    error_message = None
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        new_password = request.POST.get('new_password')
+        confirm_new_password = request.POST.get('confirm_new_password')
+
+        # Debugging output
+        logger.debug(f"username: {username}, old_password: {password}, new_password: {new_password}, confirm_new_password: {confirm_new_password}")
+
+        try:
+            user = User.objects.get(username=username)
+            # Check if the user is a superuser
+            if not user.is_superuser:
+                error_message = "The specified user is not a superuser."
+                
+            # Authenticate the user
+            authenticated_user = authenticate(request, username=username, password=password)
+
+            if authenticated_user is None:
+                error_message = "Current password is incorrect. Please try again."
+                
+            elif new_password != confirm_new_password:
+                error_message = "New passwords do not match with the Confirm Password. Please try again."
+                
+            else:
+                user.set_password(new_password)
+                user.save()
+                messages.success(request, "Password updated successfully.")
+                return redirect('/')
+
+        except User.DoesNotExist:
+            error_message = "User does not exist."
+
+    logger.error(error_message)
+    return render(request, 'main/change_password.html', {'error_message': error_message})

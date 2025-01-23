@@ -7,7 +7,6 @@ from kubernetes import config, client
 
 
 
-# Create your views here.
 @login_required
 def dashboard(request):
     cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future 
@@ -50,4 +49,5 @@ def pods(request):
 
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()
+    logger.info(f"nodes : {nodes}")
     return render(request, 'dashboard/nodes.html', { "nodes": nodes, "nc": nc})

@@ -16,7 +16,123 @@
   <h1>Welcome to the Dashboard!</h1>
   <h4>Powered by Thinknyx Technologies</h4>
 
-  <div class="container">
+  <div class="container my-5">
+
+    <!-- Cluster Overview -->
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="card text-center p-4">
+                <h5 class="card-title">Cluster Name</h5>
+                <p class="card-text">MyK8sCluster</p>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card text-center p-4">
+                <h5 class="card-title">Total Nodes</h5>
+                <p class="card-text text-success">1 Ready / 1 NotReady</p>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card text-center p-4">
+                <h5 class="card-title">Total Pods</h5>
+                <p class="card-text text-primary">120 Running / 3 Failed</p>
+            </div>
+        </div>
+    </div>
+
+        <!-- Resource Usage Summary -->
+        <div class="row">
+          <div class="col-lg-6">
+              <div class="card text-center p-4">
+                  <h5 class="card-title">Cluster CPU Usage</h5>
+                  <div class="progress">
+                      <div class="progress-bar bg-info" role="progressbar" style="width: 65%;">65%</div>
+                  </div>
+              </div>
+          </div>
+          <div class="col-lg-6">
+              <div class="card text-center p-4">
+                  <h5 class="card-title">Cluster Memory Usage</h5>
+                  <div class="progress">
+                      <div class="progress-bar bg-success" role="progressbar" style="width: 75%;">75%</div>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+
+    <!-- Node Status -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5>Node Status</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Node Name</th>
+                            <th>Status</th>
+                            <th>CPU Usage</th>
+                            <th>Memory Usage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Node-1</td>
+                            <td><span class="status-badge bg-success rounded-pill text-white p-1">Ready</span></td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 70%;">70%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 60%;">60%</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Node-2</td>
+                            <td><span class="status-badge bg-danger rounded-pill text-white p-1">NotReady</span></td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 50%;">50%</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 30%;">30%</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts and Events -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5>Alerts and Events</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Pod crash in Namespace `frontend`
+                    <span class="badge bg-danger rounded-pill">Critical</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ImagePullBackOff in Namespace `backend`
+                    <span class="badge bg-warning rounded-pill">Warning</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
+  <!-- <div class="container">
     <div class="row justify-content-center">
         <div class="col-12 col-md-8 col-lg-6">
             <div class="chart-container w-100 h-100">
@@ -24,9 +140,9 @@
             </div>
         </div>
     </div>
-</div>
+  </div> -->
   
-  <script>
+  <!-- <script>
     var ctx = document.getElementById('myChart').getContext('2d');
         var myChart = new Chart(ctx, {
             type: 'doughnut',
@@ -47,5 +163,5 @@
                 maintainAspectRatio: false,
             }
         });
-  </script>
+  </script> -->
 {% endblock %}

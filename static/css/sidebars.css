@@ -93,3 +93,17 @@ main {
 
 .fw-semibold { font-weight: 600; }
 .lh-tight { line-height: 1.25; }
+
+
+.card {
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.progress-bar {
+  font-size: 0.9rem;
+}
+.status-badge {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 12px;
+}

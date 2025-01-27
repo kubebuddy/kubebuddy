@@ -15,6 +15,37 @@
 
   <h1>Welcome to the Dashboard!</h1>
   <h4>Powered by Thinknyx Technologies</h4>
+
+  <div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="chart-container w-100 h-100">
+                <canvas id="myChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+  
   <script>
+    var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Healthy','Unhealthy'],
+                datasets: [{
+                    label: 'CPU',
+                    backgroundColor: [
+                      'rgb(0, 128, 0)',
+                      'rgb(54, 162, 235)',
+                    ],
+                    borderWidth: 1,
+                    data: [5,95]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
   </script>
 {% endblock %}

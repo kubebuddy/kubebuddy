@@ -20,25 +20,60 @@
 
     <!-- Cluster Overview -->
     <div class="row mb-4">
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <div class="card text-center p-4">
                 <h5 class="card-title">Cluster Name</h5>
-                <p class="card-text">MyK8sCluster</p>
+                <p class="card-text">{{current_cluster}}</p>
             </div>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <div class="card text-center p-4">
-                <h5 class="card-title">Total Nodes</h5>
-                <p class="card-text text-success">1 Ready / 1 NotReady</p>
+                <h4 class="card-title">Total Nodes</h4>
+                <h5 class="card-text text-dark">{{node_count}}</h4>
+                <canvas id="nodesChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-3">  
             <div class="card text-center p-4">
-                <h5 class="card-title">Total Pods</h5>
-                <p class="card-text text-primary">120 Running / 3 Failed</p>
+                <h4 class="card-title">Total Pods</h4>
+                <h4 class="card-text text-dark">{{pod_count}}</h4>
+                <canvas id="podsChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
     </div>
+
+    <!-- Pods overview -->
+    <div class="row mb-4">
+        <div class="col-lg-3">
+            <div class="card text-center p-4">
+                <h4 class="card-title">Total Deployments</h4>
+                <h4 class="card-text text-dark">{{deployments_count}}</h4>
+                <canvas id="deploymentChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card text-center p-4">
+                <h4 class="card-title">Total Daemonsets</h4>
+                <h4 class="card-text text-dark">{{daemonset_count}}</h4>
+                <canvas id="daemonChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card text-center p-4">
+                <h4 class="card-title">Total Replicasets</h4>
+                <h4 class="card-text text-dark">{{replicaset_count}}</h4>
+                <canvas id="replicaChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card text-center p-4">
+                <h4 class="card-title">Total Statefulsets</h4>
+                <h4 class="card-text text-dark">{{statefulset_count}}</h4>
+                <canvas id="statefulChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+            </div>
+        </div>
+    </div>
+
 
         <!-- Resource Usage Summary -->
         <div class="row">
@@ -142,26 +177,172 @@
     </div>
   </div> -->
   
-  <!-- <script>
-    var ctx = document.getElementById('myChart').getContext('2d');
-        var myChart = new Chart(ctx, {
+  <script>
+    // node graph
+    var nodesGraph = document.getElementById('nodesChart').getContext('2d');
+        var myChart1 = new Chart(nodesGraph, {
             type: 'doughnut',
             data: {
-                labels: ['Healthy','Unhealthy'],
+                labels: ['Ready','Not Ready'],
                 datasets: [{
-                    label: 'CPU',
+                    label: 'Count',
                     backgroundColor: [
-                      'rgb(0, 128, 0)',
-                      'rgb(54, 162, 235)',
+                      'rgb(40, 167, 69)',
+                      'rgb(255, 204, 0)',
                     ],
                     borderWidth: 1,
-                    data: [5,95]
+                    data: ["{{ready_nodes}}","{{not_ready_nodes}}"]
                 }]
             },
             options: {
-                responsive: true,
+                responsive: false,
+                cutout: '80%',
+                hoverOffset: 3, // hover effect
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
             }
         });
-  </script> -->
+    // pod graph
+    var podsGraph = document.getElementById('podsChart').getContext('2d');
+        var myChart2 = new Chart(podsGraph, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pending','Running','Failed','Succeeded'],
+                datasets: [{
+                    label: 'Count',
+                    backgroundColor: [
+                      'rgb(255, 204, 0)',
+                      'rgb(40, 167, 69)',
+                      'rgb(220, 53, 69)',
+                      'rgb(23, 162, 184)'
+                    ],
+                    borderWidth: 1,
+                    data: ["{{status_count.Pending}}","{{status_count.Running}}","{{status_count.Failed}}", "{{status_count.Succeeded}}"]
+                }]
+            },
+            options: {
+                responsive: false,
+                cutout: '80%',
+                hoverOffset: 5, // hover effect
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    // deployment graph
+    var deploymentGraph = document.getElementById('deploymentChart').getContext('2d');
+        var myChart3 = new Chart(deploymentGraph, {
+            type: 'doughnut',
+            data: {
+                labels: ['Running'],
+                datasets: [{
+                    label: 'Count',
+                    backgroundColor: [
+                      'rgb(40, 167, 69)'
+                    ],
+                    borderWidth: 1,
+                    data: ["{{deployments_count}}"]
+                }]
+            },
+            options: {
+                responsive: false,
+                hoverOffset: 3, // hover effect
+                cutout: '80%',
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    // daemonset graph
+    var daemonsetGraph = document.getElementById('daemonChart').getContext('2d');
+        var myChart4 = new Chart(daemonsetGraph, {
+            type: 'doughnut',
+            data: {
+                labels: ['Running'],
+                datasets: [{
+                    label: 'Count',
+                    backgroundColor: [
+                      'rgb(40, 167, 69)'
+                    ],
+                    borderWidth: 1,
+                    data: ["{{daemonset_count}}"]
+                }]
+            },
+            options: {
+                responsive: false,
+                hoverOffset: 3, // hover effect
+                cutout: '80%',
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    // replicaset graph
+    var replicasetGraph = document.getElementById('replicaChart').getContext('2d');
+        var myChart5 = new Chart(replicasetGraph, {
+            type: 'doughnut',
+            data: {
+                labels: ['Running'],
+                datasets: [{
+                    label: 'Count',
+                    backgroundColor: [
+                      'rgb(40, 167, 69)'
+                    ],
+                    borderWidth: 1,
+                    data: ["{{replicaset_count}}"]
+                }]
+            },
+            options: {
+                responsive: false,
+                hoverOffset: 3, // hover effect
+                cutout: '80%',
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    // statefulset graph
+    var statefulsetGraph = document.getElementById('statefulChart').getContext('2d');
+        var myChart6 = new Chart(statefulsetGraph, {
+            type: 'doughnut',
+            data: {
+                labels: ['Running'],
+                datasets: [{
+                    label: 'Count',
+                    backgroundColor: [
+                      'rgb(40, 167, 69)'
+                    ],
+                    borderWidth: 1,
+                    data: ["{{statefulset_count}}"]
+                }]
+            },
+            options: {
+                responsive: false,
+                hoverOffset: 3, // hover effect
+                cutout: '80%',
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+  </script>
 {% endblock %}

@@ -1,14 +1,15 @@
 from django.shortcuts import render
 from main.models import KubeConfig
-from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, k8s_statefulset
+from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, k8s_statefulset, k8s_jobs, k8s_cronjobs
 from django.contrib.auth.decorators import login_required
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
+from .decorators import server_down_handler
 
-
+@server_down_handler
 @login_required
 def dashboard(request):
-    cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future 
+    cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future
     data = KubeConfig.objects.filter(cluster_id=cluster_id).values().first()
     path = data['path']
     logger.info(f"kube config file path  : {path}")
@@ -50,10 +51,16 @@ def dashboard(request):
     # get replicaset count
     replicaset_count = k8s_replicaset.getReplicasetCount()
 
-    #get statefulset count
+    # get statefulset count
     statefulset_count = k8s_statefulset.getStatefulsetCount()
 
-    return render(request, 'dashboard/dashboard.html', {'warning': warning_message, 'ready_nodes': ready_nodes, 'not_ready_nodes' : not_ready_nodes, 'node_count': node_count, 'status_count': status_count, 'pod_count': pode_count, 'current_cluster': current_cluster, 'node_list': node_list, 'deployments_count':deployments_count, 'daemonset_count': daemonset_count, 'replicaset_count':replicaset_count, 'statefulset_count': statefulset_count})
+    # get jobs count
+    job_count = k8s_jobs.getJobCount()
+
+    # get cronjobs count
+    cronjob_count = k8s_cronjobs.getCronJobCount()
+
+    return render(request, 'dashboard/dashboard.html', {'warning': warning_message, 'ready_nodes': ready_nodes, 'not_ready_nodes' : not_ready_nodes, 'node_count': node_count, 'status_count': status_count, 'pod_count': pode_count, 'current_cluster': current_cluster, 'node_list': node_list, 'deployments_count':deployments_count, 'daemonset_count': daemonset_count, 'replicaset_count':replicaset_count, 'statefulset_count': statefulset_count, 'job_count': job_count, 'cronjob_count': cronjob_count})
     # cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future 
     # data = KubeConfig.objects.filter(cluster_id=cluster_id).values().first()
     # path = data['path']

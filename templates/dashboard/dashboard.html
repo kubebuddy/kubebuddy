@@ -19,23 +19,17 @@
   <div class="container my-5">
 
     <!-- Cluster Overview -->
-    <div class="row mb-4">
-        <div class="col-lg-3">
+    <div class="row mb-4 justify-content-center">
+        <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h5 class="card-title">Cluster Name</h5>
-                <p class="card-text">{{current_cluster}}</p>
-            </div>
-        </div>
-        <div class="col-lg-3">
-            <div class="card text-center p-4">
-                <h4 class="card-title">Total Nodes</h4>
+                <h4 class="card-title">Nodes</h4>
                 <h5 class="card-text text-dark">{{node_count}}</h4>
                 <canvas id="nodesChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
-        <div class="col-lg-3">  
+        <div class="col-lg-2">  
             <div class="card text-center p-4">
-                <h4 class="card-title">Total Pods</h4>
+                <h4 class="card-title">Pods</h4>
                 <h4 class="card-text text-dark">{{pod_count}}</h4>
                 <canvas id="podsChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
@@ -43,33 +37,47 @@
     </div>
 
     <!-- Pods overview -->
-    <div class="row mb-4">
-        <div class="col-lg-3">
+    <div class="row mb-4 justify-content-between">
+        <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h4 class="card-title">Total Deployments</h4>
+                <h4 class="card-title">Deployments</h4>
                 <h4 class="card-text text-dark">{{deployments_count}}</h4>
                 <canvas id="deploymentChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
-        <div class="col-lg-3">
+        <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h4 class="card-title">Total Daemonsets</h4>
+                <h4 class="card-title">Daemonsets</h4>
                 <h4 class="card-text text-dark">{{daemonset_count}}</h4>
                 <canvas id="daemonChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
-        <div class="col-lg-3">
+        <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h4 class="card-title">Total Replicasets</h4>
+                <h4 class="card-title">Replicasets</h4>
                 <h4 class="card-text text-dark">{{replicaset_count}}</h4>
                 <canvas id="replicaChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
-        <div class="col-lg-3">
+        <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h4 class="card-title">Total Statefulsets</h4>
+                <h4 class="card-title">Statefulsets</h4>
                 <h4 class="card-text text-dark">{{statefulset_count}}</h4>
                 <canvas id="statefulChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+            </div>
+        </div>
+        <div class="col-lg-2">
+            <div class="card text-center p-4">
+                <h4 class="card-title">Jobs</h4>
+                <h4 class="card-text text-dark">{{job_count}}</h4>
+                <canvas id="jobChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+            </div>
+        </div>
+        <div class="col-lg-2">
+            <div class="card text-center p-4">
+                <h4 class="card-title">Cron Jobs</h4>
+                <h4 class="card-text text-dark">{{cronjob_count}}</h4>
+                <canvas id="cronjobChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
     </div>
@@ -165,17 +173,6 @@
             </ul>
         </div>
     </div>
-
-
-  <!-- <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-8 col-lg-6">
-            <div class="chart-container w-100 h-100">
-                <canvas id="myChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
-            </div>
-        </div>
-    </div>
-  </div> -->
   
   <script>
     // node graph
@@ -330,6 +327,60 @@
                     ],
                     borderWidth: 1,
                     data: ["{{statefulset_count}}"]
+                }]
+            },
+            options: {
+                responsive: false,
+                hoverOffset: 3, // hover effect
+                cutout: '80%',
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    // job graph
+    var jobGraph = document.getElementById('jobChart').getContext('2d');
+        var myChart7 = new Chart(jobGraph, {
+            type: 'doughnut',
+            data: {
+                labels: ['Running'],
+                datasets: [{
+                    label: 'Count',
+                    backgroundColor: [
+                      'rgb(40, 167, 69)'
+                    ],
+                    borderWidth: 1,
+                    data: ["{{job_count}}"]
+                }]
+            },
+            options: {
+                responsive: false,
+                hoverOffset: 3, // hover effect
+                cutout: '80%',
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    // cronjob graph
+    var cronjobGraph = document.getElementById('cronjobChart').getContext('2d');
+        var myChart8 = new Chart(cronjobGraph, {
+            type: 'doughnut',
+            data: {
+                labels: ['Running'],
+                datasets: [{
+                    label: 'Count',
+                    backgroundColor: [
+                      'rgb(40, 167, 69)'
+                    ],
+                    borderWidth: 1,
+                    data: ["{{cronjob_count}}"]
                 }]
             },
             options: {

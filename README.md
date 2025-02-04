@@ -7,7 +7,7 @@ KubeBuddy is a powerful tool for managing and operating Kubernetes clusters. It 
 ## Prerequisites
 
 - A running Kubernetes cluster
-- A `kube/config` file present on your machine
+- A `.kube/config` file present on your machine
 - Python installed on your system
 - Git installed on your system
 

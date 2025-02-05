@@ -15,33 +15,30 @@
   {% endif %}
 
   <h1>Welcome to the Dashboard!</h1>
-  <h4>Powered by Thinknyx Technologies</h4>
 
   <div class="cluster-card">
         <div class="cluster-sidebar">
-            <h3>Cluster 1</h3>
-            <div class="cluster-details">
-                <div>Cluster details</div>
-                <div>Cluster details</div>
-                <div>Cluster details</div>
-                <div>Cluster details</div>
-            </div>
+            <p><b>Cluster Details</b></p>
+            <li>Cluster Name: KubeBuddy_test</li>
+            <li>Total Nodes: {{node_count}}</li>
+            <li>Total Namespace: 4</li>
+            <li>Total Pods: {{pod_count}}</li>
         </div>
         <div class="cluster-charts">
-            <div class="cluster-chart-container">
-                <canvas id="cluster-cpuUsageChart"></canvas>
-                <p class="cluster-text-center">CPU Usage</p>
+            <div class="text-center">
+                <div class="chart-container-bar">
+                    <canvas id="usageChart"></canvas>
+                </div>
+                <h6>Total CPU: {{cpu}}, Total Memory: {{memory}}</h6>
             </div>
-            <div class="cluster-chart-container">
-                <canvas id="cluster-memoryUsageChart"></canvas>
-                <p class="cluster-text-center">Memory Usage</p>
-            </div>
+
             <div class="cluster-chart-container" >
-                <canvas id="nodesChart"></canvas>
+                <canvas id="nodesChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 <p class="cluster-text-center">Nodes: {{node_count}}</p>
             </div>
+
             <div class="cluster-chart-container">
-                <canvas id="podsChart"></canvas>
+                <canvas id="podsChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 <p class="cluster-text-center">Pods: {{pod_count}}</p>
             </div>
         </div>
@@ -49,52 +46,50 @@
 
 
   <div class="container my-5">
-    <!-- Pods overview -->
     <div class="row mb-4 justify-content-between">
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h4 class="card-title">Deployments</h4>
-                <h4 class="card-text text-dark">{{deployments_count}}</h4>
-                <canvas id="deploymentChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">Deployments</p>
+                <p class="card-text text-dark">{{deployments_count}}</p>
+                <canvas id="deploymentChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h4 class="card-title">Daemonsets</h4>
-                <h4 class="card-text text-dark">{{daemonset_count}}</h4>
-                <canvas id="daemonChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">DaemonSet</p>
+                <p class="card-text text-dark">{{daemonset_count}}</p>
+                <canvas id="daemonChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h4 class="card-title">Replicasets</h4>
-                <h4 class="card-text text-dark">{{replicaset_count}}</h4>
-                <canvas id="replicaChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">ReplicaSets</p>
+                <p class="card-text text-dark">{{replicaset_count}}</p>
+                <canvas id="replicaChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h4 class="card-title">Statefulsets</h4>
-                <h4 class="card-text text-dark">{{statefulset_count}}</h4>
-                <canvas id="statefulChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">StatefulSets</p>
+                <p class="card-text text-dark">{{statefulset_count}}</p>
+                <canvas id="statefulChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h4 class="card-title">Jobs</h4>
-                <h4 class="card-text text-dark">{{job_count}}</h4>
-                <canvas id="jobChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">Jobs</p>
+                <p class="card-text text-dark">{{job_count}}</p>
+                <canvas id="jobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h4 class="card-title">Cron Jobs</h4>
-                <h4 class="card-text text-dark">{{cronjob_count}}</h4>
-                <canvas id="cronjobChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">CronJobs</p>
+                <p class="card-text text-dark">{{cronjob_count}}</p>
+                <canvas id="cronjobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
     </div>
-
 
         <!-- Resource Usage Summary -->
         <div class="row">
@@ -188,8 +183,36 @@
     </div>
   
   <script>
-
     
+    // CPU and Memory usage graph
+    var usageChart = document.getElementById('usageChart').getContext('2d');
+        var myChart0 = new Chart(usageChart, {
+            type: 'bar',
+            data: {
+                labels: ['CPU Usage', 'Memory Usage'],
+                datasets: [{
+                    label: 'Usage (in %)',
+                    backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)'],
+                    data: [35, 66],
+                    barThickness: 50
+                }]
+            },
+            options: {
+                responsive: true,
+                // cutout: '80%',
+                hoverOffset: 3, // hover effect
+                maintainAspectRatio: false,
+                scales: {
+                y: { beginAtZero: true, max: 100 }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
     // node graph
     var nodesGraph = document.getElementById('nodesChart').getContext('2d');
         var myChart1 = new Chart(nodesGraph, {
@@ -209,7 +232,7 @@
             options: {
                 responsive: false,
                 cutout: '80%',
-                hoverOffset: 3, // hover effect
+                hoverOffset: 5, // hover effect
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
@@ -248,6 +271,7 @@
                 }
             }
         });
+
     // deployment graph
     var deploymentGraph = document.getElementById('deploymentChart').getContext('2d');
         var myChart3 = new Chart(deploymentGraph, {

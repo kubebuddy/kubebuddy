@@ -16,7 +16,7 @@
 
   <h1>Welcome to the Dashboard!</h1>
 
-  <div class="cluster-card">
+    <div class="cluster-card">
         <div class="cluster-sidebar">
             <p><b>Cluster Details</b></p>
             <li>Cluster Name: KubeBuddy_test</li>
@@ -31,12 +31,10 @@
                 </div>
                 <h6>Total CPU: {{cpu}}, Total Memory: {{memory}}</h6>
             </div>
-
             <div class="cluster-chart-container" >
                 <canvas id="nodesChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 <p class="cluster-text-center">Nodes: {{node_count}}</p>
             </div>
-
             <div class="cluster-chart-container">
                 <canvas id="podsChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 <p class="cluster-text-center">Pods: {{pod_count}}</p>
@@ -45,7 +43,7 @@
     </div>
 
 
-  <div class="container my-5">
+    <div class="container my-5">
     <div class="row mb-4 justify-content-between">
         <div class="col-lg-2">
             <div class="card text-center p-4">

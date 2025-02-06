@@ -17,7 +17,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from main.views import login_view, integrate_with, logout_view, change_pass
+from main.views import login_view, integrate_with, logout_view, change_pass, cluster_select, delete_cluster
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,4 +28,6 @@ urlpatterns = [
     path('update-password/', change_pass, name='update-password'),
     path('integrate/', integrate_with, name='integrate'),
     path('', include('dashboard.urls')),
+    path('cluster-select/', cluster_select, name='cluster-select'),
+    path('delete_cluster/<int:pk>/', delete_cluster, name='delete_cluster')
 ]

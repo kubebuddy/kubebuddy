@@ -5,27 +5,43 @@
 
 {% block content %}
 
-  <!-- Deafault username password block -->
-  {% if warning %}
-  <div class="alert alert-warning alert-dismissible fade show" role="alert">
-    {{ warning }} 
-    <a href="/update-password"><strong>Click here to update</strong></a>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-  </div>
-  {% endif %}
+    <!-- Deafault username password block -->
+    {% if warning %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{ warning }} 
+        <a href="/update-password"><strong>Click here to update</strong></a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
 
-  <h1>Welcome to the Dashboard!</h1>
+    <div class="container mt-5">
+        <div class=" d-flex justify-content-end align-items-center position-absolute top-0 end-0 p-3">
+            <form>
+                <div class="form-group d-flex">
+                    <select id="categorySelect" class="form-control mr-2">
+                        <option value="all">Select a Namespace</option>
+                        
+                        {% for ns in namespaces %}
+                            <option value="{{ ns }}">{{ ns }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary ms-3">Go</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="cluster-card">
         <div class="cluster-sidebar">
-            <p><b>Cluster Details</b></p>
+            <p><b>Cluster Information:</b></p>
             <li>Cluster Name: KubeBuddy_test</li>
-            <li>Total Nodes: {{node_count}}</li>
-            <li>Total Namespace: 4</li>
-            <li>Total Pods: {{pod_count}}</li>
+            <li>Nodes: {{node_count}}</li>
+            <li>Namespace: 4</li>
+            <li>Pods: {{pod_count}}</li>
         </div>
         <div class="cluster-charts">
             <div class="text-center">
+                <h6>Current Usage</h6>
                 <div class="chart-container-bar">
                     <canvas id="usageChart"></canvas>
                 </div>
@@ -220,7 +236,7 @@
                 datasets: [{
                     label: 'Count',
                     backgroundColor: [
-                      'rgb(40, 167, 69)',
+                      'rgb(50, 108, 229)',
                       'rgb(255, 204, 0)',
                     ],
                     borderWidth: 1,

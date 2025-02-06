@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from main.models import KubeConfig
-from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, k8s_statefulset, k8s_jobs, k8s_cronjobs
+from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, \
+                k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_namespaces
 from django.contrib.auth.decorators import login_required
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
@@ -60,21 +61,24 @@ def dashboard(request):
     # get cronjobs count
     cronjob_count = k8s_cronjobs.getCronJobCount()
 
-    return render(request, 'dashboard/dashboard.html', {'warning': warning_message, 'ready_nodes': ready_nodes, 'not_ready_nodes' : not_ready_nodes, 'node_count': node_count, 'status_count': status_count, 'pod_count': pode_count, 'current_cluster': current_cluster, 'node_list': node_list, 'deployments_count':deployments_count, 'daemonset_count': daemonset_count, 'replicaset_count':replicaset_count, 'statefulset_count': statefulset_count, 'job_count': job_count, 'cronjob_count': cronjob_count})
-    # cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future 
-    # data = KubeConfig.objects.filter(cluster_id=cluster_id).values().first()
-    # path = data['path']
+    # get namespaces list
+    namespaces = k8s_namespaces.get_namespace()
 
-
-    # try:
-    #     config.load_kube_config(config_file=path)  # Load the kube config
-    #     v1 = client.CoreV1Api()
-    #     namespaces = v1.list_namespace()
-    #     return render(request, 'dashboard/dashboard.html')
-        
-    # except Exception as e:
-    #     error_message = f"Error: Unable to connect to the cluster. \n Details: {str(e)}"
-    #     return render(request, 'dashboard/error.html', {"error": error_message})
+    return render(request, 'dashboard/dashboard.html', {'warning': warning_message, 
+                                                        'ready_nodes': ready_nodes, 
+                                                        'not_ready_nodes' : not_ready_nodes, 
+                                                        'node_count': node_count, 
+                                                        'status_count': status_count, 
+                                                        'pod_count': pode_count, 
+                                                        'current_cluster': current_cluster, 
+                                                        'node_list': node_list, 
+                                                        'deployments_count':deployments_count, 
+                                                        'daemonset_count': daemonset_count, 
+                                                        'replicaset_count':replicaset_count, 
+                                                        'statefulset_count': statefulset_count, 
+                                                        'job_count': job_count, 
+                                                        'cronjob_count': cronjob_count,
+                                                        'namespaces':namespaces})
     
 def pods(request):
 

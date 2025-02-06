@@ -4,6 +4,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+
   <!-- Deafault username password block -->
   {% if warning %}
   <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -14,7 +15,6 @@
   {% endif %}
 
   <h1>Welcome to the Dashboard!</h1>
-  <h4>Powered by Thinknyx Technologies</h4>
 
   <div class="container my-5">
 
@@ -32,11 +32,13 @@
                 <h5 class="card-title">Pods</h5>
                 <h5 class="card-text text-dark">{{pod_count}}</h5>
                 <canvas id="podsChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="cluster-text-center">Pods: {{pod_count}}</p>
             </div>
         </div>
     </div>
 
-    <!-- Pods overview -->
+
+  <div class="container my-5">
     <div class="row mb-4 justify-content-between">
         <div class="col-lg-2">
             <div class="card text-center p-4">
@@ -81,7 +83,6 @@
             </div>
         </div>
     </div>
-
 
         <!-- Resource Usage Summary -->
         <div class="row">
@@ -175,6 +176,36 @@
     </div>
   
   <script>
+    
+    // CPU and Memory usage graph
+    var usageChart = document.getElementById('usageChart').getContext('2d');
+        var myChart0 = new Chart(usageChart, {
+            type: 'bar',
+            data: {
+                labels: ['CPU Usage', 'Memory Usage'],
+                datasets: [{
+                    label: 'Usage (in %)',
+                    backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)'],
+                    data: [35, 66],
+                    barThickness: 50
+                }]
+            },
+            options: {
+                responsive: true,
+                // cutout: '80%',
+                hoverOffset: 3, // hover effect
+                maintainAspectRatio: false,
+                scales: {
+                y: { beginAtZero: true, max: 100 }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
     // node graph
     var nodesGraph = document.getElementById('nodesChart').getContext('2d');
         var myChart1 = new Chart(nodesGraph, {
@@ -194,7 +225,7 @@
             options: {
                 responsive: false,
                 cutout: '80%',
-                hoverOffset: 3, // hover effect
+                hoverOffset: 5, // hover effect
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
@@ -222,10 +253,10 @@
                 }]
             },
             options: {
-                responsive: false,
+                responsive: true,
                 cutout: '80%',
                 hoverOffset: 5, // hover effect
-                maintainAspectRatio: false,
+                maintainAspectRatio: true,
                 plugins: {
                     legend: {
                         display: false
@@ -233,6 +264,7 @@
                 }
             }
         });
+
     // deployment graph
     var deploymentGraph = document.getElementById('deploymentChart').getContext('2d');
         var myChart3 = new Chart(deploymentGraph, {

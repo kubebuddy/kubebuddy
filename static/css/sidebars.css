@@ -107,3 +107,52 @@ main {
   padding: 0.4rem 0.6rem;
   border-radius: 12px;
 }
+
+.bold{
+  font-weight: bold;
+}
+
+/* Dashboard CSS */
+.dash-card-canvas {
+  display: block; 
+  margin: 0 auto; 
+  width: 90%; 
+  height: auto;
+}
+
+.cluster-chart-container canvas{
+  /* display: block; 
+  margin: auto; */
+  width: 60%; 
+  height: auto;
+}
+
+.cluster-card {
+  margin-top: 2%;
+  display: flex;
+  background: #fff;
+  padding: 20px;
+  width: 100%;
+  align-items: center;
+  justify-content: space-around;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(31, 255, 46, 0.1);
+  border: 1px solid #8ddbff;
+}
+
+.cluster-sidebar {
+  width: 30%;
+  padding: 10px;
+  border-radius: 3px;
+  text-align: center;
+  background: #e6f7ff;
+  text-align: left;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cluster-charts {
+  padding: auto;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}

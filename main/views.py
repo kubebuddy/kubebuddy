@@ -11,6 +11,8 @@ from kubebuddy.appLogs import logger
 from django.contrib import messages
 
 from django.contrib.auth.models import User
+from .models import Cluster
+from django.http import JsonResponse
 
 from kubernetes import config, client
 from kubernetes.config.config_exception import ConfigException
@@ -36,10 +38,10 @@ def login_view(request):
                         if username == 'admin' and password == 'admin':
                             # Redirect to the dashboard with a warning message
                             request.session['warning'] = "You're using the default password. Please change it for security reasons."
-                            return redirect('/dashboard')
+                            return redirect('/cluster-select')
                         else:
                             # Redirect to the dashboard if credentials are valid
-                            return redirect('/dashboard')
+                            return redirect('/cluster-select')
                     else:
                         # Redirect to integrate page if no valid kubeconfig file exists
                         return redirect('/integrate')
@@ -68,14 +70,14 @@ def integrate_with(request):
             # Check if the file is a valid kube/config
             try:
                 config.load_kube_config(config_file=path)  # Load the kube config
-                v1 = client.CoreV1Api()
-                namespaces = v1.list_namespace()
                 
                 # Save the data to the database
                 kube_config = KubeConfig.objects.create(path=path, path_type=path_type)
                 kube_config.save()
 
-                return redirect('/dashboard')
+                save_clusters(kube_config)
+
+                return redirect('/cluster-select')
             except ConfigException as e:
                 error_message = f"Error: Invalid kube/config file. Details: {str(e)}"
             except Exception as e:
@@ -84,6 +86,31 @@ def integrate_with(request):
     return render(request, 'main/integrate.html', {
         'error_message': error_message,
     })
+
+def save_clusters(kube_config):
+
+    contexts, _ = config.list_kube_config_contexts()
+
+    if not contexts:
+        return # error handling
+
+    for context in contexts:
+        cluster_name = context['context']['cluster']
+        
+        try:
+            # Set the current context to the specific context
+            config.load_kube_config(context=context['name'])
+            v1 = client.CoreV1Api()
+
+            # Get number of nodes
+            nodes = v1.list_node().items
+            number_of_nodes = len(nodes)
+
+            cluster = Cluster.objects.create(cluster_name = cluster_name, number_of_nodes = number_of_nodes, kube_config = kube_config)
+            cluster.save()
+
+        except():
+            pass # create 500 erro page later (error handling)
 
 @login_required
 def logout_view(request):
@@ -129,3 +156,64 @@ def change_pass(request):
 
     logger.error(error_message)
     return render(request, 'main/change_password.html', {'error_message': error_message})
+
+@login_required
+def cluster_select(request):
+    # pods to check for control plane and dns status
+    control_plane_components = [
+    {"key": "component", "value": "kube-apiserver"},
+    {"key": "component", "value": "kube-controller-manager"},
+    {"key": "component", "value": "kube-scheduler"},
+    {"key": "component", "value": "etcd"}
+    ]
+    core_dns_label = {"key": "k8s-app", "value": "kube-dns"}
+
+    # saved clusters in db
+    registered_clusters = Cluster.objects.all()
+
+    for context in registered_clusters:
+        cluster_name = context.cluster_name
+        failed_control_pods = []
+        failed_dns_pods = []
+        
+        try:
+            # Set the current context to the specific context
+            config.load_kube_config(context=cluster_name)
+            v1 = client.CoreV1Api()
+
+            # Check if all control plane components are running
+            context.control_plane_status = "Running"
+            for component in control_plane_components:
+                label_selector = f"{component['key']}={component['value']}"
+                pods = v1.list_namespaced_pod(namespace="kube-system", label_selector=label_selector)
+    
+                for pod in pods.items:
+                    if pod.status.phase != "Running":
+                        context.control_plane_status = "Unhealthy"
+                        failed_control_pods.append(pod.metadata.name)
+
+            # Check if all CoreDNS pods are running
+            context.core_dns_status = "Running"
+            label_selector = f"{core_dns_label['key']}={core_dns_label['value']}"
+            core_dns_pods = v1.list_namespaced_pod(namespace="kube-system", label_selector=label_selector)
+            for pod in core_dns_pods.items:
+                if pod.status.phase != "Running":
+                    context.core_dns_status = "Unhealthy"
+                    failed_dns_pods.append(pod.metadata.name)
+            
+            # if failed pods present add them to cluster info
+            if failed_control_pods:
+                context.failed_control_pods = failed_control_pods
+            if failed_dns_pods:
+                context.failed_dns_pods = failed_dns_pods
+
+        except():
+            pass # error handling
+
+
+    return render(request, 'main/cluster_select.html', {'registered_clusters' : registered_clusters})
+
+def delete_cluster(request, pk):
+    cluster = Cluster.objects.get(pk=pk)
+    cluster.delete()
+    return JsonResponse({'status': 'deleted'})

@@ -16,21 +16,26 @@
 
   <h1>Welcome to the Dashboard!</h1>
 
-  <div class="container my-5">
-
-    <!-- Cluster Overview -->
-    <div class="row mb-4 justify-content-center">
-        <div class="col-lg-2">
-            <div class="card text-center p-4">
-                <h5 class="card-title">Nodes</h5>
-                <h5 class="card-text text-dark">{{node_count}}</h5>
-                <canvas id="nodesChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
-            </div>
+    <div class="cluster-card">
+        <div class="cluster-sidebar">
+            <p><b>Cluster Details</b></p>
+            <li>Cluster Name: KubeBuddy_test</li>
+            <li>Total Nodes: {{node_count}}</li>
+            <li>Total Namespace: 4</li>
+            <li>Total Pods: {{pod_count}}</li>
         </div>
-        <div class="col-lg-2">  
-            <div class="card text-center p-4">
-                <h5 class="card-title">Pods</h5>
-                <h5 class="card-text text-dark">{{pod_count}}</h5>
+        <div class="cluster-charts">
+            <div class="text-center">
+                <div class="chart-container-bar">
+                    <canvas id="usageChart"></canvas>
+                </div>
+                <h6>Total CPU: {{cpu}}, Total Memory: {{memory}}</h6>
+            </div>
+            <div class="cluster-chart-container" >
+                <canvas id="nodesChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="cluster-text-center">Nodes: {{node_count}}</p>
+            </div>
+            <div class="cluster-chart-container">
                 <canvas id="podsChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 <p class="cluster-text-center">Pods: {{pod_count}}</p>
             </div>
@@ -38,48 +43,48 @@
     </div>
 
 
-  <div class="container my-5">
+    <div class="container my-5">
     <div class="row mb-4 justify-content-between">
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h5 class="card-title">Deployments</h5>
-                <h5 class="card-text text-dark">{{deployments_count}}</h5>
-                <canvas id="deploymentChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">Deployments</p>
+                <p class="card-text text-dark">{{deployments_count}}</p>
+                <canvas id="deploymentChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h5 class="card-title">Daemonsets</h5>
-                <h5 class="card-text text-dark">{{daemonset_count}}</h5>
-                <canvas id="daemonChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">DaemonSet</p>
+                <p class="card-text text-dark">{{daemonset_count}}</p>
+                <canvas id="daemonChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h5 class="card-title">Replicasets</h5>
-                <h5 class="card-text text-dark">{{replicaset_count}}</h5>
-                <canvas id="replicaChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">ReplicaSets</p>
+                <p class="card-text text-dark">{{replicaset_count}}</p>
+                <canvas id="replicaChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h5 class="card-title">Statefulsets</h5>
-                <h5 class="card-text text-dark">{{statefulset_count}}</h5>
-                <canvas id="statefulChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">StatefulSets</p>
+                <p class="card-text text-dark">{{statefulset_count}}</p>
+                <canvas id="statefulChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h5 class="card-title">Jobs</h5>
-                <h5 class="card-text text-dark">{{job_count}}</h5>
-                <canvas id="jobChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">Jobs</p>
+                <p class="card-text text-dark">{{job_count}}</p>
+                <canvas id="jobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
         <div class="col-lg-2">
             <div class="card text-center p-4">
-                <h5 class="card-title">Cron Jobs</h5>
-                <h5 class="card-text text-dark">{{cronjob_count}}</h5>
-                <canvas id="cronjobChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                <p class="card-title bold">CronJobs</p>
+                <p class="card-text text-dark">{{cronjob_count}}</p>
+                <canvas id="cronjobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
             </div>
         </div>
     </div>

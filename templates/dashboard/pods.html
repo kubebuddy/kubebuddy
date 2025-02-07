@@ -4,14 +4,91 @@
 {% block title %}pods{% endblock %}
 
 {% block content %}
-  <h1>This is the Pods Page!</h1>
-  <br><br>
-  <h3>There are total {{ pc }} pod(s) in your cluster.</h3>
-  <br><br>
+<style>
+    .accordion-button {
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+        }
+        .accordion-button:not(.collapsed) {
+            background-color: #0056b3;
+            color: white;
+        }
+        .pod-card {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+        }
+</style>
+<div class="container mt-4">
+    <div class="accordion" id="podsAccordion">
+        <!-- Example Namespace -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="namespaceOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Namespace: default
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="namespaceOne" data-bs-parent="#podsAccordion">
+                <div class="accordion-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="pod-card">
+                                <h5>Pod: web-server</h5>
+                                <p>Status: Running</p>
+                                <p>Node: worker-1</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="pod-card">
+                                <h5>Pod: database</h5>
+                                <p>Status: Running</p>
+                                <p>Node: worker-2</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add more namespaces dynamically -->
+    </div>
+
+    <!-- Chart for Pod Distribution -->
+    <div class="chart-container mt-5">
+        <canvas id="podChart"></canvas>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById("podChart").getContext("2d");
+        new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: ["default", "kube-system", "custom-ns"],
+                datasets: [{
+                    label: "Pod Count",
+                    data: [10, 15, 5],
+                    backgroundColor: ["#007bff", "#28a745", "#dc3545"],
+                    borderWidth: 1
+                }]
+            }
+        });
+    });
+</script>
+<!-- 
   <h4>Pods List</h4>
     <ul>
         {% for pod in pods %}
             <li>{{ pod }}</li>
         {% endfor %}
-    </ul>
+    </ul> -->
 {% endblock %}

@@ -5,6 +5,9 @@
 
 {% block content %}
 
+
+    
+
     <!-- Deafault username password block -->
     {% if warning %}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -14,13 +17,12 @@
     </div>
     {% endif %}
 
-    <div class="container mt-5">
-        <div class=" d-flex justify-content-end align-items-center position-absolute top-0 end-0 p-3">
+    <div class="container mt-3">
+        <div class="">
             <form>
-                <div class="form-group d-flex">
+                <div class="form-group d-flex align-items-center" style="width: 30%;">
                     <select id="categorySelect" class="form-control mr-2">
                         <option value="all">Select a Namespace</option>
-                        
                         {% for ns in namespaces %}
                             <option value="{{ ns }}">{{ ns }}</option>
                         {% endfor %}
@@ -31,13 +33,15 @@
         </div>
     </div>
 
+
+
     <div class="cluster-card">
         <div class="cluster-sidebar">
-            <p><b>Cluster Details</b></p>
+            <p><b>Cluster Information:</b></p>
             <li>Cluster Name: {{current_cluster}}</li>
-            <li>Total Nodes: {{node_count}}</li>
-            <li>Total Namespace: {{namespaces_count}}</li>
-            <li>Total Pods: {{pod_count}}</li>
+            <li>Nodes: {{node_count}}</li>
+            <li>Namespace: {{namespaces_count}}</li>
+            <li>Pods: {{pod_count}}</li>
         </div>
         <div class="cluster-charts">
             <div class="text-center">
@@ -60,53 +64,53 @@
 
 
     <div class="container my-5">
-    <div class="row mb-4 justify-content-between">
-        <div class="col-lg-2">
-            <div class="card text-center p-4">
-                <p class="card-title bold">Deployments</p>
-                <p class="card-text text-dark">{{deployments_count}}</p>
-                <canvas id="deploymentChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+        <div class="row mb-4 dash-cards">
+            <div class="col-lg-2">
+                <div class="card text-center p-4">
+                    <p class="card-title bold">Deployments</p>
+                    <p class="card-text text-dark">{{deployments_count}}</p>
+                    <canvas id="deploymentChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <div class="card text-center p-4">
+                    <p class="card-title bold">DaemonSet</p>
+                    <p class="card-text text-dark">{{daemonset_count}}</p>
+                    <canvas id="daemonChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <div class="card text-center p-4">
+                    <p class="card-title bold">ReplicaSets</p>
+                    <p class="card-text text-dark">{{replicaset_count}}</p>
+                    <canvas id="replicaChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <div class="card text-center p-4">
+                    <p class="card-title bold">StatefulSets</p>
+                    <p class="card-text text-dark">{{statefulset_count}}</p>
+                    <canvas id="statefulChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <div class="card text-center p-4">
+                    <p class="card-title bold">Jobs</p>
+                    <p class="card-text text-dark">{{job_count}}</p>
+                    <canvas id="jobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <div class="card text-center p-4">
+                    <p class="card-title bold">CronJobs</p>
+                    <p class="card-text text-dark">{{cronjob_count}}</p>
+                    <canvas id="cronjobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
+                </div>
             </div>
         </div>
-        <div class="col-lg-2">
-            <div class="card text-center p-4">
-                <p class="card-title bold">DaemonSet</p>
-                <p class="card-text text-dark">{{daemonset_count}}</p>
-                <canvas id="daemonChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
-            </div>
-        </div>
-        <div class="col-lg-2">
-            <div class="card text-center p-4">
-                <p class="card-title bold">ReplicaSets</p>
-                <p class="card-text text-dark">{{replicaset_count}}</p>
-                <canvas id="replicaChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
-            </div>
-        </div>
-        <div class="col-lg-2">
-            <div class="card text-center p-4">
-                <p class="card-title bold">StatefulSets</p>
-                <p class="card-text text-dark">{{statefulset_count}}</p>
-                <canvas id="statefulChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
-            </div>
-        </div>
-        <div class="col-lg-2">
-            <div class="card text-center p-4">
-                <p class="card-title bold">Jobs</p>
-                <p class="card-text text-dark">{{job_count}}</p>
-                <canvas id="jobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
-            </div>
-        </div>
-        <div class="col-lg-2">
-            <div class="card text-center p-4">
-                <p class="card-title bold">CronJobs</p>
-                <p class="card-text text-dark">{{cronjob_count}}</p>
-                <canvas id="cronjobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
-            </div>
-        </div>
-    </div>
 
         <!-- Resource Usage Summary -->
-        <div class="row">
+        <!-- <div class="row">
           <div class="col-lg-6">
               <div class="card text-center p-4">
                   <h5 class="card-title">Cluster CPU Usage</h5>
@@ -123,7 +127,7 @@
                   </div>
               </div>
           </div>
-      </div>
+        </div> -->
     </div>
 
     <!-- Node Status -->

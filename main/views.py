@@ -1,7 +1,6 @@
 from django.shortcuts import render
 
 # Create your views here.
-
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
@@ -19,6 +18,7 @@ from kubernetes.config.config_exception import ConfigException
 
 from .models import KubeConfig
 
+import urllib3
 import os
 
 def login_view(request):
@@ -186,8 +186,6 @@ def cluster_select(request):
     # pods to check for control plane and dns status
     control_plane_components = [
     {"key": "component", "value": "kube-apiserver"},
-    {"key": "component", "value": "kube-controller-manager"},
-    {"key": "component", "value": "kube-scheduler"},
     {"key": "component", "value": "etcd"}
     ]
     core_dns_label = {"key": "k8s-app", "value": "kube-dns"}
@@ -216,9 +214,6 @@ def cluster_select(request):
                 label_selector = f"{component['key']}={component['value']}"
                 pods = v1.list_namespaced_pod(namespace="kube-system", label_selector=label_selector)
                 for pod in pods.items:
-                    print(pod.metadata.name)
-                    print(pod.status.phase)
-                    print(label_selector)
                     if pod.status.phase != "Running":
                         print("reached ")
                         context.control_plane_status = "Unhealthy"
@@ -236,15 +231,19 @@ def cluster_select(request):
             context.failed_control_pods = failed_control_pods
             context.failed_dns_pods = failed_dns_pods
 
-        except Exception as e:
+        except urllib3.exceptions.MaxRetryError as e:
             print(e)
             context.control_plane_status = "Unavailable"
             context.core_dns_status = "Unavailable"
-
-
+        except Exception as e:
+            pass
 
     return render(request, 'main/cluster_select.html', {'registered_clusters' : registered_clusters})
 
+def cluster_error(request):
+    pass
+    return render(request, 'cluster_error.html')
+@login_required
 def delete_cluster(request, pk):
     cluster = Cluster.objects.get(pk=pk)
     cluster.delete()

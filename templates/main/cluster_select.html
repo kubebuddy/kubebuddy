@@ -18,14 +18,20 @@
             <span class="fs-5 p-2 fw-semibold">KubeBuddy</span>
             <br><br>
           </a>
-          <div class="card-body d-flex flex-column">
+        <div class="card-body d-flex flex-column">
             <div class="container my-4">
                 <div class="dropdown">
                     <input type="text" id="search-bar" class="form-control" placeholder="Search for clusters..." onkeyup="searchClusters()">
                     <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
                         {% for cluster in registered_clusters %}
-                        <a href="{% url 'dashboard' cluster.id %}" class="text-decoration-none"></a>
-                        <li class="dropdown-item cluster-item" onclick="selectCluster(this)">{{ cluster.cluster_name }}</li>
+                        <a href="
+                        {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
+                        {% url 'dashboard' cluster.id %}
+                        {% else %}
+                        {% url 'cluster_error' %}
+                        {% endif %}
+                        " class="text-decoration-none">
+                        <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
                         </a>
                         {% empty %}
                             <li class="list-group-item">No clusters found.</li>
@@ -43,7 +49,7 @@
                 <i class="bi bi-plus-lg"></i>
             </a>
             <button id="reload-btn" class="btn btn-primary w-auto mt-auto mb-3">
-                Reload
+                Refresh
                 <i class="bi bi-arrow-clockwise"></i>
             </button>
         </div>
@@ -61,7 +67,14 @@
                         {% endif %}">
                     <span id="cluster_tag" class="w-100" contenteditable>{{ cluster.cluster_name }}</span>
                     </div>
-                    <a href="{% url 'dashboard' cluster.id %}" class="text-decoration-none" style="text-decoration: none;">
+                    <a href="
+                    {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
+                    {% url 'dashboard' cluster.id %}
+                    {% else %}
+                    {% url 'cluster_error' %}
+                    {% endif %}
+                    " 
+                    class="text-decoration-none" style="text-decoration: none;">
                     <div class="card-body d-flex flex-column">
                         <p class="card-text text-black">
                             <strong>Name:</strong>
@@ -143,6 +156,7 @@
     </div>
     <script src="{% static 'js/cluster_actions.js' %}"></script>
     <script>
+        // tooltip
     document.addEventListener("DOMContentLoaded", function () {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -150,10 +164,11 @@
         });
     });
 
+    // reload
     function reloadPage() {
         // Disable the button and show the spinner when clicked
         var reloadButton = document.getElementById("reload-btn");
-        reloadButton.innerHTML = 'Reloading... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        reloadButton.innerHTML = 'Refreshing... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
         reloadButton.disabled = true;
 
         // Reload the page after a short delay to show the spinner
@@ -176,7 +191,7 @@
         list = document.getElementById('cluster-list');
         items = list.getElementsByClassName('cluster-item');
 
-        if (filter.length > 0) {
+        if (filter.length > 0 || document.activeElement === input) {
             list.classList.add("show"); // Show dropdown
         } else {
             list.classList.remove("show"); // Hide dropdown if input is empty
@@ -194,14 +209,19 @@
         }
     }
 
+    document.getElementById('search-bar').addEventListener("focus", function() {
+    var list = document.getElementById('cluster-list');
+    list.classList.add("show");
+    });
+
     function showDropdown() {
         document.getElementById('cluster-list').style.display = "block";
     }
 
-    function selectCluster(element) {
-        document.getElementById('search-bar').value = element.textContent;
-        document.getElementById('cluster-list').style.display = "none"; // Hide dropdown after selection
-    }
+    // function selectCluster(element) {
+    //     document.getElementById('search-bar').value = element.textContent;
+    //     document.getElementById('cluster-list').classList.remove("show") // Hide dropdown after selection
+    // }
 
     // Hide dropdown when clicking outside
     document.addEventListener("click", function(event) {

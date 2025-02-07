@@ -10,8 +10,8 @@ def getpods():
         pod_list.append(name)
     return pod_list, len(pod_list)
 
-def getPodsStatus():
-    config.load_kube_config()
+def getPodsStatus(path, context):
+    config.load_kube_config(config_file=path, context=context)
     v1 = client.CoreV1Api()
     pods = v1.list_pod_for_all_namespaces()
 
@@ -21,12 +21,6 @@ def getPodsStatus():
     "Failed": 0,
     "Succeeded": 0
     }
-    
-    # for pod in pods.items:
-    #     print(pod.metadata.name)
-    #     print(pod.status)
-        # if pod.status.phase == "Running":
-        #     print(pod.status.container_statuses)
 
     # Check each pod's status
     for pod in pods.items:
@@ -35,9 +29,20 @@ def getPodsStatus():
         elif pod.status.phase == "Pending":
             status_counts["Pending"]+=1
         elif pod.status.phase == "Running":
-            if pod.status.container_statuses[0].state.running: # CURRENTLY ASSUMING ONLY 1 CONTAINER PER POD !
+            all_container_running = True
+            for status in pod.status.container_statuses:
+                if status.state.running:
+                    pass
+                else:
+                    status_counts["Failed"]+=1
+                    all_container_running = False
+                    break
+            if all_container_running:
                 status_counts["Running"]+=1
-            else:
-                status_counts["Failed"]+=1
+                
+            # if pod.status.container_statuses[0].state.running: # CURRENTLY ASSUMING ONLY 1 CONTAINER PER POD !
+            #     status_counts["Running"]+=1
+            # else:
+            #     status_counts["Failed"]+=1
 
     return status_counts

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from main.models import KubeConfig, Cluster
 from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, \
-                k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_namespaces
+                k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_namespaces, k8s_cluster_metric
 from django.contrib.auth.decorators import login_required
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
@@ -41,7 +41,7 @@ def dashboard(request,cluster_id):
     node_list, node_count = k8s_nodes.getnodes()
 
     # get pods status
-    status_count = k8s_pods.getPodsStatus()
+    status_count = k8s_pods.getPodsStatus(path,current_cluster)
 
     # get list of pods
     pod_list, pode_count = k8s_pods.getpods()
@@ -67,6 +67,9 @@ def dashboard(request,cluster_id):
     # get namespaces list
     namespaces = k8s_namespaces.get_namespace()
 
+    # get cluster metrics
+    metrics = k8s_cluster_metric.getMetrics(path, current_cluster)
+
     return render(request, 'dashboard/dashboard.html', {'warning': warning_message, 
                                                         'ready_nodes': ready_nodes, 
                                                         'not_ready_nodes' : not_ready_nodes, 
@@ -81,7 +84,8 @@ def dashboard(request,cluster_id):
                                                         'statefulset_count': statefulset_count, 
                                                         'job_count': job_count, 
                                                         'cronjob_count': cronjob_count,
-                                                        'namespaces':namespaces})
+                                                        'namespaces':namespaces,
+                                                        'namespaces_count': namespaces_count})
     
 def pods(request):
 

@@ -24,7 +24,6 @@ class KubeConfig(models.Model):
     
 class Cluster(models.Model):
     cluster_name = models.CharField(max_length=255)
-    number_of_nodes = models.IntegerField()
     kube_config = models.ForeignKey(KubeConfig, on_delete=models.CASCADE)
 
     def __str__(self):

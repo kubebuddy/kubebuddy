@@ -69,15 +69,20 @@ def integrate_with(request):
         else:
             # Check if the file is a valid kube/config
             try:
-                config.load_kube_config(config_file=path)  # Load the kube config
+                if not KubeConfig.objects.filter(path=path).exists():
+                    config.load_kube_config(config_file=path)  # Load the kube config
+                    
+                    # Save the data to the database
+                    kube_config = KubeConfig.objects.create(path=path, path_type=path_type)
+                    kube_config.save()
+
+                    save_clusters(kube_config, changes=False)
+                    return redirect('/cluster-select')
+                else:
+                    kube_config = KubeConfig.objects.get(path=path)
+                    save_clusters(kube_config, changes = True)
+                    return redirect('/cluster-select') # kubeconfig already exists
                 
-                # Save the data to the database
-                kube_config = KubeConfig.objects.create(path=path, path_type=path_type)
-                kube_config.save()
-
-                save_clusters(kube_config)
-
-                return redirect('/cluster-select')
             except ConfigException as e:
                 error_message = f"Error: Invalid kube/config file. Details: {str(e)}"
             except Exception as e:
@@ -87,30 +92,49 @@ def integrate_with(request):
         'error_message': error_message,
     })
 
-def save_clusters(kube_config):
+def save_clusters(kube_config, changes):
 
     contexts, _ = config.list_kube_config_contexts()
 
     if not contexts:
         return # error handling
+    
+    # list of names present in file
+    cluster_names_in_kubeconfig = [context['context']['cluster'] for context in contexts]
+    
+    if not changes:
+        for context in contexts:
+            cluster_name = context['context']['cluster']
+            
+            try:
+                # Set the current context to the specific context
+                config.load_kube_config(context=context['name'])
 
-    for context in contexts:
-        cluster_name = context['context']['cluster']
+                # this check might not be needed, but am keeping it here for now
+                if not Cluster.objects.filter(cluster_name=cluster_name, kube_config=kube_config).exists():
+                    cluster = Cluster.objects.create(cluster_name=cluster_name, kube_config=kube_config)
+                    cluster.save()
+                else:
+                    pass
+
+            except Exception as e:
+                print("exception caught:",e)
+    else:
+        # file already exists (updated)
+        existing_clusters = Cluster.objects.filter(kube_config=kube_config)
+        existing_cluster_names = [cluster.cluster_name for cluster in existing_clusters]
+
+        # create newly added clusters
+        for context in contexts:
+            cluster_name = context['context']['cluster']
+                
+            # If this cluster is not already in the database, add it
+            if cluster_name not in existing_cluster_names:
+                Cluster.objects.create(cluster_name=cluster_name, kube_config=kube_config)
         
-        try:
-            # Set the current context to the specific context
-            config.load_kube_config(context=context['name'])
-            v1 = client.CoreV1Api()
-
-            # Get number of nodes
-            nodes = v1.list_node().items
-            number_of_nodes = len(nodes)
-
-            cluster = Cluster.objects.create(cluster_name = cluster_name, number_of_nodes = number_of_nodes, kube_config = kube_config)
-            cluster.save()
-
-        except():
-            pass # create 500 erro page later (error handling)
+        clusters_to_delete = [cluster for cluster in existing_clusters if cluster.cluster_name not in cluster_names_in_kubeconfig]
+        for cluster in clusters_to_delete:
+                cluster.delete()
 
 @login_required
 def logout_view(request):
@@ -181,19 +205,26 @@ def cluster_select(request):
             config.load_kube_config(context=cluster_name)
             v1 = client.CoreV1Api()
 
+            # Get number of nodes
+            nodes = v1.list_node().items
+            context.number_of_nodes = len(nodes)
+
             # Check if all control plane components are running
             context.control_plane_status = "Running"
+            context.core_dns_status = "Running"
             for component in control_plane_components:
                 label_selector = f"{component['key']}={component['value']}"
                 pods = v1.list_namespaced_pod(namespace="kube-system", label_selector=label_selector)
-    
                 for pod in pods.items:
+                    print(pod.metadata.name)
+                    print(pod.status.phase)
+                    print(label_selector)
                     if pod.status.phase != "Running":
+                        print("reached ")
                         context.control_plane_status = "Unhealthy"
                         failed_control_pods.append(pod.metadata.name)
 
             # Check if all CoreDNS pods are running
-            context.core_dns_status = "Running"
             label_selector = f"{core_dns_label['key']}={core_dns_label['value']}"
             core_dns_pods = v1.list_namespaced_pod(namespace="kube-system", label_selector=label_selector)
             for pod in core_dns_pods.items:
@@ -202,13 +233,14 @@ def cluster_select(request):
                     failed_dns_pods.append(pod.metadata.name)
             
             # if failed pods present add them to cluster info
-            if failed_control_pods:
-                context.failed_control_pods = failed_control_pods
-            if failed_dns_pods:
-                context.failed_dns_pods = failed_dns_pods
+            context.failed_control_pods = failed_control_pods
+            context.failed_dns_pods = failed_dns_pods
 
-        except():
-            pass # error handling
+        except Exception as e:
+            print(e)
+            context.control_plane_status = "Unavailable"
+            context.core_dns_status = "Unavailable"
+
 
 
     return render(request, 'main/cluster_select.html', {'registered_clusters' : registered_clusters})

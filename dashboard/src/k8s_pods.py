@@ -40,17 +40,4 @@ def getPodsStatus():
             else:
                 status_counts["Failed"]+=1
 
-
-    # for pod in pods:
-    #     conditions = pod.status.container_statuses
-    #     # Check if Pod is Running
-    #     if any(cond.ready for cond in conditions):
-    #         status_counts["Running"]+=1
-    #     # Check if Pod is Pending
-    #     elif any(cond.state.waiting for cond in conditions):
-    #         status_counts["Pending"]+=1
-    #     # Remaining Pods are considered Failed
-    #     else:
-    #         status_counts["Failed"]+=1
-    
     return status_counts

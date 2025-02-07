@@ -19,30 +19,40 @@
             <br><br>
           </a>
           <div class="card-body d-flex flex-column">
-                <!-- <div class="form-group mb-4">
-                    <label for="cluster_select" class="form-label">Select Cluster</label>
-                    <select id="cluster_select" class="form-select" name="cluster">
+            <div class="container my-4">
+                <div class="dropdown">
+                    <input type="text" id="search-bar" class="form-control" placeholder="Search for clusters..." onkeyup="searchClusters()">
+                    <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
                         {% for cluster in registered_clusters %}
-                            <option value="{{ cluster.id }}">{{ cluster.cluster_name }}</option>
+                        <a href="{% url 'dashboard' cluster.id %}" class="text-decoration-none"></a>
+                        <li class="dropdown-item cluster-item" onclick="selectCluster(this)">{{ cluster.cluster_name }}</li>
+                        </a>
+                        {% empty %}
+                            <li class="list-group-item">No clusters found.</li>
                         {% endfor %}
-                    </select>
-                </div> -->
+                    </ul>
+                </div>
+            </div>
         </div>
-        <ul class="nav flex-column">
-        </ul>
     </div>
     <!-- main page  -->
     <div class="container mt-4">
-        <div class="pb-1 border-bottom">
+        <div class="pb-1 border-bottom d-flex justify-content-between">
             <a type="button" class="btn btn-primary w-auto mt-auto mb-3" href="{% url 'integrate' %}">
                 Add Cluster
+                <i class="bi bi-plus-lg"></i>
             </a>
+            <button id="reload-btn" class="btn btn-primary w-auto mt-auto mb-3">
+                Reload
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
         </div>
         <br><br>
         <div class="row">
             <!-- Cluster Cards -->
             {% for cluster in registered_clusters %}
-            <div class="col-md-4 mb-4">
+            <div class="col-md-4 mb-4 ">
+                <a href="{% url 'dashboard' cluster.id %}" class="text-decoration-none">
                 <div class="card h-100 shadow-sm">
                     <div class="card-header d-flex justify-content-between 
                         {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
@@ -71,32 +81,46 @@
                         </p>
                         <p class="card-text">
                             <strong>Control Plane : </strong>
-                            {% if cluster.control_plane_status %}
+                            {% if cluster.control_plane_status == "Running" %}
                                <span class="text-success">Running</span>
-                            {% else %}
+                            {% elif cluster.control_plane_status == "Unhealthy" %}
                                 <span class="text-danger">Unhealthy</span>
                                 <i class="bi bi-exclamation-triangle-fill text-danger"
                                 data-bs-toggle="tooltip"
                                 data-bs-placement="top"
-                                title="Problematic Pods: {% for pod in cluster.failed_control_pods %}{{ pod }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                                title="Problematic Pods: {% for pod in cluster.failed_control_pods %}{{ pod }} not working {% if not forloop.last %}, {% endif %}{% endfor %}">
+                                </i>
+                            {% else %}
+                                <span class="text-danger">Unavailable</span>
+                                <i class="bi bi-exclamation-triangle-fill text-danger"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="Could not connect to cluster {{cluster.cluster_name}}">
                                 </i>
                             {% endif %}
                         </p>
                         <p class="card-text">
                             <strong>CoreDNS : </strong>
-                            {% if cluster.core_dns_status %}
+                            {% if cluster.core_dns_status == "Running" %}
                                 <span class="text-success">Running</span>
-                            {% else %}
+                            {% elif cluster.core_dns_status == "Unhealthy" %}
                                 <span class="text-danger">Unhealthy</span>
                                 <i class="bi bi-exclamation-triangle-fill text-danger"
                                 data-bs-toggle="tooltip"
                                 data-bs-placement="top"
-                                title="Problematic Pods: {% for pod in cluster.failed_dns_pods %}{{ pod }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                                title="Problematic Pods: {% for pod in cluster.failed_dns_pods %}{{ pod }} not working {% if not forloop.last %}, {% endif %}{% endfor %}">
+                                </i>
+                            {% else %}
+                                <span class="text-danger">Unavailable</span>
+                                <i class="bi bi-exclamation-triangle-fill text-danger"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="Could not connect to cluster {{cluster.cluster_name}}">
                                 </i>
                             {% endif %}
                         </p>
                         <p class="card-text">
-                            <strong>Nodes:</strong>
+                            <strong>Kube config:</strong>
                             {% if cluster.kube_config.path %}
                                 {{ cluster.kube_config.path }}
                             {% else %}
@@ -108,6 +132,7 @@
                         </div>
                     </div>
                 </div>
+                </a>
             </div>
             {% if forloop.counter|divisibleby:3 and not forloop.last %}
             </div><div class="row">
@@ -123,6 +148,85 @@
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
+    });
+
+    function reloadPage() {
+        // Disable the button and show the spinner when clicked
+        var reloadButton = document.getElementById("reload-btn");
+        reloadButton.innerHTML = 'Reloading... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        reloadButton.disabled = true;
+
+        // Reload the page after a short delay to show the spinner
+        setTimeout(() => {
+            location.reload();
+        }, 1000);  // 1-second delay before reloading
+    }
+
+    // Reload button event listener
+    document.getElementById("reload-btn").addEventListener("click", reloadPage);
+
+    // Auto-refresh every 60 seconds (60000 ms)
+    setTimeout(reloadPage, 60000);
+
+    // search functionality
+    // function searchClusters() {
+    //     var input, filter, list, items, item, textValue;
+    //     input = document.getElementById('search-bar');
+    //     filter = input.value.toLowerCase();
+    //     list = document.getElementById('cluster-list');
+    //     items = list.getElementsByClassName('cluster-item');
+
+    //     for (var i = 0; i < items.length; i++) {
+    //         item = items[i];
+    //         textValue = item.textContent || item.innerText;
+    //         if (textValue.toLowerCase().indexOf(filter) > -1) {
+    //             item.style.display = "";
+    //         } else {
+    //             item.style.display = "none";
+    //         }
+    //     }
+    // }
+    function searchClusters() {
+        var input, filter, list, items, item, textValue;
+        input = document.getElementById('search-bar');
+        filter = input.value.toLowerCase();
+        list = document.getElementById('cluster-list');
+        items = list.getElementsByClassName('cluster-item');
+
+        if (filter.length > 0) {
+            list.classList.add("show"); // Show dropdown
+        } else {
+            list.classList.remove("show"); // Hide dropdown if input is empty
+        }
+
+
+        for (var i = 0; i < items.length; i++) {
+            item = items[i];
+            textValue = item.textContent || item.innerText;
+            if (textValue.toLowerCase().indexOf(filter) > -1) {
+                item.style.display = "";
+            } else {
+                item.style.display = "none";
+            }
+        }
+    }
+
+    function showDropdown() {
+        document.getElementById('cluster-list').style.display = "block";
+    }
+
+    function selectCluster(element) {
+        document.getElementById('search-bar').value = element.textContent;
+        document.getElementById('cluster-list').style.display = "none"; // Hide dropdown after selection
+    }
+
+    // Hide dropdown when clicking outside
+    document.addEventListener("click", function(event) {
+        var dropdown = document.getElementById('cluster-list');
+        var input = document.getElementById('search-bar');
+        if (!dropdown.contains(event.target) && event.target !== input) {
+            dropdown.classList.remove("show");
+        }
     });
     </script>
 </body>

@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from main.models import KubeConfig
+from main.models import KubeConfig, Cluster
 from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, \
                 k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_namespaces
 from django.contrib.auth.decorators import login_required
@@ -9,21 +9,24 @@ from .decorators import server_down_handler
 
 @server_down_handler
 @login_required
-def dashboard(request):
-    cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future
-    data = KubeConfig.objects.filter(cluster_id=cluster_id).values().first()
-    path = data['path']
+def dashboard(request,cluster_id):
+    # cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # data = KubeConfig.objects.filter(cluster_id=cluster_id).values().first()
+    # path = data['path']
     logger.info(f"kube config file path  : {path}")
 
-    config.load_kube_config(config_file=path)  # Load the kube config
+    config.load_kube_config(config_file=path, context = current_cluster.cluster_name)  # Load the kube config
         
     v1 = client.CoreV1Api()
 
     # get cluster name
-    current_cluster = config.list_kube_config_contexts()[1]['context']['cluster']
+    current_cluster = current_cluster.cluster_name
     
-    namespaces = v1.list_namespace()
-    logger.info(f"Namespaces  : {len(namespaces.items)}")
+    namespaces = v1.list_namespace().items
+    namespaces_count = len(namespaces)
+    logger.info(f"Namespaces  : {len(namespaces)}")
 
     # check if the user is using default username and password
     if request.user.username == "admin" and request.user.check_password("admin"):

@@ -1,94 +1,219 @@
-<!-- templates/dashboard/dashboard.html -->
 {% extends 'dashboard/base.html' %}
 
-{% block title %}pods{% endblock %}
+{% block title %}Pods{% endblock %}
 
 {% block content %}
-<style>
-    .accordion-button {
-            font-weight: bold;
-            background-color: #007bff;
-            color: white;
-        }
-        .accordion-button:not(.collapsed) {
-            background-color: #0056b3;
-            color: white;
-        }
-        .pod-card {
-            background: linear-gradient(135deg, #6a11cb, #2575fc);
-            color: white;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        .chart-container {
-            width: 100%;
-            max-width: 600px;
-            margin: auto;
-        }
-</style>
-<div class="container mt-4">
-    <div class="accordion" id="podsAccordion">
-        <!-- Example Namespace -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="namespaceOne">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                    Namespace: default
-                </button>
-            </h2>
-            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="namespaceOne" data-bs-parent="#podsAccordion">
-                <div class="accordion-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="pod-card">
-                                <h5>Pod: web-server</h5>
-                                <p>Status: Running</p>
-                                <p>Node: worker-1</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="pod-card">
-                                <h5>Pod: database</h5>
-                                <p>Status: Running</p>
-                                <p>Node: worker-2</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+<div class="container">
+  <div class="row text-center">
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: 60</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Running: 44</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Failed: 6</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Pending: 6</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-info"><b><i>Succeeded: 50</i></b></div></div>
+  </div>
+
+  <div class="container">
+    <!-- Dropdown with checkboxes to select columns -->
+    <div class="mb-3">
+      <label for="columnSelector" class="form-label">Select Columns to Display</label>
+        <div class="dropdown">
+          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Columns
+          </button>
+          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
+                <label class="form-check-label" for="Namespace"> Namespace</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
+                <label class="form-check-label" for="Name"> Name</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Containers" id="Containers" checked> 
+                <label class="form-check-label" for="Containers"> Containers</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Node" id="Node" checked> 
+                <label class="form-check-label" for="Node"> Node</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="IP" id="IP" checked> 
+                <label class="form-check-label" for="IP"> IP</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Restarts" id="Restarts" checked> 
+                <label class="form-check-label" for="Restarts"> Restarts</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
+                <label class="form-check-label" for="Age"> Age</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Status" id="Status" checked> 
+                <label class="form-check-label" for="Status"> Status</label>
+            </li>
+          </ul>
         </div>
-        
-        <!-- Add more namespaces dynamically -->
     </div>
-
-    <!-- Chart for Pod Distribution -->
-    <div class="chart-container mt-5">
-        <canvas id="podChart"></canvas>
-    </div>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const ctx = document.getElementById("podChart").getContext("2d");
-        new Chart(ctx, {
-            type: "doughnut",
-            data: {
-                labels: ["default", "kube-system", "custom-ns"],
-                datasets: [{
-                    label: "Pod Count",
-                    data: [10, 15, 5],
-                    backgroundColor: ["#007bff", "#28a745", "#dc3545"],
-                    borderWidth: 1
-                }]
-            }
-        });
+  
+    <!-- Table -->
+    <table class="table table-bordered">
+        <thead class="table-dark">
+        <tr>
+          <th id="colNamespace">NAMESPACE</th>
+          <th id="colName">NAME</th>
+          <th id="colContainers">CONTAINERS</th>
+          <th id="colNode">NODE</th>
+          <th id="colIP">IP</th>
+          <th id="colRestarts">RESTARTS</th>
+          <th id="colAge">AGE</th>
+          <th id="colStatus">STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>default</td>
+          <td>app1</td>
+          <td>2/2</td>
+          <td>node1</td>
+          <td>192.168.1.1</td>
+          <td>2</td>
+          <td>12h</td>
+          <td>Running</td>
+        </tr>
+        <tr>
+          <td>default</td>
+          <td>app2</td>
+          <td>1/1</td>
+          <td>node2</td>
+          <td>192.168.1.2</td>
+          <td>0</td>
+          <td>5h</td>
+          <td>Running</td>
+        </tr>
+        <tr>
+          <td>kube-system</td>
+          <td>coredns</td>
+          <td>2/2</td>
+          <td>node3</td>
+          <td>192.168.1.3</td>
+          <td>1</td>
+          <td>1d</td>
+          <td>Running</td>
+        </tr>
+        <tr>
+          <td>default</td>
+          <td>app3</td>
+          <td>1/2</td>
+          <td>node4</td>
+          <td>192.168.1.4</td>
+          <td>3</td>
+          <td>2d</td>
+          <td>CrashLoopBackOff</td>
+        </tr>
+        <tr>
+          <td>kube-system</td>
+          <td>kube-proxy</td>
+          <td>1/1</td>
+          <td>node5</td>
+          <td>192.168.1.5</td>
+          <td>0</td>
+          <td>3d</td>
+          <td>Running</td>
+        </tr>
+        <tr>
+          <td>custom</td>
+          <td>custom-app</td>
+          <td>1/1</td>
+          <td>node6</td>
+          <td>192.168.1.6</td>
+          <td>0</td>
+          <td>3h</td>
+          <td>Running</td>
+        </tr>
+        <tr>
+          <td>default</td>
+          <td>app4</td>
+          <td>2/2</td>
+          <td>node7</td>
+          <td>192.168.1.7</td>
+          <td>1</td>
+          <td>10h</td>
+          <td>Running</td>
+        </tr>
+      </tbody>
+      
+    </table>
+  </div>
+  
+  <!-- Include Bootstrap JS and dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  
+  
+  <script>
+    // Function to toggle column visibility based on checkbox selections
+    document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
+      checkbox.addEventListener("change", function () {
+        toggleColumns();
+        saveSelection();
+      });
     });
-</script>
-<!-- 
-  <h4>Pods List</h4>
-    <ul>
-        {% for pod in pods %}
-            <li>{{ pod }}</li>
-        {% endfor %}
-    </ul> -->
+  
+    // Function to save the column selection in localStorage
+    function saveSelection() {
+      const selectedColumns = [];
+      document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
+        if (checkbox.checked) {
+          selectedColumns.push(checkbox.value);
+        }
+      });
+      localStorage.setItem("selectedColumns", JSON.stringify(selectedColumns));
+    }
+  
+    // Function to load the column selection from localStorage
+    function loadSelection() {
+      const savedSelection = JSON.parse(localStorage.getItem("selectedColumns")) || [];
+      document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
+        checkbox.checked = savedSelection.includes(checkbox.value);
+      });
+    }
+  
+    // Function to show or hide columns based on selected checkboxes
+    function toggleColumns() {
+      const checkboxes = document.querySelectorAll(".form-check-input");
+      
+      checkboxes.forEach(function (checkbox) {
+        const columnName = checkbox.value;
+        const column = document.getElementById("col" + columnName);
+        const columnCells = document.querySelectorAll("td:nth-child(" + (getColumnIndex(columnName)) + ")");
+  
+        if (checkbox.checked) {
+          column.style.display = 'table-cell';
+          columnCells.forEach(cell => {
+            cell.style.display = 'table-cell';
+          });
+        } else {
+          column.style.display = 'none';
+          columnCells.forEach(cell => {
+            cell.style.display = 'none';
+          });
+        }
+      });
+    }
+  
+    // Function to get the column index by column name
+    function getColumnIndex(columnName) {
+      const columns = ["Namespace", "Name", "Containers", "Node", "IP", "Restarts", "Age", "Status"];
+      return columns.indexOf(columnName) + 1;
+    }
+  
+    // Initialize the table with the default visibility and selected columns
+    window.onload = function () {
+      loadSelection();  // Load saved column selection
+      toggleColumns();  // Apply column visibility based on selection
+    };
+  </script>
+
 {% endblock %}

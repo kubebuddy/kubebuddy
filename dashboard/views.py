@@ -1,10 +1,11 @@
 from django.shortcuts import render
 from main.models import KubeConfig, Cluster
 from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, \
-                k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_namespaces, k8s_cluster_metric
+                k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_namespaces, k8s_cluster_metric, k8s_events
 from django.contrib.auth.decorators import login_required
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
+from dashboard.src import clusters_DB
 from .decorators import server_down_handler
 
 @server_down_handler
@@ -34,6 +35,9 @@ def dashboard(request,cluster_id):
     else:
         warning_message = None
 
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
     # get nodes information
     ready_nodes, not_ready_nodes = k8s_nodes.getNodesStatus()
 
@@ -47,28 +51,31 @@ def dashboard(request,cluster_id):
     pod_list, pode_count = k8s_pods.getpods()
 
     # get deployment count
-    deployments_count = k8s_deployments.getDeploymentsCount()
+    deployments_status = k8s_deployments.getDeploymentsStatus(path, current_cluster)
 
     # get daemonset count
-    daemonset_count = k8s_daemonset.getDaemonsetCount()
+    daemonset_status = k8s_daemonset.getDaemonsetStatus(path, current_cluster)
 
     # get replicaset count
-    replicaset_count = k8s_replicaset.getReplicasetCount()
+    replicaset_status = k8s_replicaset.getReplicasetStatus(path, current_cluster)
 
     # get statefulset count
-    statefulset_count = k8s_statefulset.getStatefulsetCount()
+    statefulset_status = k8s_statefulset.getStatefulsetStatus(path, current_cluster)
 
     # get jobs count
-    job_count = k8s_jobs.getJobCount()
+    jobs_status = k8s_jobs.getJobsStatus(path, current_cluster)
 
     # get cronjobs count
-    cronjob_count = k8s_cronjobs.getCronJobCount()
+    cronjob_status = k8s_cronjobs.getCronJobsStatus(path, current_cluster)
 
     # get namespaces list
     namespaces = k8s_namespaces.get_namespace()
 
     # get cluster metrics
     metrics = k8s_cluster_metric.getMetrics(path, current_cluster)
+
+    # get cluster events
+    events = k8s_events.get_events(path, current_cluster)
 
     return render(request, 'dashboard/dashboard.html', {'warning': warning_message, 
                                                         'ready_nodes': ready_nodes, 
@@ -78,14 +85,16 @@ def dashboard(request,cluster_id):
                                                         'pod_count': pode_count, 
                                                         'current_cluster': current_cluster, 
                                                         'node_list': node_list, 
-                                                        'deployments_count':deployments_count, 
-                                                        'daemonset_count': daemonset_count, 
-                                                        'replicaset_count':replicaset_count, 
-                                                        'statefulset_count': statefulset_count, 
-                                                        'job_count': job_count, 
-                                                        'cronjob_count': cronjob_count,
+                                                        'deployments_status':deployments_status,
+                                                        'daemonset_status': daemonset_status, 
+                                                        'replicaset_status':replicaset_status, 
+                                                        'statefulset_status': statefulset_status, 
+                                                        'jobs_status': jobs_status, 
+                                                        'cronjob_status': cronjob_status,
                                                         'namespaces':namespaces,
-                                                        'namespaces_count': namespaces_count})
+                                                        'namespaces_count': namespaces_count,
+                                                        'cluster_id': cluster_id,
+                                                        'registered_clusters': registered_clusters})
     
 def pods(request):
 

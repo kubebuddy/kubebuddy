@@ -39,7 +39,8 @@ def getPodsStatus(path, context):
                     break
             if all_container_running:
                 status_counts["Running"]+=1
-                
+            
+            # previous logic for single conatiner pod
             # if pod.status.container_statuses[0].state.running: # CURRENTLY ASSUMING ONLY 1 CONTAINER PER POD !
             #     status_counts["Running"]+=1
             # else:

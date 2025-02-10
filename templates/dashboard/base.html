@@ -24,16 +24,27 @@
 </head>
 <body>
 
-    <nav class="navbar  bg-body-tertiary navbar-expand-lg bg-light py-2">
-      <button id="toggleSidebar" class="toggle-btn pb-2">
-        <i class="bi bi-list"></i>
-      </button>
-      <a class="navbar-brand d-flex align-items-center" href="/dashboard">
-        <!-- <img src="https://cdn-icons-png.flaticon.com/512/11231/11231852.png" width="30" height="30" alt="KubeBuddy Logo"> -->
-        <span class="fs-5 fw-semibold">KubeBuddy</span>
-      </a>
-    </nav>
+  <nav class="navbar bg-body-tertiary navbar-expand-lg bg-light py-2">
+    <button id="toggleSidebar" class="toggle-btn pb-2">
+      <i class="bi bi-list"></i>
+    </button>
+    <a class="navbar-brand d-flex align-items-center" href="/cluster-select">
+      <span class="fs-5 fw-semibold">KubeBuddy</span>
+    </a>
   
+    <!-- Account Section (Right Corner) -->
+    <div class="dropdown ms-auto">
+      <button class="btn btn-link dropdown-toggle d-flex align-items-center" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-person-circle fs-4"></i> <!-- User Icon -->
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
+        <li><a class="dropdown-item" href="#">Profile</a></li>
+        <li><a class="dropdown-item" href="#">Settings</a></li>
+        <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+      </ul>
+    </div>
+  </nav>
+    
   <main class="d-flex">
     
     <!-- Sidebar -->
@@ -188,20 +199,6 @@
 
         <li class="border-top my-3"></li>
       </ul>
-
-      <!-- Account Section (Fixed at the bottom) -->
-      <div class="account-section">
-        <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#account-collapse" aria-expanded="false">
-          Account
-        </button>
-        <div class="collapse" id="account-collapse">
-          <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-            <li><a href="#" class="link-dark rounded">Profile</a></li>
-            <li><a href="#" class="link-dark rounded">Settings</a></li>
-            <li><a href="/logout" class="link-dark rounded">Sign out</a></li>
-          </ul>
-        </div>
-      </div>
     </div>
 
     <div class="main-content" style="overflow-y: auto;">

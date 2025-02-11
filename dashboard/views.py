@@ -98,7 +98,7 @@ def dashboard(request,cluster_id):
     
 def pods(request):
 
-    pods, pc = k8s_pods.getpods()
+    pods, pc = k8s_pods.get_pod_info()
     logger.info(f"pods : {pods}")
     return render(request, 'dashboard/pods.html', { "pods": pods, "pc": pc})
 

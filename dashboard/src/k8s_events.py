@@ -17,13 +17,20 @@ def get_events(config_file, context, namespace = "all"):
     """
 
     try:
-        config.load_kube_config(config_file=config_file, context=context)
+        config.load_kube_config(config_file, context)
 
         v1 = client.CoreV1Api()
 
-        data = v1.list_event_for_all_namespaces() if namespace == "all" else v1.list_namespaced_event(namespace=namespace, pretty=True)
+        data = v1.list_event_for_all_namespaces() if namespace == "all" else v1.list_namespaced_event(namespace=namespace)
+        events = []
 
-        # print(data)
+        # for event in data.items:
+        #     event_data = {}
+        #     print(event.source)
+        #     event_data["namespace"] = event.metadata.namespace
+        #     event_data["message"] = event.message
+        #     event_data["object"] = event.involved_object.kind + "/" + event.involved_object.name
+        #     # event_data.source = event.
 
     except client.exceptions.ApiException as e:
         print(f"Kubernetes API Exception: {e}")

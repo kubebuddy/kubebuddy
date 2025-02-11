@@ -10,7 +10,7 @@ from .decorators import server_down_handler
 
 @server_down_handler
 @login_required
-def dashboard(request,cluster_id):
+def dashboard(request, cluster_id):
     # cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
@@ -96,11 +96,11 @@ def dashboard(request,cluster_id):
                                                         'cluster_id': cluster_id,
                                                         'registered_clusters': registered_clusters})
     
-def pods(request):
+def pods(request, cluster_id):
 
     pods, pc = k8s_pods.get_pod_info()
     logger.info(f"pods : {pods}")
-    return render(request, 'dashboard/pods.html', { "pods": pods, "pc": pc})
+    return render(request, 'dashboard/pods.html', { "pods": pods, "pc": pc, 'cluster_id': cluster_id})
 
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()

@@ -69,7 +69,7 @@
                     </div>
                     <a href="
                     {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
-                    {% url 'dashboard' cluster.id %}
+                    /{{cluster.id}}/dashboard
                     {% else %}
                     {% url 'cluster_error' %}
                     {% endif %}

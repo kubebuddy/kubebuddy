@@ -75,7 +75,7 @@
     <!-- Sidebar -->
     <div id="sidebar" class="sidebar flex-shrink-0 p-3 bg-white border-end">
       
-      <a href="/dashboard/{{cluster_id}}" class="btn btn-primary text-decoration-none text-white d-flex align-items-center mb-2">
+      <a href="/{{cluster_id}}/dashboard" class="btn btn-primary text-decoration-none text-white d-flex align-items-center mb-2">
         <i class="bi bi-speedometer pe-2"></i>
         <b>Dashboard</b>
       </a>
@@ -89,7 +89,7 @@
           </button>
           <div class="collapse show" id="workload-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/pods" class="link-dark rounded">Pods</a></li>
+              <li><a href="/{{cluster_id}}/pods" class="link-dark rounded">Pods</a></li>
               <li><a href="#" class="link-dark rounded">ReplicaSet</a></li>
               <li><a href="#" class="link-dark rounded">Deployments</a></li>
               <li><a href="#" class="link-dark rounded">StatefulSets</a></li>
@@ -231,7 +231,8 @@
     </div>
 
   </main>
-
+  <!-- Include Bootstrap JS and dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'js/sidebars.js' %}"></script>
   <script>

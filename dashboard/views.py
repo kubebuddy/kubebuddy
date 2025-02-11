@@ -97,10 +97,16 @@ def dashboard(request, cluster_id):
                                                         'registered_clusters': registered_clusters})
     
 def pods(request, cluster_id):
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
 
-    pods, pc = k8s_pods.get_pod_info()
+    logger.info(f"kube config file path  : {path}")
+
+    pods, pc = k8s_pods.getpods()
+    pod_info_list = k8s_pods.get_pod_info(path, current_cluster.cluster_name)
+
     logger.info(f"pods : {pods}")
-    return render(request, 'dashboard/pods.html', { "pods": pods, "pc": pc, 'cluster_id': cluster_id})
+    return render(request, 'dashboard/pods.html', { "pods": pods, "pc": pc, "cluster_id": cluster_id, "pod_info_list": pod_info_list})
 
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()

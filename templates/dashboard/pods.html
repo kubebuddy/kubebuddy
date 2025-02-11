@@ -6,7 +6,7 @@
 
 <div class="container">
   <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: 60</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: {{pc}}</i></b></div></div>
     <div class="col-md-2"><div class="stats-card bg-success"><b><i>Running: 44</i></b></div></div>
     <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Failed: 6</i></b></div></div>
     <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Pending: 6</i></b></div></div>
@@ -60,92 +60,34 @@
   
     <!-- Table -->
     <table class="table table-bordered">
-        <thead class="table-dark">
+      <thead class="table-dark">
         <tr>
-          <th id="colNamespace">NAMESPACE</th>
-          <th id="colName">NAME</th>
-          <th id="colContainers">CONTAINERS</th>
-          <th id="colNode">NODE</th>
-          <th id="colIP">IP</th>
-          <th id="colRestarts">RESTARTS</th>
-          <th id="colAge">AGE</th>
-          <th id="colStatus">STATUS</th>
+          <th>NAMESPACE</th>
+          <th>NAME</th>
+          <th>CONTAINERS</th>
+          <th>NODE</th>
+          <th>IP</th>
+          <th>RESTARTS</th>
+          <th>AGE</th>
+          <th>STATUS</th>
         </tr>
       </thead>
       <tbody>
+      {% for pod in pod_info_list %}
         <tr>
-          <td>default</td>
-          <td>app1</td>
-          <td>2/2</td>
-          <td>node1</td>
-          <td>192.168.1.1</td>
-          <td>2</td>
-          <td>12h</td>
-          <td>Running</td>
+          <td>{{ pod.namespace }}</td>
+          <td>{{ pod.name }}</td>
+          <td>{{ pod.containers }}</td>
+          <td>{{ pod.node }}</td>
+          <td>{{ pod.ip }}</td>
+          <td>{{ pod.restarts }}</td>
+          <td>{{ pod.age }}</td>
+          <td>{{ pod.status }}</td>
         </tr>
-        <tr>
-          <td>default</td>
-          <td>app2</td>
-          <td>1/1</td>
-          <td>node2</td>
-          <td>192.168.1.2</td>
-          <td>0</td>
-          <td>5h</td>
-          <td>Running</td>
-        </tr>
-        <tr>
-          <td>kube-system</td>
-          <td>coredns</td>
-          <td>2/2</td>
-          <td>node3</td>
-          <td>192.168.1.3</td>
-          <td>1</td>
-          <td>1d</td>
-          <td>Running</td>
-        </tr>
-        <tr>
-          <td>default</td>
-          <td>app3</td>
-          <td>1/2</td>
-          <td>node4</td>
-          <td>192.168.1.4</td>
-          <td>3</td>
-          <td>2d</td>
-          <td>CrashLoopBackOff</td>
-        </tr>
-        <tr>
-          <td>kube-system</td>
-          <td>kube-proxy</td>
-          <td>1/1</td>
-          <td>node5</td>
-          <td>192.168.1.5</td>
-          <td>0</td>
-          <td>3d</td>
-          <td>Running</td>
-        </tr>
-        <tr>
-          <td>custom</td>
-          <td>custom-app</td>
-          <td>1/1</td>
-          <td>node6</td>
-          <td>192.168.1.6</td>
-          <td>0</td>
-          <td>3h</td>
-          <td>Running</td>
-        </tr>
-        <tr>
-          <td>default</td>
-          <td>app4</td>
-          <td>2/2</td>
-          <td>node7</td>
-          <td>192.168.1.7</td>
-          <td>1</td>
-          <td>10h</td>
-          <td>Running</td>
-        </tr>
+      {% endfor %}
       </tbody>
-      
-    </table>
+      </table>
+
   </div>
   
   

@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from datetime import datetime, timezone
 
 def getpods():
     config.load_kube_config()
@@ -49,8 +50,8 @@ def getPodsStatus(path, context):
     return status_counts
 
 
-def get_pod_info(config_path: str, cluster_name: str):
-    # Load kube config
+def get_pod_info(config_path, cluster_name):
+
     config.load_kube_config(config_file=config_path, context=cluster_name)
 
     v1 = client.CoreV1Api()

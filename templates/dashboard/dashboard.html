@@ -194,32 +194,28 @@
                     <label class="form-check-label" for="Namespace"> Namespace</label>
                 </li>
                 <li>
-                    <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
-                    <label class="form-check-label" for="Name"> Name</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" value="Message" id="Message" checked> 
+                    <label class="form-check-label" for="Message"> Message</label>
                 </li>
                 <li>
-                    <input class="form-check-input column-checkbox" type="checkbox" value="Containers" id="Containers" checked> 
-                    <label class="form-check-label" for="Containers"> Containers</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" value="Object" id="Object" checked> 
+                    <label class="form-check-label" for="Object"> Object</label>
                 </li>
                 <li>
-                    <input class="form-check-input column-checkbox" type="checkbox" value="Node" id="Node" checked> 
-                    <label class="form-check-label" for="Node"> Node</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" value="Source" id="Source" checked> 
+                    <label class="form-check-label" for="Source"> Source</label>
                 </li>
                 <li>
-                    <input class="form-check-input column-checkbox" type="checkbox" value="IP" id="IP" checked> 
-                    <label class="form-check-label" for="IP"> IP</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" value="Count" id="Count" checked> 
+                    <label class="form-check-label" for="Count"> Count</label>
                 </li>
                 <li>
-                    <input class="form-check-input column-checkbox" type="checkbox" value="Restarts" id="Restarts" checked> 
-                    <label class="form-check-label" for="Restarts"> Restarts</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" value="Lastseen" id="Lastseen" checked> 
+                    <label class="form-check-label" for="Lastseen"> Last Seen</label>
                 </li>
                 <li>
-                    <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
-                    <label class="form-check-label" for="Age"> Age</label>
-                </li>
-                <li>
-                    <input class="form-check-input column-checkbox" type="checkbox" value="Status" id="Status" checked> 
-                    <label class="form-check-label" for="Status"> Status</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" value="Type" id="Type" checked> 
+                    <label class="form-check-label" for="Type"> Type</label>
                 </li>
               </ul>
             </div>
@@ -228,26 +224,26 @@
             <thead class="table-dark">
             <tr>
               <th id="colNamespace">NAMESPACE</th>
-              <th id="colName">NAME</th>
-              <th id="colContainers">CONTAINERS</th>
-              <th id="colNode">NODE</th>
-              <th id="colIP">IP</th>
-              <th id="colRestarts">RESTARTS</th>
-              <th id="colAge">AGE</th>
-              <th id="colStatus">STATUS</th>
+              <th id="colMessage">MESSAGE</th>
+              <th id="colObject">OBJECT</th>
+              <th id="colSource">SOURCE</th>
+              <th id="colCount">COUNT</th>
+              <th id="colLastseen">LAST SEEN</th>
+              <th id="colType">TYPE</th>
             </tr>
             </thead>
             <tbody>
+            {% for event in events %}
             <tr>
-              <td>default</td>
-              <td>app1</td>
-              <td>2/2</td>
-              <td>node1</td>
-              <td>192.168.1.1</td>
-              <td>2</td>
-              <td>12h</td>
-              <td>Running</td>
+                <td>{{event.namespace}}</td>
+                <td>{{event.message}}</td>
+                <td>{{event.object}}</td>
+                <td>{{event.source}}</td>
+                <td>{{event.count}}</td>
+                <td>{{event.last_seen}}</td>
+                <td>{{event.type}}</td>
             </tr>
+            {% endfor %}
             </tbody>
         </table>
     </div>
@@ -315,7 +311,7 @@
   
     // Function to get the column index by column name
     function getColumnIndex(columnName) {
-      const columns = ["Namespace", "Name", "Containers", "Node", "IP", "Restarts", "Age", "Status"];
+      const columns = ["Namespace", "Message", "Object", "Source", "Count", "Lastseen", "Type"];
       return columns.indexOf(columnName) + 1;
     }
   

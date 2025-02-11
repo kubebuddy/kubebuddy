@@ -77,7 +77,7 @@ def dashboard(request, cluster_id):
     # get cluster events
     events = k8s_events.get_events(path, current_cluster)
 
-    return render(request, 'dashboard/dashboard.html', {'warning': warning_message, 
+    return render(request, 'dashboard/dashboard.html', {'warning': warning_message,
                                                         'ready_nodes': ready_nodes, 
                                                         'not_ready_nodes' : not_ready_nodes, 
                                                         'node_count': node_count, 
@@ -94,7 +94,8 @@ def dashboard(request, cluster_id):
                                                         'namespaces':namespaces,
                                                         'namespaces_count': namespaces_count,
                                                         'cluster_id': cluster_id,
-                                                        'registered_clusters': registered_clusters})
+                                                        'registered_clusters': registered_clusters,
+                                                        'events': events})
     
 def pods(request, cluster_id):
     current_cluster = Cluster.objects.get(id = cluster_id)

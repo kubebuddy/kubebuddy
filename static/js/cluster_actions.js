@@ -1,4 +1,5 @@
 function deleteCluster(clusterId) {
+    event.stopPropagation();
     fetch(`/delete_cluster/${clusterId}/`, {
         method: 'GET',
         headers: {

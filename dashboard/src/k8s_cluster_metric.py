@@ -1,40 +1,32 @@
 from kubernetes import client, config
+from kubernetes.client.models import V2ObjectMetricStatus
 
 def getMetrics(path, context):
-    # config.load_kube_config(config_file=path, context = context)
-    # metric_api = client.CustomObjectsApi()
-    # core_api = client.CoreV1Api()
+    config.load_kube_config(config_file=path, context = context)
 
-    # node_metrics = metric_api.list_cluster_custom_object("metrics.k8s.io", "v1beta1", "nodes") # change to pods for pod metrics
-    # node_list = core_api.list_node()
+    # Create an instance of the Metrics API
+    metrics_api = client.CustomObjectsApi()
 
-    # total_cpu_allocated = 0
-    # total_memory_allocated = 0
-    # total_cpu_usage = 0
-    # total_memory_usage = 0
+    # Define the namespace and metrics API endpoint
+    namespace = "kube-system"
+    group = "metrics.k8s.io"
+    version = "v1beta1"
+    plural = "pods"
 
-    # node_allocations = {}
+    # Fetch pod metrics
+    pod_metrics = metrics_api.list_namespaced_custom_object(group, version, namespace, plural)
 
-    # # node allocations
-    # for node in node_list.items:
-    #     node_name = node.metadata.name
-    #     cpu_allocated = node.status.capacity["cpu"]
-    #     memory_allocated = node.status.capacity["memory"]
+    # Print CPU and memory usage for each pod
+    for pod in pod_metrics["items"]:
+        pod_name = pod["metadata"]["name"]
+        print(f"Pod: {pod_name}")
+        for container in pod["containers"]:
+            container_name = container["name"]
+            cpu_usage = container["usage"]["cpu"]
+            memory_usage = container["usage"]["memory"]
+            print(f"  Container: {container_name}")
+            print(f"    CPU Usage: {cpu_usage}")
+            print(f"    Memory Usage: {memory_usage}")
 
-    #     # total allocated resource
-    #     total_cpu_allocated += cpu_allocated
-    #     total_memory_allocated += memory_allocated
-    
-    # # node usage
-    # for node in node_metrics.get("items",[]):
-    #     node_name = node["metadata"]["name"]
-    #     cpu_usage = node["usage"]["cpu"]
-    #     memory_usage = node["usage"]["memory"]
 
-    #     # Update total used resources
-    #     total_cpu_usage += cpu_usage
-    #     total_memory_usage += memory_usage
-
-    # print(node_metrics)
-
-    return
+    return pod_metrics

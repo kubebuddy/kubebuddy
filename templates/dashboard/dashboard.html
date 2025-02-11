@@ -103,7 +103,7 @@
             <div class="col-lg-2">
                 <div class="card text-center p-4">
                     <p class="card-title bold">CronJobs</p>
-                    <p class="card-text text-dark">{{cronjob_count}}</p>
+                    <p class="card-text text-dark">{{cronjob_status.Count}}</p>
                     <canvas id="cronjobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 </div>
             </div>
@@ -436,14 +436,15 @@
         var myChart8 = new Chart(cronjobGraph, {
             type: 'doughnut',
             data: {
-                labels: ['Running'],
+                labels: ['In-progress','Completed'],
                 datasets: [{
                     label: 'Count',
                     backgroundColor: [
-                      'rgb(40, 167, 69)'
+                      'rgb(255, 204, 0)',
+                      'rgb(169,169,169)'
                     ],
                     borderWidth: 1,
-                    data: ["{{cronjob_count}}"]
+                    data: ["{{cronjob_status.Running}}","{{cronjob_status.Completed}}"]
                 }]
             },
             options: {

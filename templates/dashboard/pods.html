@@ -2,17 +2,19 @@
 
 {% block title %}Pods{% endblock %}
 
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pod-128.png?raw=true{% endblock %}
+
 {% block content %}
 
 <div class="container">
   <div class="row text-center">
     <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: {{pc}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Running: 44</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Failed: 6</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Pending: 6</i></b></div></div>
-    <div class="col-md-3"><div class="stats-card bg-info"><b><i>Succeeded: 50</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Running: {{status_count.Running}}</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Failed: {{status_count.Failed}}</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Pending: {{status_count.Pending}}</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-info"><b><i>Succeeded: {{status_count.Succeeded}}</i></b></div></div>
   </div>
-
+  
   <div class="container">
     <!-- Dropdown with checkboxes to select columns -->
     <div class="mb-3">
@@ -62,14 +64,14 @@
     <table class="table table-bordered">
       <thead class="table-dark">
         <tr>
-          <th>NAMESPACE</th>
-          <th>NAME</th>
-          <th>CONTAINERS</th>
-          <th>NODE</th>
-          <th>IP</th>
-          <th>RESTARTS</th>
-          <th>AGE</th>
-          <th>STATUS</th>
+          <th id="colNamespace">NAMESPACE</th>
+          <th id="colName">NAME</th>
+          <th id="colContainers">CONTAINERS</th>
+          <th id="colNode">NODE</th>
+          <th id="colIP">IP</th>
+          <th id="colRestarts">RESTARTS</th>
+          <th id="colAge">AGE</th>
+          <th id="colStatus">STATUS</th>
         </tr>
       </thead>
       <tbody>
@@ -87,7 +89,6 @@
       {% endfor %}
       </tbody>
       </table>
-
   </div>
   
   

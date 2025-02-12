@@ -6,8 +6,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Dheeraj Sain">
-  <title>Dashboard</title>
-  <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/3388/3388738.png">
+  <title>{% block title %}Dashboard{% endblock %}</title>
+
+  <link rel="icon" href="{% block favicon %}https://cdn-icons-png.flaticon.com/512/3388/3388738.png{% endblock %}" type="image/x-icon">
 
   <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/sidebars/">
 

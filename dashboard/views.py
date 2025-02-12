@@ -71,8 +71,8 @@ def dashboard(request, cluster_id):
     # get namespaces list
     namespaces = k8s_namespaces.get_namespace()
 
-    # get cluster metrics
-    metrics = k8s_cluster_metric.getMetrics(path, current_cluster)
+    # get cluster metrics 
+    # metrics = k8s_cluster_metric.getMetrics(path, current_cluster)
 
     # get cluster events
     events = k8s_events.get_events(path, current_cluster)
@@ -106,8 +106,15 @@ def pods(request, cluster_id):
     pods, pc = k8s_pods.getpods()
     pod_info_list = k8s_pods.get_pod_info(path, current_cluster.cluster_name)
 
+    # get pods status
+    status_count = k8s_pods.getPodsStatus(path,current_cluster.cluster_name)
+
     logger.info(f"pods : {pods}")
-    return render(request, 'dashboard/pods.html', { "pods": pods, "pc": pc, "cluster_id": cluster_id, "pod_info_list": pod_info_list})
+    return render(request, 'dashboard/pods.html', { "pods": pods, 
+                                                   "pc": pc, 
+                                                   "cluster_id": cluster_id, 
+                                                   "pod_info_list": pod_info_list,
+                                                   "status_count": status_count})
 
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()

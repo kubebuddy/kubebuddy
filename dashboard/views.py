@@ -95,8 +95,7 @@ def dashboard(request, cluster_id):
                                                         'namespaces_count': namespaces_count,
                                                         'cluster_id': cluster_id,
                                                         'registered_clusters': registered_clusters,
-                                                        'events': events,
-                                                        'metrics': metrics})
+                                                        'events': events,})
     
 def pods(request, cluster_id):
     current_cluster = Cluster.objects.get(id = cluster_id)

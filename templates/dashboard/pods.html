@@ -114,10 +114,19 @@
   
     // Function to load the column selection from localStorage
     function loadSelection() {
-      const savedSelection = JSON.parse(localStorage.getItem("selectedColumns")) || [];
-      document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
+    const savedSelection = JSON.parse(localStorage.getItem("selectedColumns"));
+
+    if (savedSelection && savedSelection.length > 0) {
+        document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
         checkbox.checked = savedSelection.includes(checkbox.value);
-      });
+        });
+    } else {
+        // Ensure all checkboxes remain checked by default
+        document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
+        checkbox.checked = true;
+        });
+        saveSelection();  // Save the default checked state
+    }
     }
   
     // Function to show or hide columns based on selected checkboxes

@@ -5,6 +5,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const tableRows = document.querySelectorAll("tbody tr");
     const pageKey = window.location.pathname;  // Unique key for different pages
 
+    // message display
+    const messageElements = document.querySelectorAll(".message-truncate");
+
+    messageElements.forEach(element => {
+        element.addEventListener("click", function () {
+            const fullMessage = this.getAttribute("data-full");
+            // Toggle between showing truncated message and full message
+            if (this.textContent.length > 100) {
+                this.textContent = fullMessage;
+            } else {
+                this.textContent = fullMessage.slice(0, 100) + "...";
+            }
+        });
+    });
+
     // Function to save selection
     function saveSelection() {
         const selectedColumns = [];

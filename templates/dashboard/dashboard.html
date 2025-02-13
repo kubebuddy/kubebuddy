@@ -245,7 +245,11 @@
             <tr>
             {% endif %}
                 <td>{{event.namespace}}</td>
-                <td>{{event.message}}</td>
+                <td>
+                    <span class="message-truncate" data-full="{{event.message}}">
+                        {{ event.message|truncatechars:100 }}
+                    </span>
+                </td>
                 <td>{{event.object}}</td>
                 <td>{{event.source}}</td>
                 <td>{{event.count}}</td>

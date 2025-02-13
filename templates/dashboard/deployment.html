@@ -1,29 +1,30 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Pods{% endblock %}
+{% block title %}Deployments{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pod-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/deploy-128.png?raw=true{% endblock %}
 
 {% block content %}
 
 <div class="container">
   <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: {{pc}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Running: {{status_count.Running}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Failed: {{status_count.Failed}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Pending: {{status_count.Pending}}</i></b></div></div>
-    <div class="col-md-3"><div class="stats-card bg-info"><b><i>Succeeded: {{status_count.Succeeded}}</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Deployments: {{dep_status.Count}}</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Running: {{dep_status.Running}}</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Pending: {{dep_status.Pending}}</i></b></div></div>
   </div>
   
   <div class="container">
     <!-- Dropdown with checkboxes to select columns -->
     <div class="mb-3">
-      <label for="columnSelector" class="form-label">Select Columns to Display</label>
-        <div class="dropdown">
+        <div class="dropdown d-flex justify-content-end">
           <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
-            Select Columns
+            Select Columns to Display
           </button>
           <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+                <label class="form-check-label" for="All"> All</label>
+            </li>
             <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
                 <label class="form-check-label" for="Namespace"> Namespace</label>
@@ -33,30 +34,19 @@
                 <label class="form-check-label" for="Name"> Name</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Containers" id="Containers" checked> 
-                <label class="form-check-label" for="Containers"> Containers</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Ready" id="Ready" checked> 
+                <label class="form-check-label" for="Ready"> Ready</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Node" id="Node" checked> 
-                <label class="form-check-label" for="Node"> Node</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="IP" id="IP" checked> 
-                <label class="form-check-label" for="IP"> IP</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Restarts" id="Restarts" checked> 
-                <label class="form-check-label" for="Restarts"> Restarts</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Available" id="Available" checked> 
+                <label class="form-check-label" for="Available"> Available</label>
             </li>
             <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
                 <label class="form-check-label" for="Age"> Age</label>
             </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Status" id="Status" checked> 
-                <label class="form-check-label" for="Status"> Status</label>
-            </li>
-          </ul>
+        </ul>
+        
         </div>
     </div>
   
@@ -66,107 +56,24 @@
         <tr>
           <th id="colNamespace">NAMESPACE</th>
           <th id="colName">NAME</th>
-          <th id="colContainers">CONTAINERS</th>
-          <th id="colNode">NODE</th>
-          <th id="colIP">IP</th>
-          <th id="colRestarts">RESTARTS</th>
+          <th id="colReady">READY</th>
+          <th id="colAvailable">AVAILABLE</th>
           <th id="colAge">AGE</th>
-          <th id="colStatus">STATUS</th>
         </tr>
       </thead>
+
       <tbody>
-        {{ dep_count}}
-        <br><br>
-        {{dep_status}}
-        <br><br>
-      {% for pod in pod_info_list %}
+      {% for deployment in deployment_info_list %}
         <tr>
-          <td>{{ pod.namespace }}</td>
-          <td>{{ pod.name }}</td>
-          <td>{{ pod.containers }}</td>
-          <td>{{ pod.node }}</td>
-          <td>{{ pod.ip }}</td>
-          <td>{{ pod.restarts }}</td>
-          <td>{{ pod.age }}</td>
-          <td>{{ pod.status }}</td>
+          <td>{{ deployment.namespace }}</td>
+          <td>{{ deployment.name }}</td>
+          <td>{{ deployment.ready }}</td>
+          <td>{{ deployment.available }}</td>
+          <td>{{ deployment.age }}</td>
         </tr>
       {% endfor %}
       </tbody>
       </table>
   </div>
-  
-  
-  <script>
-    // Function to toggle column visibility based on checkbox selections
-    document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
-      checkbox.addEventListener("change", function () {
-        toggleColumns();
-        saveSelection();
-      });
-    });
-  
-    // Function to save the column selection in localStorage
-    function saveSelection() {
-      const selectedColumns = [];
-      document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
-        if (checkbox.checked) {
-          selectedColumns.push(checkbox.value);
-        }
-      });
-      localStorage.setItem("selectedColumns", JSON.stringify(selectedColumns));
-    }
-  
-    // Function to load the column selection from localStorage
-    function loadSelection() {
-    const savedSelection = JSON.parse(localStorage.getItem("selectedColumns"));
-
-    if (savedSelection && savedSelection.length > 0) {
-        document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
-        checkbox.checked = savedSelection.includes(checkbox.value);
-        });
-    } else {
-        // Ensure all checkboxes remain checked by default
-        document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
-        checkbox.checked = true;
-        });
-        saveSelection();  // Save the default checked state
-    }
-    }
-  
-    // Function to show or hide columns based on selected checkboxes
-    function toggleColumns() {
-      const checkboxes = document.querySelectorAll(".form-check-input");
-      
-      checkboxes.forEach(function (checkbox) {
-        const columnName = checkbox.value;
-        const column = document.getElementById("col" + columnName);
-        const columnCells = document.querySelectorAll("td:nth-child(" + (getColumnIndex(columnName)) + ")");
-  
-        if (checkbox.checked) {
-          column.style.display = 'table-cell';
-          columnCells.forEach(cell => {
-            cell.style.display = 'table-cell';
-          });
-        } else {
-          column.style.display = 'none';
-          columnCells.forEach(cell => {
-            cell.style.display = 'none';
-          });
-        }
-      });
-    }
-  
-    // Function to get the column index by column name
-    function getColumnIndex(columnName) {
-      const columns = ["Namespace", "Name", "Containers", "Node", "IP", "Restarts", "Age", "Status"];
-      return columns.indexOf(columnName) + 1;
-    }
-  
-    // Initialize the table with the default visibility and selected columns
-    window.onload = function () {
-      loadSelection();  // Load saved column selection
-      toggleColumns();  // Apply column visibility based on selection
-    };
-  </script>
 
 {% endblock %}

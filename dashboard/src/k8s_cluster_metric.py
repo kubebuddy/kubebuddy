@@ -43,7 +43,7 @@ def getMetrics(node_list, path, context, namespace="all"):
             total_memory_usage += memory_value
 
     total_cpu_millicore = total_cpu_usage / 1_000_000
-    total_memory_mb = total_memory_usage / 1024
+    total_memory_gb = total_memory_usage / (1024 * 1024)
 
     total_cpu_capacity = 0
     total_memory_capacity = 0
@@ -55,13 +55,13 @@ def getMetrics(node_list, path, context, namespace="all"):
     # millicores and megabytes
     total_cpu_capacity_millicore = total_cpu_capacity * 1_000_000
     total_cpu_capacity_millicore = round(total_cpu_capacity_millicore, 2)
-    total_memory_capacity_gb = total_memory_capacity / 1024 * 1024
+    total_memory_capacity_gb = total_memory_capacity / (1024 * 1024)
     total_memory_capacity_gb = round(total_memory_capacity_gb, 2)
 
     cpu_percent = (total_cpu_millicore / total_cpu_capacity_millicore) * 100
     cpu_percent = round(cpu_percent, 2)
 
-    memory_percent = (total_memory_mb / total_memory_capacity_gb) * 100
+    memory_percent = (total_memory_gb / total_memory_capacity_gb) * 100
     memory_percent = round(memory_percent, 2)
 
     metrics = {'cpu_usage': cpu_percent, 'memory_usage': memory_percent, 'cpu_total': total_cpu_capacity, 'memory_total': total_memory_capacity_gb}

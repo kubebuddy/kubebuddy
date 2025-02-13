@@ -1,4 +1,5 @@
 from kubernetes import client, config
+import sys
 
 def get_replicaset_status_info(namespace="default"):
     """Retrieves status information for ReplicaSets.
@@ -37,18 +38,3 @@ def get_replicaset_status_info(namespace="default"):
         print(f"An error occurred: {e}", file=sys.stderr)
         return []
 
-import sys
-
-if __name__ == "__main__":
-    namespace_to_check = "default"
-    rs_status_data = get_replicaset_status_info(namespace=namespace_to_check)
-
-    if rs_status_data:
-        print(f"ReplicaSet Status Information in namespace '{namespace_to_check}':")
-        for rs_info in rs_status_data:
-            print("-" * 20)
-            for key, value in rs_info.items():
-                print(f"{key}: {value}")
-            print("-" * 20)
-    else:
-        print(f"No ReplicaSets found in namespace '{namespace_to_check}' or an error occurred.", file=sys.stderr)

@@ -1,4 +1,5 @@
 from kubernetes import client, config
+import sys
 
 def get_replicaset_info(namespace="default"):
     """
@@ -41,21 +42,3 @@ def get_replicaset_info(namespace="default"):
     except Exception as e:  # Catch other exceptions like file not found, etc.
         print(f"An error occurred: {e}", file=sys.stderr)
         return []
-
-
-import sys  # Import sys for stderr
-
-if __name__ == "__main__":
-    namespace_to_check = "default"  # Change if needed
-    replicaset_data = get_replicaset_info(namespace=namespace_to_check)
-
-    if replicaset_data:
-        if replicaset_data:
-            print(f"ReplicaSet Information in namespace '{namespace_to_check}':")
-            for rs_info in replicaset_data:
-                print("-" * 20)  # Separator
-                for key, value in rs_info.items():
-                    print(f"{key}: {value}")
-                print("-" * 20)
-    else:
-        print(f"No ReplicaSets found in namespace '{namespace_to_check}' or an error occurred.", file=sys.stderr)

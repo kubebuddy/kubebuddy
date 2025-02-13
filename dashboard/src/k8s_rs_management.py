@@ -1,4 +1,5 @@
 from kubernetes import client, config
+import sys
 
 def get_replicaset_replica_info(namespace="default"):
     """
@@ -40,18 +41,3 @@ def get_replicaset_replica_info(namespace="default"):
         return []
 
 
-import sys
-
-if __name__ == "__main__":
-    namespace_to_check = "default"  # Change if needed
-    replica_data = get_replicaset_replica_info(namespace=namespace_to_check)
-
-    if replica_data:
-        print(f"ReplicaSet Information in namespace '{namespace_to_check}':")
-        for rs_info in replica_data:
-            print("-" * 20)
-            for key, value in rs_info.items():
-                print(f"{key}: {value}")
-            print("-" * 20)
-    else:
-        print(f"No ReplicaSets found in namespace '{namespace_to_check}' or an error occurred.", file=sys.stderr)

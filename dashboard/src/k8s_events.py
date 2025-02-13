@@ -24,13 +24,17 @@ def get_events(config_file, context, namespace = "all"):
 
         v1 = client.CoreV1Api()
 
-        data = v1.list_event_for_all_namespaces() if namespace == "all" else v1.list_namespaced_event(namespace=namespace)
+        data = v1.list_event_for_all_namespaces(limit=30) if namespace == "all" else v1.list_namespaced_event(namespace=namespace, limit = 30)
         events = []
 
         for event in data.items:
             event_data = {}
             event_data["namespace"] = event.metadata.namespace
             event_data["message"] = event.message
+
+            if len(event.message) > 100:
+                event_data["message"] = event.message
+
             event_data["object"] = event.involved_object.kind + "/" + event.involved_object.name
 
             if event.source.component:
@@ -42,8 +46,30 @@ def get_events(config_file, context, namespace = "all"):
 
             event_data["count"] = event.count
             current_time = datetime.now(tzutc())
-            # event_data["last_seen"] = current_time - event.last_timestamp
-            event_data["last_seen"] = relativedelta(current_time,event.last_timestamp)
+            
+            temp = relativedelta(current_time,event.last_timestamp)
+            years = temp.years
+            months = temp.months
+            days = temp.days
+            hours = temp.hours
+            minutes = temp.minutes
+            seconds = temp.seconds
+
+            if years > 0:
+                temp = f"{years}y"
+            elif months > 0:
+                temp = f"{months}mo"
+            elif days > 0:
+                temp = f"{days}d"
+            elif hours > 0:
+                temp = f"{hours}h"
+            elif minutes > 0:
+                temp = f"{minutes}m"
+            else:
+                temp = f"{seconds}s"
+
+            event_data["last_seen"] = temp
+
             event_data["type"] = event.type
 
             events.append(event_data)

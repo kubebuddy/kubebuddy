@@ -51,7 +51,7 @@
                 <div class="chart-container-bar">
                     <canvas id="usageChart"></canvas>
                 </div>
-                <h6>Total CPU: {{cpu}}, Total Memory: {{memory}}</h6>
+                <h6>Total CPU: {{metrics.cpu_total}}, Total Memory: {{metrics.memory_total}} Gi </h6>
             </div>
             <div class="cluster-chart-container" >
                 <canvas id="nodesChart" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
@@ -239,9 +239,13 @@
             </thead>
             <tbody>
             {% for event in events %}
+            {% if event.type == "Warning" %}
+            <tr class="table-danger">
+            {% else %}
             <tr>
+            {% endif %}
                 <td>{{event.namespace}}</td>
-                <td>{{event.message}}</td>
+                <td class="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{event.message}}</td>
                 <td>{{event.object}}</td>
                 <td>{{event.source}}</td>
                 <td>{{event.count}}</td>
@@ -264,8 +268,14 @@
                 datasets: [{
                     label: 'Usage (in %)',
                     backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)'],
-                    data: [35, 66],
-                    barThickness: 50
+                    data: ["{{metrics.cpu_usage}}", "{{metrics.memory_usage}}"],
+                    barThickness: 50,
+                    borderRadius: 10,
+                    dataLabels: {
+                    display: true,
+                    position: 'inside', 
+                    color: '#fff' 
+                    }
                 }]
             },
             options: {
@@ -274,11 +284,19 @@
                 hoverOffset: 3, // hover effect
                 maintainAspectRatio: false,
                 scales: {
-                y: { beginAtZero: true, max: 100 }
+                    y: { beginAtZero: true, max: 100, ticks:{stepSize: 10}, grid:{display:false} },
                 },
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                    enabled: true, // Show tooltips for more details
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return tooltipItem.raw + '%'; // Display percentage in tooltips
+                        }
+                    }
                     }
                 }
             }

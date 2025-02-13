@@ -117,6 +117,25 @@ def pods(request, cluster_id):
                                                    "pod_info_list": pod_info_list,
                                                    "status_count": status_count})
 
+
+def pod_info(request, cluster_id, namespace, pod_name):
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    pod_info = {
+        "describe": k8s_pods.get_pod_description(path, namespace, pod_name),
+        "logs": k8s_pods.get_pod_logs(path, namespace, pod_name),
+        "events": k8s_pods.get_pod_events(path, namespace, pod_name),
+        "yaml": k8s_pods.get_pod_yaml(path, namespace, pod_name)
+    }
+
+    return render(request, 'dashboard/pod_info.html', {
+        "pod_info": pod_info,
+        "cluster_id": cluster_id,
+        "pod_name": pod_name
+    })
+
+
 def replicasets(request, cluster_id):
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path

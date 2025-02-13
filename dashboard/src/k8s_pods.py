@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
+import yaml
 
 def getpods():
     config.load_kube_config()
@@ -71,3 +72,28 @@ def get_pod_info(config_path, cluster_name):
         })
 
     return pod_info_list
+
+def get_pod_description(path, namespace, pod_name):
+    config.load_kube_config(path)
+    v1 = client.CoreV1Api()
+    pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
+    return pod.to_dict()
+
+def get_pod_logs(path, namespace, pod_name):
+    config.load_kube_config(path)
+    v1 = client.CoreV1Api()
+    return v1.read_namespaced_pod_log(name=pod_name, namespace=namespace)
+
+def get_pod_events(path, namespace, pod_name):
+    config.load_kube_config(path)
+    v1 = client.CoreV1Api()
+    events = v1.list_namespaced_event(namespace=namespace).items
+    pod_events = [event for event in events if event.involved_object.name == pod_name]
+    
+    return "\n".join([f"{e.reason}: {e.message}" for e in pod_events])
+
+def get_pod_yaml(path, namespace, pod_name):
+    config.load_kube_config(path)
+    v1 = client.CoreV1Api()
+    pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
+    return yaml.dump(pod.to_dict(), default_flow_style=False)

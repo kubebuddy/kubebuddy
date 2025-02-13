@@ -82,7 +82,11 @@
       {% for pod in pod_info_list %}
         <tr>
           <td>{{ pod.namespace }}</td>
-          <td>{{ pod.name }}</td>
+          <td>
+            <a href="{% url 'pod_info' cluster_id=cluster_id namespace=pod.namespace pod_name=pod.name %}">
+                {{ pod.name }}
+            </a>
+        </td>
           <td>{{ pod.containers }}</td>
           <td>{{ pod.node }}</td>
           <td>{{ pod.ip }}</td>
@@ -92,7 +96,7 @@
         </tr>
       {% endfor %}
       </tbody>
-      </table>
+    </table>
   </div>
 
 {% endblock %}

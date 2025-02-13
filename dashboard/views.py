@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from main.models import KubeConfig, Cluster
 from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, \
-                k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_namespaces, k8s_cluster_metric, k8s_events
+                k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_namespaces, k8s_cluster_metric, k8s_events, k8s_rs_basic_info, k8s_rs_management, \
+                k8s_rs_status, k8s_deployments
 from django.contrib.auth.decorators import login_required
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
@@ -115,6 +116,23 @@ def pods(request, cluster_id):
                                                    "cluster_id": cluster_id, 
                                                    "pod_info_list": pod_info_list,
                                                    "status_count": status_count})
+
+def replicasets(request, cluster_id):
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    basic_info = k8s_rs_basic_info.get_replicaset_info()
+    rs_info = k8s_rs_management.get_replicaset_replica_info()
+    rs_status = k8s_rs_status.get_replicaset_status_info()
+    return render(request, 'dashboard/replicasets.html', {"cluster_id": cluster_id, "basic_info": basic_info, "rs_info": rs_info, "rs_status": rs_status})
+
+
+def deployment(request, cluster_id):
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    dep_count = k8s_deployments.getDeploymentsCount(path, current_cluster.cluster_name)
+    dep_status = k8s_deployments.getDeploymentsStatus(path, current_cluster.cluster_name)
+    return render(request, 'dashboard/deployment.html', {"cluster_id": cluster_id, "dep_count": dep_count, "dep_status": dep_status})
+    
+
 
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()

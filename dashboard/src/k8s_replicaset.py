@@ -1,11 +1,34 @@
 from kubernetes import client, config
+from datetime import datetime
 
-def getReplicasetCount():
-    config.load_kube_config()
-    v1 = client.AppsV1Api() #Create an API client for the AppsV1Api
-    replicasets = v1.list_replica_set_for_all_namespaces().items
+def getReplicaSetsInfo(path, context, namespace="all"):
+    config.load_kube_config(path, context)
+    v1 = client.AppsV1Api()
+    replicaset_info_list = []
+    
+    if namespace == "all":
+        replicasets = v1.list_replica_set_for_all_namespaces().items
+    else:
+        replicasets = v1.list_namespaced_replica_set(namespace=namespace).items
 
-    return len(replicasets)
+    now = datetime.now()
+    
+    for rs in replicasets:
+        # Remove timezone info from creation timestamp
+        creation_timestamp_naive = rs.metadata.creation_timestamp.replace(tzinfo=None)
+        age = now - creation_timestamp_naive
+        age_str = str(age).split('.')[0]  # Remove microseconds for a cleaner format
+        
+        replicaset_info_list.append({
+            'namespace': rs.metadata.namespace,
+            'name': rs.metadata.name,
+            'desired': rs.spec.replicas,
+            'current': rs.status.replicas,
+            'ready': rs.status.ready_replicas if rs.status.ready_replicas else 0,
+            'age': age_str
+        })
+    
+    return replicaset_info_list
 
 def getReplicasetStatus(path, context, namespace="all"):
     try:

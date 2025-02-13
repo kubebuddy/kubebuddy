@@ -119,18 +119,25 @@ def pods(request, cluster_id):
 
 def replicasets(request, cluster_id):
     current_cluster = Cluster.objects.get(id = cluster_id)
-    basic_info = k8s_rs_basic_info.get_replicaset_info()
-    rs_info = k8s_rs_management.get_replicaset_replica_info()
-    rs_status = k8s_rs_status.get_replicaset_status_info()
-    return render(request, 'dashboard/replicasets.html', {"cluster_id": cluster_id, "basic_info": basic_info, "rs_info": rs_info, "rs_status": rs_status})
+    path = current_cluster.kube_config.path
+
+    rs_status = k8s_replicaset.getReplicasetStatus(path, current_cluster.cluster_name)
+    replicaset_info_list = k8s_replicaset.getReplicaSetsInfo(path, current_cluster.cluster_name)
+    
+    return render(request, 'dashboard/replicasets.html', {"cluster_id": cluster_id, 
+                                                          "replicaset_info_list": replicaset_info_list,
+                                                          "rs_status": rs_status})
 
 
 def deployment(request, cluster_id):
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
-    dep_count = k8s_deployments.getDeploymentsCount(path, current_cluster.cluster_name)
+
     dep_status = k8s_deployments.getDeploymentsStatus(path, current_cluster.cluster_name)
-    return render(request, 'dashboard/deployment.html', {"cluster_id": cluster_id, "dep_count": dep_count, "dep_status": dep_status})
+    deployment_info_list = k8s_deployments.getDeploymentsInfo(path, current_cluster.cluster_name)
+    return render(request, 'dashboard/deployment.html', {"cluster_id": cluster_id, 
+                                                         "dep_status": dep_status,
+                                                         "deployment_info_list": deployment_info_list})
     
 
 

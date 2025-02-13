@@ -185,12 +185,15 @@
     <div class="container">
         <!-- Dropdown with checkboxes to select columns -->
         <div class="mb-3">
-          <label for="columnSelector" class="form-label">Select Columns to Display</label>
-            <div class="dropdown">
-              <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
-                Select Columns
-              </button>
+            <div class="dropdown d-flex justify-content-end">
+                <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+                  Select Columns to Display
+                </button>
               <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+                <li>
+                    <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+                    <label class="form-check-label" for="All"> All</label>
+                </li>
                 <li>
                     <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
                     <label class="form-check-label" for="Namespace"> Namespace</label>
@@ -212,8 +215,8 @@
                     <label class="form-check-label" for="Count"> Count</label>
                 </li>
                 <li>
-                    <input class="form-check-input column-checkbox" type="checkbox" value="Lastseen" id="Lastseen" checked> 
-                    <label class="form-check-label" for="Lastseen"> Last Seen</label>
+                    <input class="form-check-input column-checkbox" type="checkbox" value="Timestamp" id="Timestamp" checked> 
+                    <label class="form-check-label" for="Timestamp"> Timestamp</label>
                 </li>
                 <li>
                     <input class="form-check-input column-checkbox" type="checkbox" value="Type" id="Type" checked> 
@@ -230,7 +233,7 @@
               <th id="colObject">OBJECT</th>
               <th id="colSource">SOURCE</th>
               <th id="colCount">COUNT</th>
-              <th id="colLastseen">LAST SEEN</th>
+              <th id="colTimestamp">Timestamp</th>
               <th id="colType">TYPE</th>
             </tr>
             </thead>
@@ -251,77 +254,6 @@
     </div>
 
   <script>
-    
-    // Function to toggle column visibility based on checkbox selections
-    document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
-      checkbox.addEventListener("change", function () {
-        toggleColumns();
-        saveSelection();
-      });
-    });
-  
-    // Function to save the column selection in localStorage
-    function saveSelection() {
-      const selectedColumns = [];
-      document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
-        if (checkbox.checked) {
-          selectedColumns.push(checkbox.value);
-        }
-      });
-      localStorage.setItem("selectedColumns", JSON.stringify(selectedColumns));
-    }
-  
-    // Function to load the column selection from localStorage
-    function loadSelection() {
-    const savedSelection = JSON.parse(localStorage.getItem("selectedColumns"));
-
-    if (savedSelection && savedSelection.length > 0) {
-        document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
-        checkbox.checked = savedSelection.includes(checkbox.value);
-        });
-    } else {
-        // Ensure all checkboxes remain checked by default
-        document.querySelectorAll(".form-check-input").forEach(function (checkbox) {
-        checkbox.checked = true;
-        });
-        saveSelection();  // Save the default checked state
-    }
-    }
-  
-    // Function to show or hide columns based on selected checkboxes
-    function toggleColumns() {
-      const checkboxes = document.querySelectorAll(".form-check-input");
-      
-      checkboxes.forEach(function (checkbox) {
-        const columnName = checkbox.value;
-        const column = document.getElementById("col" + columnName);
-        const columnCells = document.querySelectorAll("td:nth-child(" + (getColumnIndex(columnName)) + ")");
-  
-        if (checkbox.checked) {
-          column.style.display = 'table-cell';
-          columnCells.forEach(cell => {
-            cell.style.display = 'table-cell';
-          });
-        } else {
-          column.style.display = 'none';
-          columnCells.forEach(cell => {
-            cell.style.display = 'none';
-          });
-        }
-      });
-    }
-  
-    // Function to get the column index by column name
-    function getColumnIndex(columnName) {
-      const columns = ["Namespace", "Message", "Object", "Source", "Count", "Lastseen", "Type"];
-      return columns.indexOf(columnName) + 1;
-    }
-  
-    // Initialize the table with the default visibility and selected columns
-    window.onload = function () {
-      loadSelection();  // Load saved column selection
-      toggleColumns();  // Apply column visibility based on selection
-    };
 
     // CPU and Memory usage graph
     var usageChart = document.getElementById('usageChart').getContext('2d');

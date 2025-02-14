@@ -13,7 +13,6 @@ from .decorators import server_down_handler
 @login_required
 def dashboard(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
-    print(cluster_id)
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
     logger.info(f"kube config file path  : {path}")
@@ -171,10 +170,16 @@ def events(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
+<<<<<<< Updated upstream
     events = k8s_events.get_events(path, cluster_name, False)
     return render(request, 'dashboard/events.html', {"cluster_id": cluster_id, 
                                                      'events': events, 
                                                      'current_cluster': cluster_name})
+=======
+    current_cluster = current_cluster.cluster_name
+    events = k8s_events.get_events(path, current_cluster, False)
+    return render(request, 'dashboard/events.html', {"cluster_id": cluster_id, 'events': events, 'cluster_name': cluster_name})
+>>>>>>> Stashed changes
 
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()

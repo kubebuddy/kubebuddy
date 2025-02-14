@@ -1,0 +1,93 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Events{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pod-128.png?raw=true{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="container">
+    <!-- Dropdown with checkboxes to select columns -->
+    <div class="mb-3">
+        <div class="dropdown d-flex justify-content-end">
+          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Columns to Display
+          </button>
+          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+                <label class="form-check-label" for="All"> All</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
+                <label class="form-check-label" for="Namespace"> Namespace</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Message" id="Message" checked> 
+                <label class="form-check-label" for="Message"> Message</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Object" id="Object" checked> 
+                <label class="form-check-label" for="Object"> Object</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Source" id="Source" checked> 
+                <label class="form-check-label" for="Source"> Source</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Count" id="Count" checked> 
+                <label class="form-check-label" for="Count"> Count</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Timestamp" id="Timestamp" checked> 
+                <label class="form-check-label" for="Timestamp"> Timestamp</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Type" id="Type" checked> 
+                <label class="form-check-label" for="Type"> Type</label>
+            </li>
+          </ul>
+        
+        </div>
+    </div>
+  
+    <!-- Table -->
+    <table class="table table-bordered">
+      <thead class="table-dark">
+      <tr>
+        <th id="colNamespace">NAMESPACE</th>
+        <th id="colMessage">MESSAGE</th>
+        <th id="colObject">OBJECT</th>
+        <th id="colSource">SOURCE</th>
+        <th id="colCount">COUNT</th>
+        <th id="colTimestamp">TIMESTAMP</th>
+        <th id="colType">TYPE</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for event in events %}
+      {% if event.type == "Warning" %}
+      <tr class="table-danger">
+      {% else %}
+      <tr>
+      {% endif %}
+          <td>{{event.namespace}}</td>
+          <td>
+              <span class="message-truncate" data-full="{{event.message}}">
+                  {{ event.message|truncatechars:100 }}
+              </span>
+          </td>
+          <td>{{event.object}}</td>
+          <td>{{event.source}}</td>
+          <td>{{event.count}}</td>
+          <td>{{event.last_seen}}</td>
+          <td>{{event.type}}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+  </table>
+    
+  </div>
+
+{% endblock %}

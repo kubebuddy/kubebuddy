@@ -3,7 +3,7 @@ from datetime import datetime
 from dateutil.tz import tzutc
 from dateutil.relativedelta import relativedelta
 
-def get_events(config_file, context, namespace = "all"):
+def get_events(config_file, context, limit, namespace = "all"):
     """
     Retrieves events for a particular namesapce.
 
@@ -24,17 +24,16 @@ def get_events(config_file, context, namespace = "all"):
 
         v1 = client.CoreV1Api()
 
-        data = v1.list_event_for_all_namespaces(limit=30) if namespace == "all" else v1.list_namespaced_event(namespace=namespace, limit = 30)
+        if limit:
+            data = v1.list_event_for_all_namespaces(limit=30) if namespace == "all" else v1.list_namespaced_event(namespace=namespace, limit = 30)
+        else:
+            data = v1.list_event_for_all_namespaces() if namespace == "all" else v1.list_namespaced_event(namespace=namespace)
         events = []
 
         for event in data.items:
             event_data = {}
             event_data["namespace"] = event.metadata.namespace
             event_data["message"] = event.message
-
-            if len(event.message) > 100:
-                event_data["message"] = event.message
-
             event_data["object"] = event.involved_object.kind + "/" + event.involved_object.name
 
             if event.source.component:

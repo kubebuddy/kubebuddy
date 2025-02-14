@@ -76,7 +76,7 @@ def dashboard(request, cluster_id):
     # metrics = k8s_cluster_metric.getMetrics(node_list, path, current_cluster)
 
     # get cluster events
-    events = k8s_events.get_events(path, current_cluster)
+    events = k8s_events.get_events(path, current_cluster, True)
 
     return render(request, 'dashboard/dashboard.html', {'warning': warning_message,
                                                         'ready_nodes': ready_nodes, 
@@ -159,6 +159,12 @@ def deployment(request, cluster_id):
                                                          "deployment_info_list": deployment_info_list})
     
 
+def events(request, cluster_id):
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    current_cluster = current_cluster.cluster_name
+    events = k8s_events.get_events(path, current_cluster, False)
+    return render(request, 'dashboard/events.html', {"cluster_id": cluster_id, 'events': events})
 
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()

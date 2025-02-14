@@ -73,27 +73,54 @@ def get_pod_info(config_path, cluster_name):
 
     return pod_info_list
 
-def get_pod_description(path, namespace, pod_name):
-    config.load_kube_config(path)
+def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
+    config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
-    pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
-    return pod.to_dict()
+    try:
+        # Fetch pod details
+        pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
 
-def get_pod_logs(path, namespace, pod_name):
-    config.load_kube_config(path)
+        pod_info = {
+            "name": pod.metadata.name,
+            "namespace": pod.metadata.namespace,
+            "status": pod.status.phase,
+            "node_name": pod.spec.node_name,
+            "pod_ip": pod.status.pod_ip,
+            "host_ip": pod.status.host_ip,
+            "start_time": pod.status.start_time.isoformat() if pod.status.start_time else None,
+            "containers": [
+                {
+                    "name": container.name,
+                    "image": container.image,
+                    "ports": [port.container_port for port in (container.ports or [])],
+                }
+                for container in pod.spec.containers
+            ],
+            "conditions": [
+                {"type": cond.type, "status": cond.status, "reason": cond.reason or ""}
+                for cond in (pod.status.conditions or [])
+            ],
+        }
+
+        return pod_info
+    except client.exceptions.ApiException as e:
+        return {"error": f"Failed to fetch pod details: {e.reason}"}
+
+def get_pod_logs(path, context, namespace, pod_name):
+    config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     return v1.read_namespaced_pod_log(name=pod_name, namespace=namespace)
 
-def get_pod_events(path, namespace, pod_name):
-    config.load_kube_config(path)
+def get_pod_events(path, context, namespace, pod_name):
+    config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     pod_events = [event for event in events if event.involved_object.name == pod_name]
     
     return "\n".join([f"{e.reason}: {e.message}" for e in pod_events])
 
-def get_pod_yaml(path, namespace, pod_name):
-    config.load_kube_config(path)
+def get_pod_yaml(path, context, namespace, pod_name):
+    config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
     return yaml.dump(pod.to_dict(), default_flow_style=False)

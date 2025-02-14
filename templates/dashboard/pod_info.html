@@ -8,7 +8,11 @@
 
 
     <div class="container mt-4">
-        <h2 class="mb-4">Pod Details: {{ pod_name }}</h2>
+        <div class="d-flex justify-content-start">
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pod-128.png?raw=true" style="height: 5vh;" alt="pod">
+            <h2 class="mb-4 ps-3 text-primary">Pod: {{ pod_name }}</h2>
+        </div>
+        
 
         <!-- Bootstrap Tabs -->
         <ul class="nav nav-tabs" id="podTabs">
@@ -29,26 +33,40 @@
         <!-- Tab Content -->
         <div class="tab-content mt-3">
             <div class="tab-pane fade show active" id="describe">
-                <h4>Describe Pod</h4>
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; padding: 10px;">
-                    <pre>{{ pod_info.describe }}</pre>
+                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                  <pre>
+<b>Name</b>: {{ pod_info.describe.name }}
+<b>Namespace</b>: {{ pod_info.describe.namespace }}
+<b>Status</b>: {{ pod_info.describe.status }}
+<b>Node Name</b>: {{ pod_info.describe.node_name }}
+<b>Pod IP</b>: {{ pod_info.describe.pod_ip }}
+<b>Host IP</b>: {{ pod_info.describe.host_ip }}
+<b>Start Time</b>: {{ pod_info.describe.start_time }}
+<b>Containers</b>:{% for container in pod_info.describe.containers %}
+  - <strong>Name:</strong> {{ container.name }}
+      <strong>Image:</strong> {{ container.image }}
+      <strong>Ports:</strong>{% for port in container.ports %} {{ port }}{% endfor %}{% endfor %}
+<b>Conditions</b>:{% for condition in pod_info.describe.conditions %}
+  - <strong>Type:</strong> {{ condition.type }}
+      <strong>Status:</strong> {{ condition.status }}
+      <strong>Reason:</strong> {{ condition.reason }}{% endfor %}
+</pre>
                 </div>
-            </div>
+              </div>
+              
             <div class="tab-pane fade" id="logs">
-                <h4>Pod Logs</h4>
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; padding: 10px;">
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
                     <pre>{{ pod_info.logs }}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="events">
-                <h4>Pod Events</h4>
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; padding: 10px;">
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
                     <pre>{{ pod_info.events }}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">
-                <h4>Pod YAML</h4>
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; padding: 10px;">
+                <!-- <h4>Pod YAML</h4> -->
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
                     <pre>{{ pod_info.yaml }}</pre>
                 </div>
             </div>

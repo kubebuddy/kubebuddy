@@ -126,10 +126,10 @@ def pod_info(request, cluster_name, namespace, pod_name):
     path = current_cluster.kube_config.path
 
     pod_info = {
-        "describe": k8s_pods.get_pod_description(path, namespace, pod_name),
-        "logs": k8s_pods.get_pod_logs(path, namespace, pod_name),
-        "events": k8s_pods.get_pod_events(path, namespace, pod_name),
-        "yaml": k8s_pods.get_pod_yaml(path, namespace, pod_name)
+        "describe": k8s_pods.get_pod_description(path, current_cluster.cluster_name, namespace, pod_name),
+        "logs": k8s_pods.get_pod_logs(path, current_cluster.cluster_name, namespace, pod_name),
+        "events": k8s_pods.get_pod_events(path, current_cluster.cluster_name, namespace, pod_name),
+        "yaml": k8s_pods.get_pod_yaml(path, current_cluster.cluster_name, namespace, pod_name)
     }
 
     return render(request, 'dashboard/pod_info.html', {
@@ -145,13 +145,13 @@ def replicasets(request, cluster_name):
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
 
-    rs_status = k8s_replicaset.getReplicasetStatus(path, current_cluster.cluster_name)
-    replicaset_info_list = k8s_replicaset.getReplicaSetsInfo(path, current_cluster.cluster_name)
+    rs_status = k8s_replicaset.getReplicasetStatus(path, cluster_name)
+    replicaset_info_list = k8s_replicaset.getReplicaSetsInfo(path, cluster_name)
     
     return render(request, 'dashboard/replicasets.html', {"cluster_id": cluster_id, 
                                                           "replicaset_info_list": replicaset_info_list,
                                                           "rs_status": rs_status,
-                                                          'current_cluster': current_cluster.cluster_name})
+                                                          'current_cluster': cluster_name})
 
 
 def deployment(request, cluster_name):
@@ -159,20 +159,22 @@ def deployment(request, cluster_name):
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
 
-    dep_status = k8s_deployments.getDeploymentsStatus(path, current_cluster.cluster_name)
-    deployment_info_list = k8s_deployments.getDeploymentsInfo(path, current_cluster.cluster_name)
+    dep_status = k8s_deployments.getDeploymentsStatus(path, cluster_name)
+    deployment_info_list = k8s_deployments.getDeploymentsInfo(path, cluster_name)
     return render(request, 'dashboard/deployment.html', {"cluster_id": cluster_id, 
                                                          "dep_status": dep_status,
-                                                         "deployment_info_list": deployment_info_list})
+                                                         "deployment_info_list": deployment_info_list,
+                                                         'current_cluster': cluster_name})
     
 
 def events(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
-    current_cluster = current_cluster.cluster_name
-    events = k8s_events.get_events(path, current_cluster, False)
-    return render(request, 'dashboard/events.html', {"cluster_id": cluster_id, 'events': events})
+    events = k8s_events.get_events(path, cluster_name, False)
+    return render(request, 'dashboard/events.html', {"cluster_id": cluster_id, 
+                                                     'events': events, 
+                                                     'current_cluster': cluster_name})
 
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()

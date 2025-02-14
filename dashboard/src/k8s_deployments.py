@@ -10,6 +10,7 @@ def getDeploymentsInfo(path, context, namespace="all"):
     now = datetime.now()  # Current local time without timezone info
     
     for deployment in deployments.items:
+        print(deployment.status)
         namespace = deployment.metadata.namespace
         name = deployment.metadata.name
         ready = deployment.status.ready_replicas if deployment.status.ready_replicas else 0

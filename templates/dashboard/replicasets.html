@@ -49,6 +49,14 @@
                 <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
                 <label class="form-check-label" for="Age"> Age</label>
             </li>
+            <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Images" id="Images" checked> 
+              <label class="form-check-label" for="Images"> Images</label>
+            </li>
+            <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Selector" id="Selector" checked> 
+              <label class="form-check-label" for="Selector"> Selector</label>
+            </li>
         </ul>
         
         </div>
@@ -64,6 +72,8 @@
           <th id="colCurrent">CURRENT</th>
           <th id="colReady">READY</th>
           <th id="colAge">AGE</th>
+          <th id="colImages">IMAGES</th>
+          <th id="colSelector">SELECTOR</th>
         </tr>
       </thead>
 
@@ -76,6 +86,8 @@
           <td>{{ rs.current }}</td>
           <td>{{ rs.ready }}</td>
           <td>{{ rs.age }}</td>
+          <td>{{ rs.images }}</td>
+          <td>{{ rs.selector }}</td>
         </tr>
       {% endfor %}
       </tbody>

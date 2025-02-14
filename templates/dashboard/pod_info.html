@@ -66,8 +66,14 @@
             </div>
             <div class="tab-pane fade" id="yaml">
                 <!-- <h4>Pod YAML</h4> -->
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
-                    <pre>{{ pod_info.yaml }}</pre>
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                    <!-- Copy Button inside the div -->
+                    <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
+                        Copy YAML
+                    </button>
+                    
+                
+                    <pre id="yamlContent">{{ pod_info.yaml }}</pre>
                 </div>
             </div>
             
@@ -75,5 +81,7 @@
 
         <a href="/{{current_cluster}}/pods?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Pods</a>
     </div>
-  
+    
+    {% load static%}
+    <script src="{% static 'js/copyYAML.js' %}"></script>
 {% endblock %}

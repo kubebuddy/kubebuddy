@@ -19,13 +19,24 @@ def getReplicaSetsInfo(path, context, namespace="all"):
         age = now - creation_timestamp_naive
         age_str = str(age).split('.')[0]  # Remove microseconds for a cleaner format
         
+        # Extracting image names
+        image_names = []
+        if rs.spec.template.spec.containers:
+            for container in rs.spec.template.spec.containers:
+                image_names.append(container.image)
+
+        # Extracting selector information
+        selector = rs.spec.selector.match_labels if rs.spec.selector else {}
+
         replicaset_info_list.append({
             'namespace': rs.metadata.namespace,
             'name': rs.metadata.name,
             'desired': rs.spec.replicas,
             'current': rs.status.replicas,
             'ready': rs.status.ready_replicas if rs.status.ready_replicas else 0,
-            'age': age_str
+            'age': age_str,
+            'images': image_names,   # List of image names for the ReplicaSet
+            'selector': selector     # Labels used as the selector for the ReplicaSet
         })
     
     return replicaset_info_list

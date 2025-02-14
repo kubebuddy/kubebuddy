@@ -83,7 +83,7 @@
         <tr>
           <td>{{ pod.namespace }}</td>
           <td>
-            <a href="{% url 'pod_info' cluster_id=cluster_id namespace=pod.namespace pod_name=pod.name %}">
+            <a href="/{{current_cluster}}/pods/{{pod.namespace}}/{{pod.name}}?cluster_id={{cluster_id}}">
                 {{ pod.name }}
             </a>
         </td>

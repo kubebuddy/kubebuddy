@@ -55,7 +55,7 @@
             
         </div>
 
-        <a href="{% url 'pods' cluster_id=cluster_id %}" class="btn btn-primary mt-3">Back to Pods</a>
+        <a href="/{{current_cluster}}/pods?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Pods</a>
     </div>
   
 {% endblock %}

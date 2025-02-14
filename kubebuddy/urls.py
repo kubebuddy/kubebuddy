@@ -28,7 +28,7 @@ urlpatterns = [
     path('update-password/', change_pass, name='update-password'),
     path('integrate/', integrate_with, name='integrate'),
     path('', include('dashboard.urls')),
-    path('cluster-select/', cluster_select, name='cluster-select'),
+    path('KubeBuddy', cluster_select, name='cluster-select'),
     path('delete_cluster/<int:pk>/', delete_cluster, name='delete_cluster'),
     path('cluster_error', cluster_error, name="cluster_error")
 ]

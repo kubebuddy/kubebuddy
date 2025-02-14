@@ -29,7 +29,7 @@
     <button id="toggleSidebar" class="toggle-btn pb-2">
       <i class="bi bi-list"></i>
     </button>
-    <a class="navbar-brand d-flex align-items-center" href="/cluster-select">
+    <a class="navbar-brand d-flex align-items-center" href="/KubeBuddy">
       <span class="fs-5 fw-semibold">KubeBuddy</span>
     </a>
   
@@ -51,7 +51,7 @@
     <!-- Sidebar -->
     <div id="sidebar" class="sidebar flex-shrink-0 p-3 bg-white border-end">
       
-      <a href="/{{cluster_id}}/dashboard" class="btn btn-primary text-decoration-none text-white d-flex align-items-center mb-2">
+      <a href="/{{current_cluster}}/dashboard?cluster_id={{cluster_id}}" class="btn btn-primary text-decoration-none text-white d-flex align-items-center mb-2">
         <i class="bi bi-speedometer pe-2"></i>
         <b>Dashboard</b>
       </a>
@@ -63,7 +63,7 @@
                     {% for cluster in registered_clusters %}
                     <a href="
                     {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
-                    {% url 'dashboard' cluster.id %}
+                    /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
                     {% else %}
                     {% url 'cluster_error' %}
                     {% endif %}
@@ -86,9 +86,9 @@
           </button>
           <div class="collapse show" id="workload-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/pods" class="link-dark rounded">Pods</a></li>
-              <li><a href="/{{cluster_id}}/replicasets" class="link-dark rounded">ReplicaSet</a></li>
-              <li><a href="/{{cluster_id}}/deployment" class="link-dark rounded">Deployments</a></li>
+              <li><a href="/{{current_cluster}}/pods?cluster_id={{cluster_id}}" class="link-dark rounded">Pods</a></li>
+              <li><a href="/{{current_cluster}}/replicasets?cluster_id={{cluster_id}}" class="link-dark rounded">ReplicaSet</a></li>
+              <li><a href="/{{current_cluster}}/deployment?cluster_id={{cluster_id}}" class="link-dark rounded">Deployments</a></li>
               <li><a href="#" class="link-dark rounded">StatefulSets</a></li>
               <li><a href="#" class="link-dark rounded">DaemonSet</a></li>
               <li><a href="#" class="link-dark rounded">Jobs</a></li>
@@ -202,7 +202,7 @@
           </button>
           <div class="collapse show" id="events-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/events" class="link-dark rounded">All Events</a></li>
+              <li><a href="/{{current_cluster}}/events?cluster_id={{cluster_id}}" class="link-dark rounded">All Events</a></li>
             </ul>
           </div>
         </li>

@@ -36,7 +36,6 @@ def get_registered_clusters():
                 pods = v1.list_namespaced_pod(namespace="kube-system", label_selector=label_selector)
                 for pod in pods.items:
                     if pod.status.phase != "Running":
-                        print("reached ")
                         context.control_plane_status = "Unhealthy"
                         failed_control_pods.append(pod.metadata.name)
 

@@ -10,4 +10,3 @@ def get_namespace():
     return list_ns
 
 n = get_namespace()
-print(n)

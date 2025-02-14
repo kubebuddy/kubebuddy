@@ -39,10 +39,10 @@ def login_view(request):
                         if username == 'admin' and password == 'admin':
                             # Redirect to the dashboard with a warning message
                             request.session['warning'] = "You're using the default password. Please change it for security reasons."
-                            return redirect('/cluster-select')
+                            return redirect('/KubeBuddy')
                         else:
                             # Redirect to the dashboard if credentials are valid
-                            return redirect('/cluster-select')
+                            return redirect('/KubeBuddy')
                     else:
                         # Redirect to integrate page if no valid kubeconfig file exists
                         return redirect('/integrate')
@@ -78,11 +78,11 @@ def integrate_with(request):
                     kube_config.save()
 
                     save_clusters(kube_config, changes=False)
-                    return redirect('/cluster-select')
+                    return redirect('/KubeBuddy')
                 else:
                     kube_config = KubeConfig.objects.get(path=path)
                     save_clusters(kube_config, changes = True)
-                    return redirect('/cluster-select') # kubeconfig already exists
+                    return redirect('/KubeBuddy') # kubeconfig already exists
                 
             except ConfigException as e:
                 error_message = f"Error: Invalid kube/config file. Details: {str(e)}"

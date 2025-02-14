@@ -11,12 +11,11 @@ from .decorators import server_down_handler
 
 @server_down_handler
 @login_required
-def dashboard(request, cluster_id):
-    # cluster_id = 'cluster_id_01' #for reference now, we have to change it to dynamic in future
+def dashboard(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    print(cluster_id)
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
-    # data = KubeConfig.objects.filter(cluster_id=cluster_id).values().first()
-    # path = data['path']
     logger.info(f"kube config file path  : {path}")
 
     config.load_kube_config(config_file=path, context = current_cluster.cluster_name)  # Load the kube config
@@ -73,7 +72,7 @@ def dashboard(request, cluster_id):
     namespaces = k8s_namespaces.get_namespace()
 
     # get cluster metrics 
-    # metrics = k8s_cluster_metric.getMetrics(node_list, path, current_cluster)
+    # metrics = k8s_cluster_metric.getMetrics(path, current_cluster)
 
     # get cluster events
     events = k8s_events.get_events(path, current_cluster, True)
@@ -95,10 +94,12 @@ def dashboard(request, cluster_id):
                                                         'namespaces':namespaces,
                                                         'namespaces_count': namespaces_count,
                                                         'cluster_id': cluster_id,
+                                                        # 'metrics' : metrics,
                                                         'registered_clusters': registered_clusters,
                                                         'events': events,})
     
-def pods(request, cluster_id):
+def pods(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
 
@@ -113,12 +114,14 @@ def pods(request, cluster_id):
     logger.info(f"pods : {pods}")
     return render(request, 'dashboard/pods.html', { "pods": pods, 
                                                    "pc": pc, 
-                                                   "cluster_id": cluster_id, 
+                                                   "cluster_id": cluster_id,
+                                                   "current_cluster": cluster_name,
                                                    "pod_info_list": pod_info_list,
                                                    "status_count": status_count})
 
 
-def pod_info(request, cluster_id, namespace, pod_name):
+def pod_info(request, cluster_name, namespace, pod_name):
+    cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id=cluster_id)
     path = current_cluster.kube_config.path
 
@@ -132,11 +135,13 @@ def pod_info(request, cluster_id, namespace, pod_name):
     return render(request, 'dashboard/pod_info.html', {
         "pod_info": pod_info,
         "cluster_id": cluster_id,
-        "pod_name": pod_name
+        "pod_name": pod_name,
+        'current_cluster': cluster_name
     })
 
 
-def replicasets(request, cluster_id):
+def replicasets(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
 
@@ -145,10 +150,12 @@ def replicasets(request, cluster_id):
     
     return render(request, 'dashboard/replicasets.html', {"cluster_id": cluster_id, 
                                                           "replicaset_info_list": replicaset_info_list,
-                                                          "rs_status": rs_status})
+                                                          "rs_status": rs_status,
+                                                          'current_cluster': current_cluster.cluster_name})
 
 
-def deployment(request, cluster_id):
+def deployment(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
 
@@ -159,7 +166,8 @@ def deployment(request, cluster_id):
                                                          "deployment_info_list": deployment_info_list})
     
 
-def events(request, cluster_id):
+def events(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
     current_cluster = current_cluster.cluster_name

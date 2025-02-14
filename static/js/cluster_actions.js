@@ -11,16 +11,3 @@ function deleteCluster(clusterId) {
         }
     });
 }
-
-function toggleMonitoring(clusterId) {
-    // fetch(`/toggle_monitoring/${clusterId}/`, {
-    //     method: 'GET',
-    //     headers: {
-    //         'X-Requested-With': 'XMLHttpRequest',
-    //     },
-    // }).then(response => response.json()).then(data => {
-    //     if (data.status === 'toggled') {
-    //         location.reload();
-    //     }
-    // });
-}

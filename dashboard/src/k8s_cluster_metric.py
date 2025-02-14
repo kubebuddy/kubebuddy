@@ -31,10 +31,13 @@ def getMetrics(path, context):
             if n.metadata.name == node_name:
                 total_cpu_capacity += int(n.status.capacity["cpu"])  # Cores
                 total_memory_capacity += int(n.status.capacity["memory"][:-2]) / (1024 * 1024)  # Convert Ki to Gi
-    
+                total_memory_capacity = round(total_memory_capacity, 2)
     # Calculate percentage usage
     cpu_percent = (total_cpu_usage / total_cpu_capacity) * 100 if total_cpu_capacity else 0
     memory_percent = (total_memory_usage / total_memory_capacity) * 100 if total_memory_capacity else 0
+
+    cpu_percent = round(cpu_percent,2)
+    memory_percent = round(memory_percent, 2)
 
     return {'cpu_usage': cpu_percent, 'memory_usage': memory_percent, 'cpu_total': total_cpu_capacity, 'memory_total': total_memory_capacity }
 

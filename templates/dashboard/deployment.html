@@ -38,10 +38,6 @@
                 <label class="form-check-label" for="Ready"> Ready</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Available" id="Available" checked> 
-                <label class="form-check-label" for="Available"> Available</label>
-            </li>
-            <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
                 <label class="form-check-label" for="Age"> Age</label>
             </li>
@@ -57,7 +53,6 @@
           <th id="colNamespace">NAMESPACE</th>
           <th id="colName">NAME</th>
           <th id="colReady">READY</th>
-          <th id="colAvailable">AVAILABLE</th>
           <th id="colAge">AGE</th>
         </tr>
       </thead>
@@ -68,7 +63,6 @@
           <td>{{ deployment.namespace }}</td>
           <td>{{ deployment.name }}</td>
           <td>{{ deployment.ready }}</td>
-          <td>{{ deployment.available }}</td>
           <td>{{ deployment.age }}</td>
         </tr>
       {% endfor %}

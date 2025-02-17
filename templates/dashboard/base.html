@@ -121,8 +121,8 @@
           </button>
           <div class="collapse" id="services-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="#" class="link-dark rounded">Service</a></li>
-              <li><a href="#" class="link-dark rounded">Endpoints</a></li>
+              <li><a href="/{{current_cluster}}/services?cluster_id={{cluster_id}}" class="link-dark rounded">Service</a></li>
+              <li><a href="/{{current_cluster}}/endpoints?cluster_id={{cluster_id}}" class="link-dark rounded">Endpoints</a></li>
             </ul>
           </div>
         </li>
@@ -134,8 +134,8 @@
           </button>
           <div class="collapse" id="config-secrets-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="#" class="link-dark rounded">ConfigMaps</a></li>
-              <li><a href="#" class="link-dark rounded">Secrets</a></li>
+              <li><a href="/{{current_cluster}}/configmaps?cluster_id={{cluster_id}}" class="link-dark rounded">ConfigMaps</a></li>
+              <li><a href="/{{current_cluster}}/secrets?cluster_id={{cluster_id}}" class="link-dark rounded">Secrets</a></li>
             </ul>
           </div>
         </li>

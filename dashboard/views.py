@@ -2,7 +2,7 @@ from django.shortcuts import render
 from main.models import KubeConfig, Cluster
 from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, \
                 k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_namespaces, k8s_cluster_metric, k8s_events, \
-                k8s_deployments
+                k8s_deployments, k8s_configmaps, k8s_secrets, k8s_services, k8s_endpoints
 from django.contrib.auth.decorators import login_required
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
@@ -238,6 +238,7 @@ def events(request, cluster_name):
                                                      'current_cluster': cluster_name,
                                                      'registered_clusters': registered_clusters})
 
+
 def statefulsets(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
@@ -294,6 +295,38 @@ def jobs(request, cluster_name):
         'jobs_list': jobs_list,
         'registered_clusters': registered_clusters
     })
+
+def configmaps(request,cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    configmaps, total_count = k8s_configmaps.get_configmaps(path, cluster_name)
+    return render(request, 'dashboard/configmaps.html', {"configmaps": configmaps, 'total_count':total_count, "cluster_id": cluster_id, 'current_cluster': cluster_name})
+
+
+def secrets(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    secrets = k8s_secrets.list_secrets(path, cluster_name)
+    return render(request, 'dashboard/secrets.html', {"secrets": secrets, "cluster_id": cluster_id, 'current_cluster': cluster_name})
+
+
+def services(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    services = k8s_services.list_kubernetes_services(path, cluster_name)
+    total_services = len(services)
+    return render(request, 'dashboard/services.html', {"services": services,"total_services": total_services, "cluster_id": cluster_id, 'current_cluster': cluster_name})
+
+def endpoints(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    endpoints = k8s_endpoints.get_endpoints(path, cluster_name)
+    total_endpoints = len(endpoints)
+    return render(request, 'dashboard/endpoints.html', {"endpoints": endpoints,"total_endpoints":total_endpoints, "cluster_id": cluster_id, 'current_cluster': cluster_name}) 
 
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()

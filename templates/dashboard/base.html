@@ -35,7 +35,7 @@
   
     <!-- Account Section (Right Corner) -->
     <div class="dropdown ms-auto">
-      <button class="btn btn-link dropdown-toggle d-flex align-items-center" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <button class="btn btn-link dropdown-toggle d-flex align-items-center" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="true">
         <i class="bi bi-person-circle fs-4"></i> <!-- User Icon -->
       </button>
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
@@ -116,10 +116,10 @@
         
         <!-- Services Section -->
         <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#services-collapse" aria-expanded="false">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#services-collapse" aria-expanded="true">
             Services
           </button>
-          <div class="collapse" id="services-collapse">
+          <div class="collapse show" id="services-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               <li><a href="/{{current_cluster}}/services?cluster_id={{cluster_id}}" class="link-dark rounded">Service</a></li>
               <li><a href="/{{current_cluster}}/endpoints?cluster_id={{cluster_id}}" class="link-dark rounded">Endpoints</a></li>
@@ -129,10 +129,10 @@
 
         <!-- Config & Secrets Section -->
         <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#config-secrets-collapse" aria-expanded="false">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#config-secrets-collapse" aria-expanded="true">
             Config & Secrets
           </button>
-          <div class="collapse" id="config-secrets-collapse">
+          <div class="collapse show" id="config-secrets-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               <li><a href="/{{current_cluster}}/configmaps?cluster_id={{cluster_id}}" class="link-dark rounded">ConfigMaps</a></li>
               <li><a href="/{{current_cluster}}/secrets?cluster_id={{cluster_id}}" class="link-dark rounded">Secrets</a></li>
@@ -142,10 +142,10 @@
 
         <!-- Persistent Storage Section -->
         <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#ps-collapse" aria-expanded="false">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#ps-collapse" aria-expanded="true">
             Persistent Storage
           </button>
-          <div class="collapse" id="ps-collapse">
+          <div class="collapse show" id="ps-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               <li><a href="#" class="link-dark rounded">PersistentVolume</a></li>
               <li><a href="#" class="link-dark rounded">PersistentVolumeClaim</a></li>
@@ -156,10 +156,10 @@
 
         <!-- Networking Section -->
         <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#networking-collapse" aria-expanded="false">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#networking-collapse" aria-expanded="true">
             Networking
           </button>
-          <div class="collapse" id="networking-collapse">
+          <div class="collapse show" id="networking-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               <li><a href="#" class="link-dark rounded">Ingress</a></li>
               <li><a href="#" class="link-dark rounded">NetworkPolicy</a></li>
@@ -169,10 +169,10 @@
 
         <!-- RBAC Section -->
         <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#rbac-collapse" aria-expanded="false">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#rbac-collapse" aria-expanded="true">
             RBAC
           </button>
-          <div class="collapse" id="rbac-collapse">
+          <div class="collapse show" id="rbac-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               <li><a href="#" class="link-dark rounded">Role</a></li>
               <li><a href="#" class="link-dark rounded">RoleBinding</a></li>
@@ -185,10 +185,10 @@
 
         <!-- Metrics Section -->
         <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#metrics-collapse" aria-expanded="false">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#metrics-collapse" aria-expanded="true">
             Metrics
           </button>
-          <div class="collapse" id="metrics-collapse">
+          <div class="collapse show" id="metrics-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               <li><a href="#" class="link-dark rounded">Pod Metrics</a></li>
               <li><a href="#" class="link-dark rounded">Node Metrics</a></li>
@@ -210,10 +210,10 @@
 
         <!-- Kubernetes Certificate Section -->
         <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#certificate-collapse" aria-expanded="false">
+          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#certificate-collapse" aria-expanded="true">
             K8s Certificates
           </button>
-          <div class="collapse" id="certificate-collapse">
+          <div class="collapse show" id="certificate-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               
             </ul>
@@ -249,6 +249,33 @@
         toggleButton.style.transition = '1s ease-in-out;'
       }
     });
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".collapse").forEach((section) => {
+        let id = section.id;
+        let isOpen = localStorage.getItem(id);
+
+        if (isOpen === "true") {
+          section.classList.add("show");
+          section.previousElementSibling.setAttribute("aria-expanded", "true");
+        } else if (isOpen === "false") {
+          section.classList.remove("show");
+          section.previousElementSibling.setAttribute("aria-expanded", "false");
+        }
+
+        section.addEventListener("shown.bs.collapse", () => {
+          localStorage.setItem(id, "true");
+          section.previousElementSibling.setAttribute("aria-expanded", "true");
+        });
+
+        section.addEventListener("hidden.bs.collapse", () => {
+          localStorage.setItem(id, "false");
+          section.previousElementSibling.setAttribute("aria-expanded", "false");
+          });
+      });
+    });
+
+
 
     // cluster dropdown
     // search functionality

@@ -22,10 +22,10 @@ def getCronJobsStatus(path, context, namespace="all"):
         for cronjob in cronjobs.items:
             if cronjob.status.active == None:
                 cronjobs_status["Completed"] += 1
-                cronjobs_status["Count"] += 1
             else:
                 cronjobs_status["Running"] += 1
-                cronjobs_status["Count"] += 1
+
+            cronjobs_status["Count"] += 1
 
         return cronjobs_status
     

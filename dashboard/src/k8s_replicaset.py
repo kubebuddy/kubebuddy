@@ -56,10 +56,10 @@ def getReplicasetStatus(path, context, namespace="all"):
         for replicaset in replicasets.items:
             if replicaset.status.replicas == replicaset.status.ready_replicas == replicaset.status.available_replicas != None: 
                 replicaset_status["Running"] += 1
-                replicaset_status["Count"] += 1
             else: 
                 replicaset_status["Pending"] += 1 
-                replicaset_status["Count"] += 1
+            
+            replicaset_status["Count"] += 1
 
         return replicaset_status
     

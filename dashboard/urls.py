@@ -1,5 +1,5 @@
 from django.urls import path
-from dashboard.views import dashboard, pods, nodes, replicasets, deployments, pod_info, events, rs_info, deploy_info
+from dashboard.views import dashboard, pods, nodes, replicasets, deployment, pod_info, events, statefulsets, daemonset, jobs
 
 urlpatterns = [
     path('<str:cluster_name>/dashboard/', dashboard, name='dashboard'),
@@ -11,5 +11,7 @@ urlpatterns = [
     path('<str:cluster_name>/deployments', deployments, name='deployments'),
     path('<str:cluster_name>/deployments/<str:namespace>/<str:deploy_name>/', deploy_info, name='deploy_info'),
     path('<str:cluster_name>/events', events, name='events'),
-    
+    path('<str:cluster_name>/statefulsets', statefulsets, name="statefulsets"),
+    path('<str:cluster_name>/daemonset', daemonset, name="daemonset"),
+    path('<str:cluster_name>/jobs', jobs, name="jobs")
 ]

@@ -14,7 +14,7 @@ def getDeploymentsInfo(path, context, namespace="all"):
         namespace = deployment.metadata.namespace
         name = deployment.metadata.name
         ready_replicas = deployment.status.ready_replicas if deployment.status.ready_replicas is not None else 0
-        replicas = deployment.status.replicas
+        replicas = deployment.spec.replicas
         ready = str(ready_replicas) + "/" + str(replicas)
         
         # Remove timezone info from creation timestamp
@@ -46,10 +46,10 @@ def getDeploymentsStatus(path, context, namespace="all"):
         for deployment in deployments.items:
             if deployment.status.replicas == deployment.status.ready_replicas == deployment.status.available_replicas != None: 
                 deployment_status["Running"] += 1
-                deployment_status["Count"] += 1
             else: 
                 deployment_status["Pending"] += 1 
-                deployment_status["Count"] += 1
+            
+            deployment_status["Count"] += 1
 
         return deployment_status
     

@@ -238,6 +238,63 @@ def events(request, cluster_name):
                                                      'current_cluster': cluster_name,
                                                      'registered_clusters': registered_clusters})
 
+def statefulsets(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+
+    statefulsets_status = k8s_statefulset.getStatefulsetStatus(path, cluster_name)
+    statefulsets_list = k8s_statefulset.getStatefulsetList(path, cluster_name)
+
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    return render(request, 'dashboard/statefulsets.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'statefulsets_list': statefulsets_list,
+        'statefulsets_status': statefulsets_status,
+        'registered_clusters': registered_clusters
+    })
+
+def daemonset(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    daemonset_status = k8s_daemonset.getDaemonsetStatus(path, cluster_name)
+    daemonset_list = k8s_daemonset.getDaemonsetList(path, cluster_name)
+
+    return render(request, 'dashboard/daemonset.html',{
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'daemonset_status': daemonset_status,
+        'daemonset_list': daemonset_list,
+        'registered_clusters': registered_clusters
+    })
+
+def jobs(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    jobs_status = k8s_jobs.getJobsStatus(path, cluster_name)
+    jobs_list = k8s_jobs.getJobsList(path, cluster_name)
+
+    return render(request, 'dashboard/jobs.html',{
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'jobs_status': jobs_status,
+        'jobs_list': jobs_list,
+        'registered_clusters': registered_clusters
+    })
+
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()
     logger.info(f"nodes : {nodes}")

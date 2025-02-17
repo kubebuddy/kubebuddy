@@ -61,7 +61,11 @@
       {% for deployment in deployment_info_list %}
         <tr>
           <td>{{ deployment.namespace }}</td>
-          <td>{{ deployment.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/deployments/{{deployment.namespace}}/{{deployment.name}}?cluster_id={{cluster_id}}">
+                {{ deployment.name }}
+            </a>
+          </td>
           <td>{{ deployment.ready }}</td>
           <td>{{ deployment.age }}</td>
         </tr>

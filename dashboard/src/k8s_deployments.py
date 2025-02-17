@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime
+import yaml
 
 def getDeploymentsInfo(path, context, namespace="all"):
     config.load_kube_config(path, context)
@@ -58,3 +59,17 @@ def getDeploymentsStatus(path, context, namespace="all"):
     except Exception as e:  # Catch other potential errors (e.g., config issues)
         print(f"An error occurred: {e}")  # Print other errors to stderr
         return []
+    
+
+def get_deploy_events(path, context, namespace, deployment_name):
+    config.load_kube_config(config_file=path, context=context)
+    v1 = client.CoreV1Api()
+    events = v1.list_namespaced_event(namespace=namespace).items
+    deployment_events = [event for event in events if event.involved_object.name == deployment_name and event.involved_object.kind == "Deployment"]
+    return "\n".join([f"{e.reason}: {e.message}" for e in deployment_events])
+
+def get_yaml_deploy(path, context, namespace, deployment_name):
+    config.load_kube_config(config_file=path, context=context)
+    v1 = client.AppsV1Api()
+    deployment = v1.read_namespaced_deployment(name=deployment_name, namespace=namespace)
+    return yaml.dump(deployment.to_dict(), default_flow_style=False)

@@ -1,4 +1,5 @@
 from django.urls import path
+<<<<<<< Updated upstream
 
 
 from dashboard.views import dashboard, pods, nodes, replicasets, deployments, pod_info, \
@@ -6,6 +7,9 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 configmaps, secrets, services, endpoints, \
                                 statefulsets, daemonset, jobs
 
+=======
+from dashboard.views import dashboard, pods, nodes, replicasets, deployments, pod_info, events, statefulsets, daemonset, jobs, rs_info, deploy_info
+>>>>>>> Stashed changes
 
 urlpatterns = [
     path('<str:cluster_name>/dashboard/', dashboard, name='dashboard'),

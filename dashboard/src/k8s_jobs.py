@@ -1,4 +1,6 @@
 from kubernetes import client, config
+from datetime import datetime, timezone
+from .utils import calculateAge
 
 def getJobCount():
     config.load_kube_config()
@@ -55,9 +57,25 @@ def getJobsList(path, context, namespace="all"):
                 status = "Failed"
             else:
                 status = "Running"
-            
+            completions = str(job.status.succeeded) + "/" + str(job.spec.completions) if job.status.succeeded is not None else "0/" + str(job.spec.completions)
+            difference2 = (datetime.now(timezone.utc) - job.metadata.creation_timestamp)
+            age = calculateAge(difference2)
+            if job.status.completion_time is not None:
+                difference1 = job.status.completion_time - job.status.start_time
+                duration = calculateAge(difference1)
+            else:
+                duration = age
 
-            print(job)
+            jobs_list.append({
+                'namespace': namespace,
+                'name': name,
+                'status': status,
+                'completions': completions,
+                'age': age,
+                'duration': duration,
+            })
+        
+        return jobs_list
     
     except client.exceptions.ApiException as e:
         print(f"Kubernetes API Exception: {e}")  # Print API errors to stderr

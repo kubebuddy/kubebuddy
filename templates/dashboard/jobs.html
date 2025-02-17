@@ -1,0 +1,86 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Jobs{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/job-128.png{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row text-center">
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Jobs: {{jobs_status.Count}}</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Completed: {{jobs_status.Completed}}</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Running: {{jobs_status.Running}}</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Failed: {{jobs_status.Failed}}</i></b></div></div>
+  </div>
+  
+  <div class="container">
+    <!-- Dropdown with checkboxes to select columns -->
+    <div class="mb-3">
+        <div class="dropdown d-flex justify-content-end">
+          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Columns to Display
+          </button>
+          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+                <label class="form-check-label" for="All"> All</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
+                <label class="form-check-label" for="Namespace"> Namespace </label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
+                <label class="form-check-label" for="Name"> Name </label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Status" id="Status" checked> 
+                <label class="form-check-label" for="Status"> Status </label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Completions" id="Completions" checked> 
+                <label class="form-check-label" for="Completions"> Completions </label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Duration" id="Duration" checked> 
+                <label class="form-check-label" for="Duration"> Duration </label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
+                <label class="form-check-label" for="Age"> Age </label>
+            </li>
+        </ul>
+        
+        </div>
+    </div>
+  
+    <!-- Table -->
+    <table class="table table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th id="colNamespace">NAMESPACE</th>
+          <th id="colName">NAME</th>
+          <th id="colDesired">STATUS</th>
+          <th id="colCurrent">COMPLETIONS</th>
+          <th id="colReady">DURATION</th>
+          <th id="colAge">AGE</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for job in jobs_list %}
+        <tr>
+          <td>{{ job.namespace }}</td>
+          <td>{{ job.name }}</td>
+          <td>{{ job.status }}</td>
+          <td>{{ job.completions }}</td>
+          <td>{{ job.duration }}</td>
+          <td>{{ job.age }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      </table>
+  </div>
+
+{% endblock %}

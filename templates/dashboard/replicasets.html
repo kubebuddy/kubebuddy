@@ -81,7 +81,11 @@
       {% for rs in replicaset_info_list %}
         <tr>
           <td>{{ rs.namespace }}</td>
-          <td>{{ rs.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/replicasets/{{rs.namespace}}/{{rs.name}}?cluster_id={{cluster_id}}">
+                {{ rs.name }}
+            </a>
+          </td>
           <td>{{ rs.desired }}</td>
           <td>{{ rs.current }}</td>
           <td>{{ rs.ready }}</td>

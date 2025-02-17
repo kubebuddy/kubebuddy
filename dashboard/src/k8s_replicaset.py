@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime
+import yaml
 
 def getReplicaSetsInfo(path, context, namespace="all"):
     config.load_kube_config(path, context)
@@ -16,8 +17,7 @@ def getReplicaSetsInfo(path, context, namespace="all"):
     for rs in replicasets:
         # Remove timezone info from creation timestamp
         creation_timestamp_naive = rs.metadata.creation_timestamp.replace(tzinfo=None)
-        age = now - creation_timestamp_naive
-        age_str = str(age).split('.')[0]  # Remove microseconds for a cleaner format
+        age = (now - creation_timestamp_naive).days
         
         # Extracting image names
         image_names = []
@@ -34,7 +34,7 @@ def getReplicaSetsInfo(path, context, namespace="all"):
             'desired': rs.spec.replicas,
             'current': rs.status.replicas,
             'ready': rs.status.ready_replicas if rs.status.ready_replicas else 0,
-            'age': age_str,
+            'age': f"{age}d",
             'images': image_names,   # List of image names for the ReplicaSet
             'selector': selector     # Labels used as the selector for the ReplicaSet
         })
@@ -69,3 +69,19 @@ def getReplicasetStatus(path, context, namespace="all"):
     except Exception as e:  # Catch other potential errors (e.g., config issues)
         print(f"An error occurred: {e}")  # Print other errors to stderr
         return []
+
+# Add Describe as well
+
+def get_replicaset_events(path, context, namespace, replicaset_name):
+    config.load_kube_config(config_file=path, context=context)
+    v1 = client.CoreV1Api()
+    events = v1.list_namespaced_event(namespace=namespace).items
+    rs_events = [event for event in events if event.involved_object.name == replicaset_name and event.involved_object.kind == "ReplicaSet"]
+    
+    return "\n".join([f"{e.reason}: {e.message}" for e in rs_events])    
+
+def get_yaml_rs(path, context, namespace, rs_name):
+    config.load_kube_config(path, context)
+    v1 = client.AppsV1Api()
+    rs = v1.read_namespaced_replica_set(name=rs_name, namespace=namespace)
+    return yaml.dump(rs.to_dict(), default_flow_style=False)

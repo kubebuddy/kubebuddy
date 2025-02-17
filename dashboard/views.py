@@ -164,6 +164,27 @@ def replicasets(request, cluster_name):
                                                           'current_cluster': cluster_name,
                                                           'registered_clusters': registered_clusters})
 
+def rs_info(request, cluster_name, namespace, rs_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    rs_info = {
+        # "describe": k8s_pods.get_replicaset_description(path, current_cluster.cluster_name, namespace, rs_name),
+        "events": k8s_replicaset.get_replicaset_events(path, current_cluster.cluster_name, namespace, rs_name),
+        "yaml": k8s_replicaset.get_yaml_rs(path, current_cluster.cluster_name, namespace, rs_name)
+    }
+
+    return render(request, 'dashboard/rs_info.html', {
+        "rs_info": rs_info,
+        "cluster_id": cluster_id,
+        "rs_name": rs_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters
+    })
 
 def deployment(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')

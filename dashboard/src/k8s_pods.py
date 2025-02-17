@@ -41,12 +41,6 @@ def getPodsStatus(path, context):
                     break
             if all_container_running:
                 status_counts["Running"]+=1
-            
-            # previous logic for single conatiner pod
-            # if pod.status.container_statuses[0].state.running: # CURRENTLY ASSUMING ONLY 1 CONTAINER PER POD !
-            #     status_counts["Running"]+=1
-            # else:
-            #     status_counts["Failed"]+=1
 
     return status_counts
 
@@ -67,7 +61,7 @@ def get_pod_info(config_path, cluster_name):
             "node": pod.spec.node_name,
             "ip": pod.status.pod_ip or "N/A",
             "restarts": sum(container.restart_count for container in pod.status.container_statuses or []),
-            "age": str(datetime.now(timezone.utc) - pod.metadata.creation_timestamp).split(".")[0],
+            "age": f"{(datetime.now(timezone.utc) - pod.metadata.creation_timestamp).days}d",
             "status": pod.status.phase,
         })
 

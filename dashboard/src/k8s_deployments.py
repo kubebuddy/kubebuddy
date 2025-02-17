@@ -1,7 +1,5 @@
 from kubernetes import client, config
 from datetime import datetime
-from dateutil.tz import tzutc
-from dateutil.relativedelta import relativedelta
 
 def getDeploymentsInfo(path, context, namespace="all"):
     config.load_kube_config(path, context)
@@ -9,7 +7,7 @@ def getDeploymentsInfo(path, context, namespace="all"):
     deployments = v1.list_deployment_for_all_namespaces() if namespace == "all" else v1.list_namespaced_deployment(namespace=namespace)
     deployment_info_list = []
 
-    current_time = datetime.now(tzutc())  # Current local time without timezone info
+    current_time = datetime.now()  # Current local time without timezone info
     
     for deployment in deployments.items:
         namespace = deployment.metadata.namespace
@@ -17,37 +15,17 @@ def getDeploymentsInfo(path, context, namespace="all"):
         ready_replicas = deployment.status.ready_replicas if deployment.status.ready_replicas is not None else 0
         replicas = deployment.status.replicas
         ready = str(ready_replicas) + "/" + str(replicas)
-        # Remove timezone info from creation timestamp
-        creation_timestamp = deployment.metadata.creation_timestamp
-
-        temp = relativedelta(current_time,creation_timestamp)
-        years = temp.years
-        months = temp.months
-        days = temp.days
-        hours = temp.hours
-        minutes = temp.minutes
-        seconds = temp.seconds
-
-        if years > 0:
-            temp = f"{years}y"
-        elif months > 0:
-            temp = f"{months}mo"
-        elif days > 0:
-            temp = f"{days}d"
-        elif hours > 0:
-            temp = f"{hours}h"
-        elif minutes > 0:
-            temp = f"{minutes}m"
-        else:
-            temp = f"{seconds}s"
         
-        age_str = temp
+        # Remove timezone info from creation timestamp
+        creation_timestamp_naive = deployment.metadata.creation_timestamp.replace(tzinfo=None)
+        age = current_time - creation_timestamp_naive
+        age_in_days = age.days  # Get the number of days
         
         deployment_info_list.append({
             'namespace': namespace,
             'name': name,
             'ready': ready,
-            'age': age_str
+            'age': f"{age_in_days}d"
         })
 
     return deployment_info_list

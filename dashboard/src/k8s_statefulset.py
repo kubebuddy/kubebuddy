@@ -20,7 +20,6 @@ def getStatefulsetStatus(path, context, namespace="all"):
         }
 
         for statefulset in statefulsets.items:
-            print(statefulset.status)
             if statefulset.status.replicas == statefulset.status.ready_replicas == statefulset.status.available_replicas != None: 
                 statefulset_status["Running"] += 1
                 statefulset_status["Count"] += 1

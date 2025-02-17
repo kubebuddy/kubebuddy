@@ -103,7 +103,10 @@ def pods(request, cluster_name):
     path = current_cluster.kube_config.path
 
     logger.info(f"kube config file path  : {path}")
-
+    
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+    
     pods, pc = k8s_pods.getpods()
     pod_info_list = k8s_pods.get_pod_info(path, current_cluster.cluster_name)
 
@@ -116,13 +119,17 @@ def pods(request, cluster_name):
                                                    "cluster_id": cluster_id,
                                                    "current_cluster": cluster_name,
                                                    "pod_info_list": pod_info_list,
-                                                   "status_count": status_count})
+                                                   "status_count": status_count,
+                                                   'registered_clusters': registered_clusters})
 
 
 def pod_info(request, cluster_name, namespace, pod_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id=cluster_id)
     path = current_cluster.kube_config.path
+
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
 
     pod_info = {
         "describe": k8s_pods.get_pod_description(path, current_cluster.cluster_name, namespace, pod_name),
@@ -135,7 +142,8 @@ def pod_info(request, cluster_name, namespace, pod_name):
         "pod_info": pod_info,
         "cluster_id": cluster_id,
         "pod_name": pod_name,
-        'current_cluster': cluster_name
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters
     })
 
 
@@ -143,37 +151,50 @@ def replicasets(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
-
+    
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+    
     rs_status = k8s_replicaset.getReplicasetStatus(path, cluster_name)
     replicaset_info_list = k8s_replicaset.getReplicaSetsInfo(path, cluster_name)
     
     return render(request, 'dashboard/replicasets.html', {"cluster_id": cluster_id, 
                                                           "replicaset_info_list": replicaset_info_list,
                                                           "rs_status": rs_status,
-                                                          'current_cluster': cluster_name})
+                                                          'current_cluster': cluster_name,
+                                                          'registered_clusters': registered_clusters})
 
 
 def deployment(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
+    
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
 
     dep_status = k8s_deployments.getDeploymentsStatus(path, cluster_name)
     deployment_info_list = k8s_deployments.getDeploymentsInfo(path, cluster_name)
     return render(request, 'dashboard/deployment.html', {"cluster_id": cluster_id, 
                                                          "dep_status": dep_status,
                                                          "deployment_info_list": deployment_info_list,
-                                                         'current_cluster': cluster_name})
+                                                         'current_cluster': cluster_name,
+                                                         'registered_clusters': registered_clusters})
     
 
 def events(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
+
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
     events = k8s_events.get_events(path, cluster_name, False)
     return render(request, 'dashboard/events.html', {"cluster_id": cluster_id, 
                                                      'events': events,
-                                                     'current_cluster': cluster_name})
+                                                     'current_cluster': cluster_name,
+                                                     'registered_clusters': registered_clusters})
 
 def nodes(request):
     nc, nodes = k8s_nodes.getnodes()

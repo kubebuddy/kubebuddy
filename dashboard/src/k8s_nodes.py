@@ -11,12 +11,6 @@ def getnodes():
         "status": node.status.conditions[-1].type  # Grab the status of the node
         }
         node_list.append(node.metadata.name)
-        # print(f"Node Name: {node.metadata.name}")
-        # print(f"Labels: {node.metadata.labels}")
-        # for condition in node.status.conditions:
-        #     print(f"{condition.type}: {condition.status}")
-
-    # print(node_list)
     return node_list, len(node_list)
 
 def getNodesStatus():

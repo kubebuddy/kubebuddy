@@ -25,26 +25,34 @@
 </head>
 <body>
 
-  <nav class="navbar bg-body-tertiary navbar-expand-lg bg-light py-2">
+<nav class="navbar bg-body-tertiary navbar-expand-lg bg-light py-2">
     <button id="toggleSidebar" class="toggle-btn pb-2">
       <i class="bi bi-list"></i>
     </button>
+    
     <a class="navbar-brand d-flex align-items-center" href="/KubeBuddy">
       <span class="fs-5 fw-semibold">KubeBuddy</span>
     </a>
   
-    <!-- Account Section (Right Corner) -->
-    <div class="dropdown ms-auto">
-      <button class="btn btn-link dropdown-toggle d-flex align-items-center" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="true">
-        <i class="bi bi-person-circle fs-4"></i> <!-- User Icon -->
+    <!-- Right Section (Button + Dropdown) -->
+    <div class="d-flex ms-auto align-items-center gap-2">
+      <button id="reload-btn" class="btn btn-primary">
+        <i class="bi bi-arrow-clockwise"></i>
       </button>
-      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
-        <li><a class="dropdown-item" href="#">Profile</a></li>
-        <li><a class="dropdown-item" href="#">Settings</a></li>
-        <li><a class="dropdown-item" href="/logout">Sign out</a></li>
-      </ul>
+  
+      <div class="dropdown">
+        <button class="btn btn-link dropdown-toggle d-flex align-items-center" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="true">
+          <i class="bi bi-person-circle fs-4"></i> <!-- User Icon -->
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
+          <li><a class="dropdown-item" href="#">Profile</a></li>
+          <li><a class="dropdown-item" href="#">Settings</a></li>
+          <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+        </ul>
+      </div>
     </div>
   </nav>
+  
     
   <main class="d-flex">
     
@@ -236,6 +244,25 @@
   <script src="{% static 'js/toggleTable.js' %}"></script>
   
   <script>
+    // reload
+      function reloadPage() {
+      // Disable the button and show the spinner when clicked
+      var reloadButton = document.getElementById("reload-btn");
+      reloadButton.innerHTML = 'Refreshing... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      reloadButton.disabled = true;
+
+      // Reload the page after a short delay to show the spinner
+      setTimeout(() => {
+          location.reload();
+      }, 1000);  // 1-second delay before reloading
+    }
+
+    // Reload button event listener
+    document.getElementById("reload-btn").addEventListener("click", reloadPage);
+
+    // Auto-refresh every 60 seconds (60000 ms)
+    setTimeout(reloadPage, 60000);
+
     document.getElementById('toggleSidebar').addEventListener('click', function() {
       const sidebar = document.getElementById('sidebar');
       sidebar.classList.toggle('collapsed');

@@ -1,9 +1,23 @@
 from django.shortcuts import render
+<<<<<<< Updated upstream
 from .src.cluster_management import k8s_namespaces
 from main.models import KubeConfig, Cluster
 from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, \
                 k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_cluster_metric, k8s_events, \
                 k8s_deployments, k8s_configmaps, k8s_secrets, k8s_services, k8s_endpoints
+=======
+
+from .src.cluster_management import k8s_namespaces, k8s_nodes
+
+from .src.services import k8s_endpoints, k8s_services
+
+from .src.events import k8s_events
+
+from .src.config_secrets import k8s_configmaps, k8s_secrets
+from .src.workloads import k8s_cronjobs, k8s_daemonset, k8s_deployments, k8s_jobs, k8s_pods, k8s_replicaset, k8s_statefulset
+from main.models import KubeConfig, Cluster
+from .src import k8s_cluster_metric
+>>>>>>> Stashed changes
 from django.contrib.auth.decorators import login_required
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
@@ -115,7 +129,7 @@ def pods(request, cluster_name):
     status_count = k8s_pods.getPodsStatus(path,current_cluster.cluster_name)
 
     logger.info(f"pods : {pods}")
-    return render(request, 'dashboard/pods.html', { "pods": pods, 
+    return render(request, 'dashboard/workloads/pods.html', { "pods": pods, 
                                                    "pc": pc, 
                                                    "cluster_id": cluster_id,
                                                    "current_cluster": cluster_name,
@@ -139,7 +153,7 @@ def pod_info(request, cluster_name, namespace, pod_name):
         "yaml": k8s_pods.get_pod_yaml(path, current_cluster.cluster_name, namespace, pod_name)
     }
 
-    return render(request, 'dashboard/pod_info.html', {
+    return render(request, 'dashboard/workloads/pod_info.html', {
         "pod_info": pod_info,
         "cluster_id": cluster_id,
         "pod_name": pod_name,
@@ -159,7 +173,7 @@ def replicasets(request, cluster_name):
     rs_status = k8s_replicaset.getReplicasetStatus(path, cluster_name)
     replicaset_info_list = k8s_replicaset.getReplicaSetsInfo(path, cluster_name)
     
-    return render(request, 'dashboard/replicasets.html', {"cluster_id": cluster_id, 
+    return render(request, 'dashboard/workloads/replicasets.html', {"cluster_id": cluster_id, 
                                                           "replicaset_info_list": replicaset_info_list,
                                                           "rs_status": rs_status,
                                                           'current_cluster': cluster_name,
@@ -179,7 +193,7 @@ def rs_info(request, cluster_name, namespace, rs_name):
         "yaml": k8s_replicaset.get_yaml_rs(path, current_cluster.cluster_name, namespace, rs_name)
     }
 
-    return render(request, 'dashboard/rs_info.html', {
+    return render(request, 'dashboard/workloads/rs_info.html', {
         "rs_info": rs_info,
         "cluster_id": cluster_id,
         "rs_name": rs_name,
@@ -197,7 +211,7 @@ def deployments(request, cluster_name):
 
     dep_status = k8s_deployments.getDeploymentsStatus(path, cluster_name)
     deployment_info_list = k8s_deployments.getDeploymentsInfo(path, cluster_name)
-    return render(request, 'dashboard/deployment.html', {"cluster_id": cluster_id, 
+    return render(request, 'dashboard/workloads/deployment.html', {"cluster_id": cluster_id, 
                                                          "dep_status": dep_status,
                                                          "deployment_info_list": deployment_info_list,
                                                          'current_cluster': cluster_name,
@@ -217,7 +231,7 @@ def deploy_info(request, cluster_name, namespace, deploy_name):
         "yaml": k8s_deployments.get_yaml_deploy(path, current_cluster.cluster_name, namespace, deploy_name)
     }
 
-    return render(request, 'dashboard/deploy_info.html', {
+    return render(request, 'dashboard/workloads/deploy_info.html', {
         "deploy_info": deploy_info,
         "cluster_id": cluster_id,
         "deploy_name": deploy_name,
@@ -251,7 +265,7 @@ def statefulsets(request, cluster_name):
     # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
 
-    return render(request, 'dashboard/statefulsets.html', {
+    return render(request, 'dashboard/workloads/statefulsets.html', {
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
         'statefulsets_list': statefulsets_list,
@@ -270,7 +284,7 @@ def daemonset(request, cluster_name):
     daemonset_status = k8s_daemonset.getDaemonsetStatus(path, cluster_name)
     daemonset_list = k8s_daemonset.getDaemonsetList(path, cluster_name)
 
-    return render(request, 'dashboard/daemonset.html',{
+    return render(request, 'dashboard/workloads/daemonset.html',{
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
         'daemonset_status': daemonset_status,
@@ -289,7 +303,7 @@ def jobs(request, cluster_name):
     jobs_status = k8s_jobs.getJobsStatus(path, cluster_name)
     jobs_list = k8s_jobs.getJobsList(path, cluster_name)
 
-    return render(request, 'dashboard/jobs.html',{
+    return render(request, 'dashboard/workloads/jobs.html',{
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
         'jobs_status': jobs_status,
@@ -307,7 +321,7 @@ def cronjobs(request, cluster_name):
     cronjobs_status = k8s_cronjobs.getCronJobsStatus(path, cluster_name)
     cronjobs_list = k8s_cronjobs.getCronJobsList(path, cluster_name)
 
-    return render(request, 'dashboard/cronjobs.html', {
+    return render(request, 'dashboard/workloads/cronjobs.html', {
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
         'cronjobs_status': cronjobs_status,

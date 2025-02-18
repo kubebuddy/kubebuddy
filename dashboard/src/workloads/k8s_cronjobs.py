@@ -1,5 +1,5 @@
 from kubernetes import client, config
-from .utils import calculateAge
+from ..utils import calculateAge
 from datetime import datetime, timezone
 
 def getCronJobCount():

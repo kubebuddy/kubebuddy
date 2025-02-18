@@ -1,6 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from .utils import calculateAge
+from ..utils import calculateAge
 
 def getDaemonsetCount():
     config.load_kube_config()

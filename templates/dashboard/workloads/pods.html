@@ -80,7 +80,11 @@
       </thead>
       <tbody>
       {% for pod in pod_info_list %}
-        <tr>
+        {% if pod.status == "Failed" %}
+          <tr class="table-danger">
+        {% else %}
+          <tr>
+        {% endif %}
           <td>{{ pod.namespace }}</td>
           <td>
             <a href="/{{current_cluster}}/pods/{{pod.namespace}}/{{pod.name}}?cluster_id={{cluster_id}}">

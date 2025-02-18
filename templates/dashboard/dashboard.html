@@ -7,9 +7,6 @@
 
 {% block content %}
 
-
-    
-
     <!-- Deafault username password block -->
     {% if warning %}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -68,46 +65,58 @@
     <div class="container my-5">
         <div class="row mb-4 dash-cards">
             <div class="col-lg-2">
+                <a class="text-decoration-none" href="/{{current_cluster}}/deployments?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">Deployments</p>
                     <p class="card-text text-dark">{{ deployments_status.Count }}</p>
                     <canvas id="deploymentChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 </div>
+                </a>
             </div>
             <div class="col-lg-2">
+                <a class="text-decoration-none" href="/{{current_cluster}}/daemonset?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">DaemonSet</p>
                     <p class="card-text text-dark">{{daemonset_status.Count}}</p>
                     <canvas id="daemonChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 </div>
+                </a>
             </div>
             <div class="col-lg-2">
+                <a class="text-decoration-none" href="/{{current_cluster}}/replicasets?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">ReplicaSets</p>
                     <p class="card-text text-dark">{{replicaset_status.Count}}</p>
                     <canvas id="replicaChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 </div>
+                </a>
             </div>
             <div class="col-lg-2">
+                <a class="text-decoration-none" href="/{{current_cluster}}/statefulsets?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">StatefulSets</p>
                     <p class="card-text text-dark">{{statefulset_status.Count}}</p>
                     <canvas id="statefulChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 </div>
+                </a>
             </div>
             <div class="col-lg-2">
+                <a class="text-decoration-none" href="/{{current_cluster}}/jobs?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">Jobs</p>
                     <p class="card-text text-dark">{{jobs_status.Count}}</p>
                     <canvas id="jobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 </div>
+                </a>
             </div>
             <div class="col-lg-2">
+                <a class="text-decoration-none" href="/{{current_cluster}}/cronjobs?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">CronJobs</p>
                     <p class="card-text text-dark">{{cronjob_status.Count}}</p>
                     <canvas id="cronjobChart" class="dash-card-canvas" role="doughnut-graph" aria-label="health"><p>Error displaying graph</p></canvas>
                 </div>
+                </a>
             </div>
         </div>
 

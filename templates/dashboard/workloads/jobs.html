@@ -70,7 +70,11 @@
 
       <tbody>
       {% for job in jobs_list %}
-        <tr>
+        {% if job.status == "Failed" %}
+          <tr class="table-danger">
+        {% else %}
+          <tr>
+        {% endif %}
           <td>{{ job.namespace }}</td>
           <td>{{ job.name }}</td>
           <td>{{ job.status }}</td>

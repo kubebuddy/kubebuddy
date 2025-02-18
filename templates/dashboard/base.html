@@ -254,22 +254,12 @@
       // Reload the page after a short delay to show the spinner
       setTimeout(() => {
           location.reload();
-<<<<<<< Updated upstream
       }, 100);  // 1-second delay before reloading
-=======
-      }, 1000);  // 1-second delay before reloading
->>>>>>> Stashed changes
     }
 
     // Reload button event listener
     document.getElementById("reload-btn").addEventListener("click", reloadPage);
 
-<<<<<<< Updated upstream
-=======
-    // Auto-refresh every 60 seconds (60000 ms)
-    setTimeout(reloadPage, 60000);
-
->>>>>>> Stashed changes
     document.getElementById('toggleSidebar').addEventListener('click', function() {
       const sidebar = document.getElementById('sidebar');
       sidebar.classList.toggle('collapsed');

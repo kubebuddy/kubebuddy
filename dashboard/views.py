@@ -320,7 +320,24 @@ def cronjobs(request, cluster_name):
         'cronjobs_list': cronjobs_list,
         'registered_clusters': registered_clusters
     })
-    
+
+def namespace(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+    namespaces = k8s_namespaces.namespaces_data(path, cluster_name)
+    namespaces_count = len(namespaces)
+
+    return render(request, 'dashboard/cluster_management/namespace.html',{
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'namespaces': namespaces,
+        'namespaces_count': namespaces_count
+    })
 
 def configmaps(request,cluster_name):
     cluster_id = request.GET.get('cluster_id')

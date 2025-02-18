@@ -24,4 +24,4 @@ def get_limit_ranges(path, context):
         except Exception as e:
             print(f"Error fetching LimitRange for namespace {ns}: {e}")
     
-    return limit_ranges
+    return limit_ranges, len(limit_ranges)

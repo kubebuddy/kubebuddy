@@ -180,7 +180,7 @@ def rs_info(request, cluster_name, namespace, rs_name):
     registered_clusters = clusters_DB.get_registered_clusters()
 
     rs_info = {
-        # "describe": k8s_pods.get_replicaset_description(path, current_cluster.cluster_name, namespace, rs_name),
+        "describe": k8s_replicaset.get_replicaset_description(path, current_cluster.cluster_name, namespace, rs_name),
         "events": k8s_replicaset.get_replicaset_events(path, current_cluster.cluster_name, namespace, rs_name),
         "yaml": k8s_replicaset.get_yaml_rs(path, current_cluster.cluster_name, namespace, rs_name)
     }

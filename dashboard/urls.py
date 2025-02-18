@@ -2,7 +2,7 @@ from django.urls import path
 from dashboard.views import dashboard, pods, nodes, replicasets, deployments, pod_info, \
                                 events, rs_info, deploy_info, \
                                 configmaps, secrets, services, endpoints, \
-                                statefulsets, daemonset, jobs, cronjobs
+                                statefulsets, daemonset, jobs, cronjobs, namespace
 
 
 urlpatterns = [
@@ -22,5 +22,7 @@ urlpatterns = [
     path('<str:cluster_name>/statefulsets', statefulsets, name="statefulsets"),
     path('<str:cluster_name>/daemonset', daemonset, name="daemonset"),
     path('<str:cluster_name>/jobs', jobs, name="jobs"),
-    path('<str:cluster_name>/cronjobs', cronjobs, name="cronjobs")
+    path('<str:cluster_name>/cronjobs', cronjobs, name="cronjobs"),
+    path('<str:cluster_name>/namespace', namespace, name="namespace")
+
 ]

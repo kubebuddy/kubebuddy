@@ -113,7 +113,7 @@
           </button>
           <div class="collapse show" id="cluster-mgmt-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="#" class="link-dark rounded">Namespace</a></li>
+              <li><a href="/{{current_cluster}}/namespace?cluster_id={{cluster_id}}" class="link-dark rounded">Namespace</a></li>
               <li><a href="/nodes" class="link-dark rounded">Nodes</a></li>
               <li><a href="#" class="link-dark rounded">PodDisruptionBudget</a></li>
               <li><a href="#" class="link-dark rounded">LimitRange</a></li>
@@ -254,15 +254,22 @@
       // Reload the page after a short delay to show the spinner
       setTimeout(() => {
           location.reload();
+<<<<<<< Updated upstream
+      }, 100);  // 1-second delay before reloading
+=======
       }, 1000);  // 1-second delay before reloading
+>>>>>>> Stashed changes
     }
 
     // Reload button event listener
     document.getElementById("reload-btn").addEventListener("click", reloadPage);
 
+<<<<<<< Updated upstream
+=======
     // Auto-refresh every 60 seconds (60000 ms)
     setTimeout(reloadPage, 60000);
 
+>>>>>>> Stashed changes
     document.getElementById('toggleSidebar').addEventListener('click', function() {
       const sidebar = document.getElementById('sidebar');
       sidebar.classList.toggle('collapsed');

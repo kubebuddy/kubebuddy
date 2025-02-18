@@ -1,0 +1,65 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Namespaces{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ns-128.png?raw=true{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row text-center">
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Namespaces: {{namespaces_count}}</i></b></div></div>
+  </div>
+  
+  <div class="container">
+    <!-- Dropdown with checkboxes to select columns -->
+    <div class="mb-3">
+        <div class="dropdown d-flex justify-content-end">
+          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Columns to Display
+          </button>
+          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+                <label class="form-check-label" for="All"> All</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
+                <label class="form-check-label" for="Name"> Name</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Status" id="Status" checked> 
+                <label class="form-check-label" for="Status"> Status</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
+                <label class="form-check-label" for="Age"> Age</label>
+            </li>
+        </ul>
+        
+        </div>
+    </div>
+  
+    <!-- Table -->
+    <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
+      <thead class="table-dark">
+        <tr>
+          <th id="colName">NAME</th>
+          <th id="colStatus">Status</th>
+          <th id="colAge">AGE</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for namespace in namespaces %}
+        <tr>
+          <td>{{ namespace.name }}</td>
+          <td>{{ namespace.status }}</td>
+          <td>{{ namespace.age }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      </table>
+  </div>
+
+{% endblock %}

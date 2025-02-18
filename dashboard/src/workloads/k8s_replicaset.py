@@ -1,6 +1,7 @@
 from kubernetes import client, config
-from datetime import datetime
+from datetime import datetime, timezone
 import yaml
+from ..utils import calculateAge
 
 def getReplicaSetsInfo(path, context, namespace="all"):
     config.load_kube_config(path, context)
@@ -12,12 +13,12 @@ def getReplicaSetsInfo(path, context, namespace="all"):
     else:
         replicasets = v1.list_namespaced_replica_set(namespace=namespace).items
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     
     for rs in replicasets:
         # Remove timezone info from creation timestamp
-        creation_timestamp_naive = rs.metadata.creation_timestamp.replace(tzinfo=None)
-        age = (now - creation_timestamp_naive).days
+        creation_timestamp = rs.metadata.creation_timestamp
+        age = calculateAge(now - creation_timestamp)
         
         # Extracting image names
         image_names = []
@@ -34,7 +35,7 @@ def getReplicaSetsInfo(path, context, namespace="all"):
             'desired': rs.spec.replicas,
             'current': rs.status.replicas,
             'ready': rs.status.ready_replicas if rs.status.ready_replicas else 0,
-            'age': f"{age}d",
+            'age': age,
             'images': image_names,   # List of image names for the ReplicaSet
             'selector': selector     # Labels used as the selector for the ReplicaSet
         })

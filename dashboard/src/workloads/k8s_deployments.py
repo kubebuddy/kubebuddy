@@ -1,6 +1,7 @@
 from kubernetes import client, config
-from datetime import datetime
+from datetime import datetime, timezone
 import yaml
+from ..utils import calculateAge
 
 def getDeploymentsInfo(path, context, namespace="all"):
     config.load_kube_config(path, context)
@@ -8,7 +9,7 @@ def getDeploymentsInfo(path, context, namespace="all"):
     deployments = v1.list_deployment_for_all_namespaces() if namespace == "all" else v1.list_namespaced_deployment(namespace=namespace)
     deployment_info_list = []
 
-    current_time = datetime.now()  # Current local time without timezone info
+    current_time = datetime.now(timezone.utc)
     
     for deployment in deployments.items:
         namespace = deployment.metadata.namespace
@@ -18,15 +19,14 @@ def getDeploymentsInfo(path, context, namespace="all"):
         ready = str(ready_replicas) + "/" + str(replicas)
         
         # Remove timezone info from creation timestamp
-        creation_timestamp_naive = deployment.metadata.creation_timestamp.replace(tzinfo=None)
-        age = current_time - creation_timestamp_naive
-        age_in_days = age.days  # Get the number of days
+        creation_timestamp = deployment.metadata.creation_timestamp
+        age = calculateAge(current_time - creation_timestamp)
         
         deployment_info_list.append({
             'namespace': namespace,
             'name': name,
             'ready': ready,
-            'age': f"{age_in_days}d"
+            'age': age
         })
 
     return deployment_info_list

@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
 import yaml
+from ..utils import calculateAge
 
 def getpods():
     config.load_kube_config()
@@ -61,7 +62,7 @@ def get_pod_info(config_path, cluster_name):
             "node": pod.spec.node_name,
             "ip": pod.status.pod_ip or "N/A",
             "restarts": sum(container.restart_count for container in pod.status.container_statuses or []),
-            "age": f"{(datetime.now(timezone.utc) - pod.metadata.creation_timestamp).days}d",
+            "age": calculateAge(datetime.now(timezone.utc) - pod.metadata.creation_timestamp),
             "status": pod.status.phase,
         })
 

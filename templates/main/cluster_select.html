@@ -181,14 +181,11 @@
         // Reload the page after a short delay to show the spinner
         setTimeout(() => {
             location.reload();
-        }, 1000);  // 1-second delay before reloading
+        }, 100);  // 1-second delay before reloading
     }
 
     // Reload button event listener
     document.getElementById("reload-btn").addEventListener("click", reloadPage);
-
-    // Auto-refresh every 60 seconds (60000 ms)
-    setTimeout(reloadPage, 60000);
 
     // search functionality
     function searchClusters() {

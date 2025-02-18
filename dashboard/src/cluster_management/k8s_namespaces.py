@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from django.shortcuts import render
-from datetime import datetime
+from datetime import datetime, timezone
+from ..utils import calculateAge
 config.load_kube_config()
 v1 = client.CoreV1Api()
 
@@ -27,12 +28,12 @@ def namespaces_data(path, context):
     for ns in namespaces:
         name = ns.metadata.name
         status = ns.status.phase
-        age = (datetime.datetime.now(datetime.timezone.utc) - ns.metadata.creation_timestamp.replace(tzinfo=None)).days
+        age = calculateAge(datetime.now(timezone.utc) - ns.metadata.creation_timestamp)
 
         namespace_data.append({
             "name": name,
             "status": status,
-            "age": f"{age} days"
+            "age": age
         })
 
     return namespace_data

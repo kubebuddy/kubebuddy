@@ -75,6 +75,7 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
         # Fetch pod details
         pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
 
+        # Prepare pod information
         pod_info = {
             "name": pod.metadata.name,
             "namespace": pod.metadata.namespace,
@@ -83,13 +84,33 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
             "pod_ip": pod.status.pod_ip,
             "host_ip": pod.status.host_ip,
             "start_time": pod.status.start_time.isoformat() if pod.status.start_time else None,
+            "labels": list(pod.metadata.labels.items()),  # Convert to list of tuples
+            "annotations": list(pod.metadata.annotations.items()) if pod.metadata.annotations else [],
+            "service_account": pod.spec.service_account_name,
             "containers": [
                 {
                     "name": container.name,
                     "image": container.image,
                     "ports": [port.container_port for port in (container.ports or [])],
+                    "state": next(
+                        (status.state for status in pod.status.container_statuses
+                         if status.name == container.name), "Unknown"
+                    ),
+                    "restart_count": next(
+                        (status.restart_count for status in pod.status.container_statuses
+                         if status.name == container.name), 0
+                    ),
+                    "env": [env.name for env in (container.env or [])],
+                    "mounts": [mount.mount_path for mount in (container.volume_mounts or [])]
                 }
                 for container in pod.spec.containers
+            ],
+            "volumes": [
+                {
+                    "name": volume.name,
+                    "type": volume.secret or volume.config_map or volume.projected
+                }
+                for volume in pod.spec.volumes
             ],
             "conditions": [
                 {"type": cond.type, "status": cond.status, "reason": cond.reason or ""}
@@ -100,6 +121,8 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
         return pod_info
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch pod details: {e.reason}"}
+
+
 
 def get_pod_logs(path, context, namespace, pod_name):
     config.load_kube_config(path, context)

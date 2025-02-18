@@ -43,12 +43,15 @@ def get_nodes_info(path: str, context: str):
     
     for node in nodes:
         if node.status.conditions:
-            for condition in node.status.conditions:
-                if condition.type == "Ready" and condition.status == True:
-                    status = "Ready"
-                else:
-                    status = "Not Ready"
+            # Check if any condition type is "Ready" and its status is "True"
+            is_ready = any(condition.type == "Ready" and condition.status == "True" for condition in node.status.conditions)
+
+            if is_ready:
+                status = "Ready"
+            else:
+                status = "Not Ready"
         else:
+            # If there are no conditions at all, mark it as not ready
             status = "Not Ready"
 
         if node.status.addresses:

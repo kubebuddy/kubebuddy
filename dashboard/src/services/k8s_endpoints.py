@@ -33,7 +33,7 @@ def get_endpoints(path, context):
                     endpoint_info = {
                         'namespace': namespace,
                         'name': ep.metadata.name,
-                        'endpoints': [subset.addresses[0].ip if subset.addresses else 'N/A' for subset in ep.subsets],
+                        'endpoints': [subset.addresses[0].ip if subset.addresses else 'None' for subset in ep.subsets or []],
                         'age': (datetime.now() - ep.metadata.creation_timestamp.replace(tzinfo=None)).days if ep.metadata.creation_timestamp else 'N/A'
                     }
                     endpoint_data.append(endpoint_info)

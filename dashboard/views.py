@@ -1,11 +1,4 @@
 from django.shortcuts import render
-<<<<<<< Updated upstream
-from .src.cluster_management import k8s_namespaces
-from main.models import KubeConfig, Cluster
-from .src import k8s_pods, k8s_nodes, k8s_deployments, k8s_daemonset, k8s_replicaset, \
-                k8s_statefulset, k8s_jobs, k8s_cronjobs, k8s_cluster_metric, k8s_events, \
-                k8s_deployments, k8s_configmaps, k8s_secrets, k8s_services, k8s_endpoints
-=======
 
 from .src.cluster_management import k8s_namespaces, k8s_nodes
 
@@ -17,7 +10,6 @@ from .src.config_secrets import k8s_configmaps, k8s_secrets
 from .src.workloads import k8s_cronjobs, k8s_daemonset, k8s_deployments, k8s_jobs, k8s_pods, k8s_replicaset, k8s_statefulset
 from main.models import KubeConfig, Cluster
 from .src import k8s_cluster_metric
->>>>>>> Stashed changes
 from django.contrib.auth.decorators import login_required
 from kubebuddy.appLogs import logger
 from kubernetes import config, client

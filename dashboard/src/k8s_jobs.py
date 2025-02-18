@@ -25,7 +25,7 @@ def getJobsStatus(path, context, namespace="all"):
         for job in jobs.items:
             if job.status.succeeded and job.status.succeeded >= job.spec.completions:
                 jobs_status["Completed"] += 1
-            elif job.status.failed and job.status.failed >= job.spec.backoff_limit:
+            elif (job.status.failed and job.status.failed >= job.spec.backoff_limit) or job.status.failed:
                 jobs_status["Failed"] += 1
             else:
                 jobs_status["Running"] += 1
@@ -53,7 +53,7 @@ def getJobsList(path, context, namespace="all"):
             name = job.metadata.name
             if job.status.succeeded and job.status.succeeded >= job.spec.completions:
                 status = "Completed"
-            elif job.status.failed and job.status.failed >= job.spec.backoff_limit:
+            elif (job.status.failed and job.status.failed >= job.spec.backoff_limit) or job.status.failed:
                 status = "Failed"
             else:
                 status = "Running"

@@ -7,6 +7,6 @@ def calculateAge(timedelta_obj):
     elif total_seconds < 3600:
         return str(int(total_seconds/60)) + "m"
     elif total_seconds < 86400:
-        str(int(total_seconds/3600)) + "h"
+        return str(int(total_seconds/3600)) + "h"
     else:
         return str(timedelta_obj.days) + "d"

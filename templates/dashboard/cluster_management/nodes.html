@@ -1,0 +1,105 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Nodes{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pod-128.png?raw=true{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row text-center">
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Nodes: {{total_nodes}}</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Ready: {{ready_nodes}}</i></b></div></div>
+    <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Not Ready: {{not_ready_nodes}}</i></b></div></div>
+  </div>
+  
+  <div class="container">
+    <!-- Dropdown with checkboxes to select columns -->
+    <div class="mb-3">
+        <div class="dropdown d-flex justify-content-end">
+          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Columns to Display
+          </button>
+          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+                <label class="form-check-label" for="All"> All</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
+                <label class="form-check-label" for="Name"> Name</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Status" id="Status" checked> 
+                <label class="form-check-label" for="Status"> Status</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Roles" id="Roles" checked> 
+                <label class="form-check-label" for="Roles"> Roles</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
+                <label class="form-check-label" for="Age"> Age</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="InternalIP" id="InternalIP" checked> 
+                <label class="form-check-label" for="InternalIP"> InternalIP</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="ExternalIP" id="ExternalIP" checked> 
+                <label class="form-check-label" for="ExternalIP"> ExternalIP</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="OSImage" id="OSImage" checked> 
+                <label class="form-check-label" for="OSImage"> OS-Image</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="ContainerRuntime" id="KernelVersion" checked> 
+                <label class="form-check-label" for="KernelVersion"> Kernel Version</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="ContainerRuntime" id="ContainerRuntime" checked> 
+                <label class="form-check-label" for="ContainerRuntime">Container Runtime</label>
+            </li>
+        </ul>
+        
+        </div>
+    </div>
+  
+    <!-- Table -->
+    <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
+      <thead class="table-dark">
+        <tr>
+          <th id="colName">NAME</th>
+          <th id="colStatus">STATUS</th>
+          <th id="colRoles">ROLES</th>
+          <th id="colAge">AGE</th>
+          <th id="colVersion">VERSION</th>
+          <th id="colInternalIP">INTERNAL-IP</th>
+          <th id="colExternalIP">EXTERNAL-IP</th>
+          <th id="colOSImage">OS-IMAGE</th>
+          <th id="colKernelVersion">KERNEL-VERSION</th>
+          <th id="colContainerRuntime">CONTAINER-RUNTIME</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for node in nodes %}
+          <tr>
+          <td>{{ node.name }}</td>
+          <td>{{ node.status }}</td>
+          <td>{{ node.roles }}</td>
+          <td>{{ node.age }}</td>
+          <td>{{ node.version }}</td>
+          <td>{{ node.internal_ip }}</td>
+          <td>{{ node.external_ip }}</td>
+          <td>{{ node.os_image }}</td>
+          <td>{{ node.kernel_version }}</td>
+          <td>{{ node.container_runtime }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}
+

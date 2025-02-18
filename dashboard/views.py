@@ -45,7 +45,7 @@ def dashboard(request, cluster_name):
     registered_clusters = clusters_DB.get_registered_clusters()
 
     # get nodes information
-    ready_nodes, not_ready_nodes = k8s_nodes.getNodesStatus()
+    ready_nodes, not_ready_nodes, node_count = k8s_nodes.getNodesStatus(path, current_cluster)
 
     # getting list of nodes
     node_list, node_count = k8s_nodes.getnodes()
@@ -316,9 +316,9 @@ def cronjobs(request, cluster_name):
     return render(request, 'dashboard/workloads/cronjobs.html', {
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
         'cronjobs_status': cronjobs_status,
         'cronjobs_list': cronjobs_list,
-        'registered_clusters': registered_clusters
     })
 
 def namespace(request, cluster_name):
@@ -343,35 +343,58 @@ def configmaps(request,cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
     configmaps, total_count = k8s_configmaps.get_configmaps(path, cluster_name)
-    return render(request, 'dashboard/configmaps.html', {"configmaps": configmaps, 'total_count':total_count, "cluster_id": cluster_id, 'current_cluster': cluster_name})
+    return render(request, 'dashboard/configmaps.html', {"configmaps": configmaps, 'total_count':total_count, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
 
 
 def secrets(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
     secrets = k8s_secrets.list_secrets(path, cluster_name)
-    return render(request, 'dashboard/secrets.html', {"secrets": secrets, "cluster_id": cluster_id, 'current_cluster': cluster_name})
+    return render(request, 'dashboard/secrets.html', {"secrets": secrets, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
 
 
 def services(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
     services = k8s_services.list_kubernetes_services(path, cluster_name)
     total_services = len(services)
-    return render(request, 'dashboard/services.html', {"services": services,"total_services": total_services, "cluster_id": cluster_id, 'current_cluster': cluster_name})
+    return render(request, 'dashboard/services.html', {"services": services,"total_services": total_services, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
 
 def endpoints(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
     endpoints = k8s_endpoints.get_endpoints(path, cluster_name)
     total_endpoints = len(endpoints)
-    return render(request, 'dashboard/endpoints.html', {"endpoints": endpoints,"total_endpoints":total_endpoints, "cluster_id": cluster_id, 'current_cluster': cluster_name}) 
+    return render(request, 'dashboard/endpoints.html', {"endpoints": endpoints,"total_endpoints":total_endpoints, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters}) 
 
-def nodes(request):
-    nc, nodes = k8s_nodes.getnodes()
-    logger.info(f"nodes : {nodes}")
-    return render(request, 'dashboard/nodes.html', { "nodes": nodes, "nc": nc})
+def nodes(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    nodes = k8s_nodes.get_nodes_info(path, cluster_name)
+    ready_nodes, not_ready_nodes, total_nodes = k8s_nodes.getNodesStatus(path, cluster_name)
+    
+    return render(request, 'dashboard/cluster_management/nodes.html', { 
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'nodes': nodes,
+        'ready_nodes': ready_nodes,
+        'not_ready_nodes': not_ready_nodes,
+        'total_nodes': total_nodes
+    })

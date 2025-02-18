@@ -1,5 +1,6 @@
 from kubernetes import client, config
-from datetime import datetime
+from datetime import datetime, timezone
+from ..utils import calculateAge
 
 def get_endpoints(path, context):
     try:
@@ -34,7 +35,7 @@ def get_endpoints(path, context):
                         'namespace': namespace,
                         'name': ep.metadata.name,
                         'endpoints': [subset.addresses[0].ip if subset.addresses else 'None' for subset in ep.subsets or []],
-                        'age': (datetime.now() - ep.metadata.creation_timestamp.replace(tzinfo=None)).days if ep.metadata.creation_timestamp else 'N/A'
+                        'age': calculateAge(datetime.now(timezone.utc) - ep.metadata.creation_timestamp) if ep.metadata.creation_timestamp else 'N/A'
                     }
                     endpoint_data.append(endpoint_info)
                 except Exception as e:

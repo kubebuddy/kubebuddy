@@ -71,12 +71,12 @@ def get_nodes_info(path: str, context: str):
             "status": status,
             "age": calculateAge(datetime.now(timezone.utc) - node.metadata.creation_timestamp),
             "roles": roles,
-            "version": node.status.node_info.kubelet_version,
+            "version": node.status.node_info.kubelet_version if node.status.node_info.kubelet_version else "Unknown",
             "internal_ip": internal_ip,
             "external_ip": external_ip,
-            "os_image": node.status.node_info.os_image,
-            "kernel_version": node.status.node_info.kernel_version,
-            "container_runtime": node.status.node_info.container_runtime_version,
+            "os_image": node.status.node_info.os_image if node.status.node_info.os_image else "Unknown",
+            "kernel_version": node.status.node_info.kernel_version if node.status.node_info.kernel_version else "Unknown",
+            "container_runtime": node.status.node_info.container_runtime_version if node.status.node_info.container_runtime_version else "Unkown",
         }
         node_data.append(node_info)
     

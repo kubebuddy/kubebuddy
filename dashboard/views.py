@@ -297,6 +297,25 @@ def jobs(request, cluster_name):
         'registered_clusters': registered_clusters
     })
 
+def cronjobs(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+    cronjobs_status = k8s_cronjobs.getCronJobsStatus(path, cluster_name)
+    cronjobs_list = k8s_cronjobs.getCronJobsList(path, cluster_name)
+
+    return render(request, 'dashboard/cronjobs.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'cronjobs_status': cronjobs_status,
+        'cronjobs_list': cronjobs_list,
+        'registered_clusters': registered_clusters
+    })
+    
+
 def configmaps(request,cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)

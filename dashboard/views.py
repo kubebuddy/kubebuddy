@@ -399,8 +399,8 @@ def secrets(request, cluster_name):
     path = current_cluster.kube_config.path
     # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
-    secrets = k8s_secrets.list_secrets(path, cluster_name)
-    return render(request, 'dashboard/secrets.html', {"secrets": secrets, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
+    secrets, total_secrets = k8s_secrets.list_secrets(path, cluster_name)
+    return render(request, 'dashboard/secrets.html', {"secrets": secrets, "total_secrets": total_secrets, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
 
 
 def services(request, cluster_name):

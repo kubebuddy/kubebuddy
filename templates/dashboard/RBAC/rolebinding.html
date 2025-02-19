@@ -1,6 +1,6 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Limitranges{% endblock %}
+{% block title %}Role Binding{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/limits-128.png?raw=true{% endblock %}
 
@@ -8,7 +8,7 @@
 
 <div class="container">
   <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Limitranges: {{total_limitranges}}</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Role Binding: {{total_rolebinding}}</i></b></div></div>
   </div>
   
   <div class="container">
@@ -32,8 +32,24 @@
                 <label class="form-check-label" for="Name"> Name</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="craetedAt" id="craetedAt" checked> 
-                <label class="form-check-label" for="craetedAt"> Created At</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Role" id="Role" checked> 
+                <label class="form-check-label" for="Role"> Role</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Users" id="Users" checked> 
+                <label class="form-check-label" for="Users"> Users</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Groups" id="Groups" checked> 
+                <label class="form-check-label" for="Groups"> Groups</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="ServiceAccounts" id="ServiceAccounts" checked> 
+                <label class="form-check-label" for="ServiceAccounts"> Service Accounts</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
+                <label class="form-check-label" for="Age"> Age</label>
             </li>
         </ul>
         </div>
@@ -43,18 +59,26 @@
     <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
       <thead class="table-dark">
         <tr>
-          <th id="colNamepsace">NAMESPACE</th>
+          <th id="colNamespace">NAMESPACE</th>
           <th id="colName">NAME</th>
-          <th id="colcreatedAt">CREATED AT</th>
+          <th id="colRole">ROLE</th>
+          <th id="colUsers">USERS</th>
+          <th id="colGroups">GROUPS</th>
+          <th id="colServiceAccounts">SERVICE ACCOUNTS</th>
+          <th id="colAge">AGE</th>
         </tr>
       </thead>
 
       <tbody>
-      {% for lr in limitranges %}
+      {% for rb in rolebinding %}
         <tr>
-          <td>{{ lr.namespace }}</td>
-          <td>{{ lr.name }}</td>
-          <td>{{ lr.created_at }}</td>
+          <td>{{ rb.namespace }}</td>
+          <td>{{ rb.name }}</td>
+          <td>{{ rb.role }}</td>
+          <td>{{ rb.users }}</td>
+          <td>{{ rb.groups }}</td>
+          <td>{{ rb.service_accounts }}</td>
+          <td>{{ rb.age }}</td>
         </tr>
       {% endfor %}
       </tbody>

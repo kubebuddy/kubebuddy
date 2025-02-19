@@ -2,7 +2,7 @@ from kubernetes import client, config
 from datetime import datetime
 def list_roles(path, context):
     # Load kubeconfig using the provided path and context
-    config.load_kube_config(path=path, context=context)
+    config.load_kube_config(path, context=context)
 
     # Initialize the Kubernetes API client for roles
     rbac_v1 = client.RbacAuthorizationV1Api()
@@ -23,4 +23,4 @@ def list_roles(path, context):
                 "created_at": role.metadata.creation_timestamp
             })
 
-    return roles_data
+    return roles_data, len(roles_data)

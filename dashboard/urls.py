@@ -4,7 +4,8 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 configmaps, secrets, services, endpoints, \
                                 statefulsets, daemonset, jobs, cronjobs, \
                                 namespace, limitrange, resourcequotas, persistentvolume, \
-                                persistentvolumeclaim, storageclass, sts_info, daemonset_info
+                                persistentvolumeclaim, storageclass, sts_info, daemonset_info, \
+                                role
 
 
 urlpatterns = [
@@ -33,5 +34,6 @@ urlpatterns = [
     path('<str:cluster_name>/persistentvolume', persistentvolume, name="persistentvolume"),
     path('<str:cluster_name>/persistentvolumeclaim', persistentvolumeclaim, name="persistentvolumeclaim"),
     path('<str:cluster_name>/storageclass', storageclass, name="storageclass"),
+    path('<str:cluster_name>/role', role, name="role"),
 
 ]

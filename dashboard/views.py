@@ -9,6 +9,7 @@ from .src.events import k8s_events
 from .src.config_secrets import k8s_configmaps, k8s_secrets
 from .src.workloads import k8s_cronjobs, k8s_daemonset, k8s_deployments, k8s_jobs, k8s_pods, k8s_replicaset, k8s_statefulset
 from .src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
+from .src.rbac import k8s_role, k8s_cluster_role_bindings, k8s_cluster_roles, k8s_rolebindings, k8s_service_accounts
 from main.models import KubeConfig, Cluster
 from .src import k8s_cluster_metric
 from django.contrib.auth.decorators import login_required
@@ -526,4 +527,38 @@ def storageclass(request, cluster_name):
         'registered_clusters': registered_clusters,
         'sc': sc,
         'total_sc': total_sc
+    })
+
+def role(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    role, total_role = k8s_role.list_roles(path, cluster_name)
+
+    return render(request, 'dashboard/RBAC/role.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'role': role,
+        'total_role': total_role
+    })
+
+def role(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    role, total_role = k8s_role.list_roles(path, cluster_name)
+
+    return render(request, 'dashboard/RBAC/role.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'role': role,
+        'total_role': total_role
     })

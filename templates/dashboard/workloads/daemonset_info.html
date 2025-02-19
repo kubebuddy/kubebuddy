@@ -1,0 +1,81 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}DaemonSet{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ds-128.png?raw=true{% endblock %}
+
+{% block content %}
+
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-start">
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ds-128.png?raw=true" style="height: 5vh;" alt="ds">
+            <h2 class="mb-4 ps-3 text-primary">DaemonSet: {{ daemonset_name }}</h2>
+        </div>
+        
+
+        <!-- Bootstrap Tabs -->
+        <ul class="nav nav-tabs" id="podTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="describe-tab" data-bs-toggle="tab" href="#describe">Describe</a>
+            </li>
+ 
+            <li class="nav-item">
+                <a class="nav-link" id="events-tab" data-bs-toggle="tab" href="#events">Events</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="tab" href="#yaml">YAML</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="describe">
+                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                    <pre>
+<b>Name:</b> {{ daemonset_info.describe.name }}
+<b>Namespace:</b> {{ daemonset_info.describe.namespace }}
+<b>Selector:</b> {{ daemonset_info.describe.selector }}
+<b>Template:</b>
+    <b>Containers:</b>        {% for container in daemonset_info.describe.template.containers %}
+            <b>Name:</b> {{ container.name }}
+            <b>Image:</b> {{ container.image }}
+            <b>Ports:</b> {% for port in container.ports %}{{ port }} {% endfor %}        {% endfor %}
+<b>Status:</b>
+    <b>Desired Scheduled:</b> {{ daemonset_info.describe.status.desired_number_scheduled }}
+    <b>Current Scheduled:</b> {{ daemonset_info.describe.status.current_number_scheduled }}
+    <b>Ready:</b> {{ daemonset_info.describe.status.number_ready }}
+    <b>Available:</b> {{ daemonset_info.describe.status.number_available }}
+    <b>Updated:</b> {% if daemonset_info.describe.status.number_updated != "N/A" %}{{ daemonset_info.describe.status.number_updated }}{% else %}N/A{% endif %}
+    <b>Misscheduled:</b> {% if daemonset_info.describe.status.number_misscheduled != "N/A" %}{{ daemonset_info.describe.status.number_misscheduled }}{% else %}N/A{% endif %}
+</pre>
+                </div>
+              </div>
+              
+
+            <div class="tab-pane fade" id="events">
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
+                    <pre>{{ daemonset_info.events }}</pre>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="yaml">
+                <!-- <h4>Pod YAML</h4> -->
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                    <!-- Copy Button inside the div -->
+                    <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
+                        Copy YAML
+                    </button>
+                    
+                
+                    <pre id="yamlContent">{{ daemonset_info.yaml }}</pre>
+                </div>
+            </div>
+            
+        </div>
+
+        <a href="/{{current_cluster}}/daemonset?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Pods</a>
+    </div>
+    
+    {% load static%}
+    <script src="{% static 'js/copyYAML.js' %}"></script>
+{% endblock %}

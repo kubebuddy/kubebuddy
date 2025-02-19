@@ -5,7 +5,7 @@ from ..utils import calculateAge
 config.load_kube_config()
 v1 = client.CoreV1Api()
 
-def get_namespace():
+def get_namespace(request):
     try:
         list_ns = []
         namespaces = v1.list_namespace()
@@ -13,7 +13,7 @@ def get_namespace():
             list_ns.append(ns.metadata.name)
         return list_ns
     except Exception as e:
-        return render("templates/500.html")
+        return render(request, "templates/500.html")
     
 
 

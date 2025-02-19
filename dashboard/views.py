@@ -75,7 +75,7 @@ def dashboard(request, cluster_name):
     cronjob_status = k8s_cronjobs.getCronJobsStatus(path, current_cluster)
 
     # get namespaces list
-    namespaces = k8s_namespaces.get_namespace()
+    namespaces = k8s_namespaces.get_namespace(request)
 
     # get cluster metrics 
     # metrics = k8s_cluster_metric.getMetrics(path, current_cluster)
@@ -283,6 +283,29 @@ def daemonset(request, cluster_name):
         'daemonset_list': daemonset_list,
         'registered_clusters': registered_clusters
     })
+
+def daemonset_info(request, cluster_name, namespace, daemonset_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    daemonset_info = {
+        "describe": k8s_daemonset.get_daemonset_description(path, current_cluster.cluster_name, namespace, daemonset_name),
+        "events": k8s_daemonset.get_daemonset_events(path, current_cluster.cluster_name, namespace, daemonset_name),
+        "yaml": k8s_daemonset.get_daemonset_yaml(path, current_cluster.cluster_name, namespace, daemonset_name),
+    }
+
+    return render(request, 'dashboard/workloads/daemonset_info.html', {
+        "daemonset_info": daemonset_info,
+        "cluster_id": cluster_id,
+        "daemonset_name": daemonset_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters
+    })
+
+
 
 def jobs(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')

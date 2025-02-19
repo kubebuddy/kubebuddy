@@ -71,7 +71,11 @@
       {% for daemonset in daemonset_list %}
         <tr>
           <td>{{ daemonset.namespace }}</td>
-          <td>{{ daemonset.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}">
+                {{ daemonset.name }}
+            </a>
+        </td>
           <td>{{ daemonset.desired }}</td>
           <td>{{ daemonset.current }}</td>
           <td>{{ daemonset.ready }}</td>

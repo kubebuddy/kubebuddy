@@ -638,23 +638,6 @@ def role(request, cluster_name):
         'total_role': total_role
     })
 
-def role(request, cluster_name):
-    cluster_id = request.GET.get('cluster_id')
-    current_cluster = Cluster.objects.get(id = cluster_id)
-    path = current_cluster.kube_config.path
-    # get clusters in DB
-    registered_clusters = clusters_DB.get_registered_clusters()
-
-    role, total_role = k8s_role.list_roles(path, cluster_name)
-
-    return render(request, 'dashboard/RBAC/role.html', {
-        'cluster_id': cluster_id,
-        'current_cluster': cluster_name,
-        'registered_clusters': registered_clusters,
-        'role': role,
-        'total_role': total_role
-    })
-
 def rolebinding(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)

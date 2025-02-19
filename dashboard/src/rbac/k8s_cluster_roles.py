@@ -11,7 +11,7 @@ def get_cluster_role(path, context):
         creation_timestamp = role.metadata.creation_timestamp
         if creation_timestamp:
             #Convert to local time and format
-            creation_time_str = creation_timestamp.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+            creation_time_str = creation_timestamp.astimezone().strftime("%Y-%m-%d %H:%M:%S")
         else:
             creation_time_str = "Unknown"
 

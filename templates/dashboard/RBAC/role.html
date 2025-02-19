@@ -1,14 +1,14 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Limitranges{% endblock %}
+{% block title %}Role{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/limits-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/role-128.png?raw=true{% endblock %}
 
 {% block content %}
 
 <div class="container">
   <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Limitranges: {{total_limitranges}}</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Roles: {{total_role}}</i></b></div></div>
   </div>
   
   <div class="container">
@@ -50,11 +50,11 @@
       </thead>
 
       <tbody>
-      {% for lr in limitranges %}
+      {% for r in role %}
         <tr>
-          <td>{{ lr.namespace }}</td>
-          <td>{{ lr.name }}</td>
-          <td>{{ lr.created_at }}</td>
+          <td>{{ r.namespace }}</td>
+          <td>{{ r.name }}</td>
+          <td>{{ r.created_at }}</td>
         </tr>
       {% endfor %}
       </tbody>

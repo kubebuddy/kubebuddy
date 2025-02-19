@@ -1,14 +1,14 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Limitranges{% endblock %}
+{% block title %}Cluster Role Binding{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/limits-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/crb-128.png?raw=true{% endblock %}
 
 {% block content %}
 
 <div class="container">
   <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Limitranges: {{total_limitranges}}</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Cluster Role Bindings: {{total_clusterrolebinding}}</i></b></div></div>
   </div>
   
   <div class="container">
@@ -24,16 +24,28 @@
                 <label class="form-check-label" for="All"> All</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
-                <label class="form-check-label" for="Namespace"> Namespace</label>
-            </li>
-            <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
                 <label class="form-check-label" for="Name"> Name</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="craetedAt" id="craetedAt" checked> 
-                <label class="form-check-label" for="craetedAt"> Created At</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="role" id="role" checked> 
+                <label class="form-check-label" for="role"> Role</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="users" id="users" checked> 
+                <label class="form-check-label" for="users"> Users</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="groups" id="groups" checked> 
+                <label class="form-check-label" for="groups"> Groups</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="serviceAccounts" id="serviceAccounts" checked> 
+                <label class="form-check-label" for="serviceAccounts"> Service Accounts</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
+                <label class="form-check-label" for="age"> Age</label>
             </li>
         </ul>
         </div>
@@ -43,18 +55,24 @@
     <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
       <thead class="table-dark">
         <tr>
-          <th id="colNamepsace">NAMESPACE</th>
           <th id="colName">NAME</th>
-          <th id="colcreatedAt">CREATED AT</th>
+          <th id="colRole">ROLE</th>
+          <th id="colUsers">USERS</th>
+          <th id="colGroups">GROUPS</th>
+          <th id="colServiceAccounts">SERVICE ACCOUNTS</th>
+          <th id="colAge">AGE</th>
         </tr>
       </thead>
 
       <tbody>
-      {% for lr in limitranges %}
+      {% for crb in clusterrolebinding %}
         <tr>
-          <td>{{ lr.namespace }}</td>
-          <td>{{ lr.name }}</td>
-          <td>{{ lr.created_at }}</td>
+          <td>{{ crb.name }}</td>
+          <td>{{ crb.role }}</td>
+          <td>{{ crb.users }}</td>
+          <td>{{ crb.groups }}</td>
+          <td>{{ crb.service_accounts }}</td>
+          <td>{{ crb.age }}</td>
         </tr>
       {% endfor %}
       </tbody>

@@ -567,7 +567,26 @@ def resourcequotas(request, cluster_name):
     })
 
 
+def resourcequota_info(request, cluster_name, namespace, resourcequota_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
 
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    resourcequota_info = {
+        "describe": k8s_resource_quota.get_resourcequota_description(path, current_cluster.cluster_name, namespace, resourcequota_name),
+        "events": k8s_resource_quota.get_resourcequota_events(path, current_cluster.cluster_name, namespace, resourcequota_name),
+        "yaml": k8s_resource_quota.get_resourcequota_yaml(path, current_cluster.cluster_name, namespace, resourcequota_name),
+    }
+
+    return render(request, 'dashboard/cluster_management/resourcequota_info.html', {
+        "resourcequota_info": resourcequota_info,
+        "cluster_id": cluster_id,
+        "resourcequota_name": resourcequota_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
 
 
 def persistentvolume(request, cluster_name):

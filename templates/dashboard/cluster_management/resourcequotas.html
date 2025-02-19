@@ -63,7 +63,11 @@
       {% for q in resourcequotas %}
         <tr>
           <td>{{ q.namespace }}</td>
-          <td>{{ q.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}">
+                {{ q.name }}
+            </a>
+        </td>
           <td>{{ q.requests }}</td>
           <td>{{ q.limits }}</td>
           <td>{{ q.age }}</td>

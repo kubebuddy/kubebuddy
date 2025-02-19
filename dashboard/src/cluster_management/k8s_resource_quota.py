@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
+import yaml
 from ..utils import calculateAge
 
 def get_resource_quotas(path, context, namespace="all"):
@@ -45,3 +46,62 @@ def get_resource_quotas(path, context, namespace="all"):
         })
     
     return quota_list, len(quota_list)
+
+
+def get_resourcequota_description(path=None, context=None, namespace=None, resourcequota_name=None):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    try:
+        resource_quotas = v1.list_namespaced_resource_quota(namespace=namespace).items
+
+        target_resource_quota = None
+        for rq in resource_quotas:
+            if rq.metadata.name == resourcequota_name:
+                target_resource_quota = rq
+                break
+
+        if target_resource_quota is None:
+            return {"error": f"ResourceQuota {resourcequota_name} not found in namespace {namespace}"}
+
+
+        resourcequota_info = {
+            "name": target_resource_quota.metadata.name,
+            "namespace": target_resource_quota.metadata.namespace,
+            "spec": {
+                "hard": {k: v for k, v in target_resource_quota.spec.hard.items()}, # Handle missing hard
+                "scopes": target_resource_quota.spec.scopes or [] # Handle missing scopes
+            },
+            "status": {
+                "hard": {k: v for k, v in target_resource_quota.status.hard.items()}, # Handle missing hard
+                "used": {k: v for k, v in target_resource_quota.status.used.items()}, # Handle missing used
+            },
+        }
+        return resourcequota_info
+
+    except client.exceptions.ApiException as e:
+        return {"error": f"Failed to fetch ResourceQuota details: {e.reason}"}
+
+
+def get_resourcequota_events(path, context, namespace, resourcequota_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    events = v1.list_namespaced_event(namespace=namespace).items
+    resourcequota_events = [
+        event for event in events if event.involved_object.name == resourcequota_name and event.involved_object.kind == "ResourceQuota"
+    ]
+    return "\n".join([f"{e.reason}: {e.message}" for e in resourcequota_events])
+
+def get_resourcequota_yaml(path, context, namespace, resourcequota_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    resource_quotas = v1.list_namespaced_resource_quota(namespace=namespace).items
+
+    target_resource_quota = None
+    for rq in resource_quotas:
+      if rq.metadata.name == resourcequota_name:
+        target_resource_quota = rq
+        break
+
+    if target_resource_quota is None:
+      return {"error": f"ResourceQuota {resourcequota_name} not found in namespace {namespace}"}
+    return yaml.dump(target_resource_quota.to_dict(), default_flow_style=False)

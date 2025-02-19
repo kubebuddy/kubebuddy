@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
+from ..utils import calculateAge
 
 def get_configmaps(path, context):
     config.load_kube_config(config_file=path, context=context)
@@ -16,16 +17,15 @@ def get_configmaps(path, context):
         creation_time = cm.metadata.creation_timestamp
 
         # Calculate age in days
-        age = (datetime.now(timezone.utc) - creation_time).days
+        age = calculateAge(datetime.now(timezone.utc) - creation_time)
 
         # Get data keys only (not full values)
-        data_keys = ", ".join(cm.data.keys()) if cm.data else "No Data"
+        # data_keys = ", ".join(cm.data.keys()) if cm.data else "No Data"
 
         configmap_list.append({
         "name": name,
         "namespace": namespace,
-        "age": f"{age}d",
-        "data_keys": data_keys
+        "age": age,
         })
 
     return configmap_list, total_count

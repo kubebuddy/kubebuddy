@@ -1,0 +1,113 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Jobs{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/sts-128.png?raw=true{% endblock %}
+
+{% block content %}
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-start">
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/sts-128.png?raw=true" style="height: 5vh;" alt="deploy">
+            <h2 class="mb-4 ps-3 text-primary">Jobs: {{ job_name }}</h2>
+        </div>
+        
+        <!-- Bootstrap Tabs -->
+        <ul class="nav nav-tabs" id="deployTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="describe-tab" data-bs-toggle="tab" href="#describe">Describe</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="events-tab" data-bs-toggle="tab" href="#events">Events</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="tab" href="#yaml">YAML</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="describe">
+                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                    <pre>
+<b>Name</b>: {{ job_info.describe.name }}
+<b>Namespace</b>: {{ job_info.describe.namespace }}
+<b>Selector</b>: {% if job_info.describe.selector %}{% for key, value in job_info.describe.selector %}
+  - {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %}{% else %}
+  <span>- None</span>{% endif %}
+
+<b>Labels</b>: {% for key, value in job_info.describe.labels.items %}
+- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+<b>Annotations</b>: {% for key, value in job_info.describe.annotations.items %}
+- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}
+{% endfor %}
+
+<b>Parallelism</b>: {{ job_info.describe.parallelism }}
+<b>Completions</b>: {{ job_info.describe.completions }}
+<b>Completion Mode</b>: {{ job_info.describe.completion_mode }}
+<b>Suspend</b>: {{ job_info.describe.suspend }}
+<b>Backoff Limit</b>: {{ job_info.describe.backoff_limit }}
+
+<b>Start Time</b>: {{ job_info.describe.start_time|date:"r" }}
+<b>Completed At</b>: {{ job_info.describe.completion_time|date:"r" }}
+<b>Duration</b>: {{ job_info.describe.duration }} seconds
+
+<b>Pods Statuses</b>: 
+- Active: {{ job_info.describe.pods_status.active }} / Ready: {{ job_info.describe.pods_status.active }}
+- Succeeded: {{ job_info.describe.pods_status.succeeded }} 
+- Failed: {{ job_info.describe.pods_status.failed }}
+
+<b>Pod Template</b>:
+  <strong>Labels:</strong>{% for key, value in job_info.describe.pod_template.labels.items %}
+  - {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %}
+
+<strong>Containers:</strong> {% for container in job_info.describe.pod_template.containers %}
+- <strong>Name:</strong> {{ container.name }}
+  <strong>Image:</strong> {{ container.image }}
+  <strong>Command:</strong> {% for cmd in container.command %}{{ cmd }}{% if not loop.last %}, {% endif %}{% endfor %}
+  <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
+  <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
+
+<strong>Volumes:</strong> {% for volume in job_info.describe.pod_template.volumes %}
+- <strong>Name:</strong> {{ volume.name }}
+    <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %}{% endfor %}
+
+<strong>Node Selectors:</strong> {% if job_info.describe.pod_template.node_selectors %}{% for key, value in job_info.describe.pod_template.node_selectors %}
+- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
+<span>- None</span>{% endif %}
+
+<strong>Tolerations:</strong> {% for toleration in job_info.describe.pod_template.tolerations %}
+- {{ toleration }}{% if not loop.last %}, {% endif %}{% endfor %}
+                    </pre>
+                </div>
+                
+                
+                
+              </div>
+              
+            <div class="tab-pane fade" id="events">
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
+                    <pre>{{ job_info.events }}</pre>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="yaml">
+                <!-- <h4>Deployments YAML</h4> -->
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                    <!-- Copy Button inside the div -->
+                    <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
+                        Copy YAML
+                    </button>
+                    
+                    <pre id="yamlContent">{{ job_info.yaml }}</pre>
+                </div>
+            </div>
+        </div>
+
+        <a href="/{{current_cluster}}/jobs={{cluster_id}}" class="btn btn-primary mt-3">Back to Jobs</a>
+    </div>
+    
+    {% load static%}
+    <script src="{% static 'js/copyYAML.js' %}"></script>
+
+{% endblock %}

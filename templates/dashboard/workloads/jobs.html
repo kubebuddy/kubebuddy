@@ -76,7 +76,11 @@
           <tr>
         {% endif %}
           <td>{{ job.namespace }}</td>
-          <td>{{ job.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/jobs/{{job.namespace}}/{{job.name}}?cluster_id={{cluster_id}}">
+                {{ job.name }}
+            </a>
+          </td>
           <td>{{ job.status }}</td>
           <td>{{ job.completions }}</td>
           <td>{{ job.duration }}</td>

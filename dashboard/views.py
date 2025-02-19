@@ -348,6 +348,27 @@ def jobs(request, cluster_name):
         'registered_clusters': registered_clusters
     })
 
+def jobs_info(request, cluster_name, namespace, job_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    job_info = {
+        "describe": k8s_jobs.get_job_description(path, current_cluster.cluster_name, namespace, job_name),
+        "events": k8s_jobs.get_job_events(path, current_cluster.cluster_name, namespace, job_name),
+        "yaml": k8s_jobs.get_yaml_job(path, current_cluster.cluster_name, namespace, job_name)
+    }
+    return render(request, 'dashboard/workloads/job_info.html', {
+        "job_info": job_info,
+        "cluster_id": cluster_id,
+        "job_name": job_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters
+    })
+
+
+
 def cronjobs(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)

@@ -48,4 +48,4 @@ def list_rolebindings(path, context):
     except ApiException as e:
         print(f"Error listing role bindings: {e}")
     
-    return rolebindings_data
+    return rolebindings_data, len(rolebindings_data)

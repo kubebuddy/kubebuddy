@@ -19,4 +19,4 @@ def get_cluster_role(path, context):
             "name": role.metadata.name,
             "created_at": creation_time_str
     })
-    return clusterroles
+    return clusterroles, len(clusterroles)

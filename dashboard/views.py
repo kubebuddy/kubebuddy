@@ -218,7 +218,7 @@ def deploy_info(request, cluster_name, namespace, deploy_name):
     registered_clusters = clusters_DB.get_registered_clusters()
 
     deploy_info = {
-        # "describe": k8s_deployments.get_deploy_description(path, current_cluster.cluster_name, namespace, rs_name),
+        "describe": k8s_deployments.get_deployment_description(path, current_cluster.cluster_name, namespace, deploy_name),
         "events": k8s_deployments.get_deploy_events(path, current_cluster.cluster_name, namespace, deploy_name),
         "yaml": k8s_deployments.get_yaml_deploy(path, current_cluster.cluster_name, namespace, deploy_name)
     }
@@ -454,4 +454,23 @@ def resourcequotas(request, cluster_name):
         'registered_clusters': registered_clusters,
         'resourcequotas': resourcequotas,
         'total_quotas': total_quotas
+    })
+def sts_info(request, cluster_name, namespace, sts_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    sts_info = {
+        "describe": k8s_statefulset.get_statefulset_description(path, current_cluster.cluster_name, namespace, sts_name),
+        "events": k8s_statefulset.get_sts_events(path, current_cluster.cluster_name, namespace, sts_name),
+        "yaml": k8s_statefulset.get_yaml_sts(path, current_cluster.cluster_name, namespace, sts_name)
+    }
+
+    return render(request, 'dashboard/workloads/sts_info.html', {
+        "sts_info": sts_info,
+        "cluster_id": cluster_id,
+        "sts_name": sts_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters
     })

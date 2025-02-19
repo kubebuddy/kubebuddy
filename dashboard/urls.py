@@ -3,7 +3,7 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 events, rs_info, deploy_info, \
                                 configmaps, secrets, services, endpoints, \
                                 statefulsets, daemonset, daemonset_info, jobs, cronjobs, \
-                                namespace, limitrange, resourcequotas
+                                namespace, limitrange, resourcequotas, sts_info
 
 
 urlpatterns = [
@@ -21,6 +21,7 @@ urlpatterns = [
     path('<str:cluster_name>/services', services, name='services'),
     path('<str:cluster_name>/endpoints', endpoints, name='endpoints'),
     path('<str:cluster_name>/statefulsets', statefulsets, name="statefulsets"),
+    path('<str:cluster_name>/statefulsets/<str:namespace>/<str:sts_name>/', sts_info, name='sts_info'),
     path('<str:cluster_name>/daemonset', daemonset, name="daemonset"),
     path('<str:cluster_name>/jobs', jobs, name="jobs"),
     path('<str:cluster_name>/cronjobs', cronjobs, name="cronjobs"),

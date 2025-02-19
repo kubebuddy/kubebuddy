@@ -61,7 +61,11 @@
       {% for statefulsets in statefulsets_list %}
         <tr>
           <td>{{ statefulsets.namespace }}</td>
-          <td>{{ statefulsets.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/statefulsets/{{statefulsets.namespace}}/{{statefulsets.name}}?cluster_id={{cluster_id}}">
+                {{ statefulsets.name }}
+            </a>
+          </td>
           <td>{{ statefulsets.ready }}</td>
           <td>{{ statefulsets.age }}</td>
         </tr>

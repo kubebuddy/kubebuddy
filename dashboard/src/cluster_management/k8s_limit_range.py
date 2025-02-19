@@ -1,4 +1,5 @@
 from kubernetes import client, config
+import yaml
 
 def get_limit_ranges(path, context):
     # Load Kubernetes configuration
@@ -25,3 +26,64 @@ def get_limit_ranges(path, context):
             print(f"Error fetching LimitRange for namespace {ns}: {e}")
     
     return limit_ranges, len(limit_ranges)
+
+
+
+def get_limitrange_description(path=None, context=None, namespace=None, limitrange_name=None):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    try:
+        limit_ranges = v1.list_namespaced_limit_range(namespace=namespace).items
+
+        target_limit_range = None
+        for lr in limit_ranges:
+          if lr.metadata.name == limitrange_name:
+            target_limit_range = lr
+            break
+
+        if target_limit_range is None:
+          return {"error": f"LimitRange {limitrange_name} not found in namespace {namespace}"}
+
+        limit_range_info = {
+            "name": target_limit_range.metadata.name,
+            "namespace": target_limit_range.metadata.namespace,
+            "limits": [
+                {
+                    "type": limit.type,
+                    "default": {k: v for k, v in limit.default.items()} if limit.default else {}, # Handle missing default
+                    "default_request": {k: v for k, v in limit.default_request.items()} if limit.default_request else {}, # Handle missing default_request
+                    "max": {k: v for k, v in limit.max.items()} if limit.max else {}, # Handle missing max
+                    "min": {k: v for k, v in limit.min.items()} if limit.min else {}, # Handle missing min
+                }
+                for limit in target_limit_range.spec.limits
+            ],
+        }
+        return limit_range_info
+
+    except client.exceptions.ApiException as e:
+        return {"error": f"Failed to fetch LimitRange details: {e.reason}"}
+
+
+def get_limitrange_events(path, context, namespace, limitrange_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    events = v1.list_namespaced_event(namespace=namespace).items
+    limitrange_events = [
+        event for event in events if event.involved_object.name == limitrange_name and event.involved_object.kind == "LimitRange"
+    ]
+    return "\n".join([f"{e.reason}: {e.message}" for e in limitrange_events])
+
+def get_limitrange_yaml(path, context, namespace, limitrange_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    limit_ranges = v1.list_namespaced_limit_range(namespace=namespace).items
+
+    target_limit_range = None
+    for lr in limit_ranges:
+      if lr.metadata.name == limitrange_name:
+        target_limit_range = lr
+        break
+
+    if target_limit_range is None:
+      return {"error": f"LimitRange {limitrange_name} not found in namespace {namespace}"}
+    return yaml.dump(target_limit_range.to_dict(), default_flow_style=False)

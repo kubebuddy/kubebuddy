@@ -53,7 +53,11 @@
       {% for lr in limitranges %}
         <tr>
           <td>{{ lr.namespace }}</td>
-          <td>{{ lr.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/limitrange/{{lr.namespace}}/{{lr.name}}?cluster_id={{cluster_id}}">
+                {{ lr.name }}
+            </a>
+        </td>
           <td>{{ lr.created_at }}</td>
         </tr>
       {% endfor %}

@@ -6,7 +6,7 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 namespace, limitrange, resourcequotas, persistentvolume, \
                                 persistentvolumeclaim, storageclass, sts_info, daemonset_info, \
                                 role, rolebinding, clusterrole, clusterrolebinding, serviceAccount, \
-                                service_info, endpoint_info, jobs_info
+                                service_info, endpoint_info, jobs_info, limitrange_info
 
 
 urlpatterns = [
@@ -50,6 +50,8 @@ urlpatterns = [
     path('<str:cluster_name>/namespace', namespace, name="namespace"),
     path('<str:cluster_name>/limitrange', limitrange, name="limitrange"),
     path('<str:cluster_name>/resourcequotas', resourcequotas, name="resourcequotas"),
+
+    path('<str:cluster_name>/limitrange/<str:namespace>/<str:limitrange_name>/', limitrange_info, name='limitrange_info'),
 
     # Persistent Storage
     path('<str:cluster_name>/persistentvolume', persistentvolume, name="persistentvolume"),

@@ -1,16 +1,16 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Endpoints{% endblock %}
+{% block title %}LimitRange{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ep-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/limits-128.png?raw=true{% endblock %}
 
 {% block content %}
 
 
     <div class="container mt-4">
         <div class="d-flex justify-content-start">
-            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ep-128.png?raw=true" style="height: 5vh;" alt="ds">
-            <h2 class="mb-4 ps-3 text-primary">Endpoint: {{ endpoint_name }}</h2>
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/limits-128.png?raw=true" style="height: 5vh;" alt="ds">
+            <h2 class="mb-4 ps-3 text-primary">LimitRange: {{ limitrange_name }}</h2>
         </div>
         
 
@@ -32,23 +32,18 @@
             <div class="tab-pane fade show active" id="describe">
                 <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
                     <pre>
-<b>Name:</b> {{ endpoint_info.describe.name }}
-<b>Namespace:</b> {{ endpoint_info.describe.namespace }}
-<b>Subsets:</b>{% for subset in endpoint_info.describe.subsets %}
-<b>Addresses:</b>{% for address in subset.addresses %}
-<b>IP:</b> {{ address.ip }}
-<b>Hostname:</b> {% if address.hostname != "N/A" %}{{ address.hostname }}{% else %}N/A{% endif %}
-<b>Target Ref:</b> {% if address.target_ref != "N/A" %}{{ address.target_ref }}{% else %}N/A{% endif %}{% endfor %}
-<b>Not Ready Addresses:</b>{% for address in subset.not_ready_addresses %}
-<b>IP:</b> {{ address.ip }}
-<b>Hostname:</b> {% if address.hostname != "N/A" %}{{ address.hostname }}{% else %}N/A{% endif %}
-<b>Target Ref:</b> {% if address.target_ref != "N/A" %}{{ address.target_ref }}{% else %}N/A{% endif %}{% endfor %}
-<b>Ports:</b>{% for port in subset.ports %}
-<b>Name:</b> {{ port.name }}
-<b>Port:</b> {{ port.port }}
-<b>Protocol:</b> {{ port.protocol }}
-{% endfor %}
-{% endfor %}
+<b>Name:</b> {{ limitrange_info.describe.name }}
+<b>Namespace:</b> {{ limitrange_info.describe.namespace }}
+<b>Limits:</b>                            {% for limit in limitrange_info.describe.limits %}
+<b>Type:</b> {{ limit.type }}
+<b>Default:</b>{% for k, v in limit.default.items %}
+    {{ k }}: {{ v }}{% endfor %}
+<b>Default Request:</b>{% for k, v in limit.default_request.items %}
+    {{ k }}: {{ v }}{% endfor %}
+<b>Max:</b>{% for k, v in limit.max.items %}
+    {{ k }}: {{ v }}{% endfor %}
+<b>Min:</b>{% for k, v in limit.min.items %}
+    {{ k }}: {{ v }}{% endfor %}    {% endfor %}
                     </pre>
                 </div>
               </div>
@@ -56,7 +51,7 @@
 
             <div class="tab-pane fade" id="events">
                 <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
-                    <pre>{{ endpoint.events }}</pre>
+                    <pre>{{ limitrange.events }}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">
@@ -68,13 +63,13 @@
                     </button>
                     
                 
-                    <pre id="yamlContent">{{ endpoint_info.yaml }}</pre>
+                    <pre id="yamlContent">{{ limitrange_info.yaml }}</pre>
                 </div>
             </div>
             
         </div>
 
-        <a href="/{{current_cluster}}/endpoints?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Endpoints</a>
+        <a href="/{{current_cluster}}/limitrange?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to LimitRanges</a>
     </div>
     
     {% load static%}

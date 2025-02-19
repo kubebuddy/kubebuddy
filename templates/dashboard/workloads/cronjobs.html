@@ -81,7 +81,11 @@
       {% for job in cronjobs_list %}
         <tr>
           <td>{{ job.namespace }}</td>
-          <td>{{ job.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/cronjobs/{{job.namespace}}/{{job.name}}?cluster_id={{cluster_id}}">
+                {{ job.name }}
+            </a>
+          </td>
           <td>{{ job.schedule }}</td>
           <td>{{ job.time_zone }}</td>
           <td>{{ job.suspend }}</td>

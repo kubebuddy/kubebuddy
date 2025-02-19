@@ -328,7 +328,6 @@ def daemonset_info(request, cluster_name, namespace, daemonset_name):
     })
 
 
-
 def jobs(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
@@ -385,6 +384,25 @@ def cronjobs(request, cluster_name):
         'registered_clusters': registered_clusters,
         'cronjobs_status': cronjobs_status,
         'cronjobs_list': cronjobs_list,
+    })
+
+def cronjob_info(request, cluster_name, namespace, cronjob_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    cronjob_info = {
+        "describe": k8s_cronjobs.get_cronjob_description(path, current_cluster.cluster_name, namespace, cronjob_name),
+        "events": k8s_cronjobs.get_cronjob_events(path, current_cluster.cluster_name, namespace, cronjob_name),
+        "yaml": k8s_cronjobs.get_yaml_cronjob(path, current_cluster.cluster_name, namespace, cronjob_name)
+    }
+    return render(request, 'dashboard/workloads/cronjob_info.html', {
+        "cronjob_info": cronjob_info,
+        "cluster_id": cluster_id,
+        "cronjob_name": cronjob_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters
     })
 
 def namespace(request, cluster_name):

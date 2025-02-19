@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from ..utils import calculateAge
 from datetime import datetime, timezone
+import yaml
 
 def getCronJobCount():
     config.load_kube_config()
@@ -76,3 +77,72 @@ def getCronJobsList(path, context, namespace="all"):
     except Exception as e:  # Catch other potential errors (e.g., config issues)
         print(f"An error occurred: {e}")  # Print other errors to stderr
         return []
+
+def get_cronjob_description(path=None, context=None, namespace=None, cronjob_name=None):
+    config.load_kube_config(path, context)
+    v1 = client.BatchV1Api()
+
+    try:
+        # Fetch CronJob details
+        cronjob = v1.read_namespaced_cron_job(name=cronjob_name, namespace=namespace)
+        
+        # Prepare CronJob information
+        cronjob_info = {
+            "name": cronjob.metadata.name,
+            "namespace": cronjob.metadata.namespace,
+            "schedule": cronjob.spec.schedule,
+            "concurrency_policy": cronjob.spec.concurrency_policy,
+            "suspend": cronjob.spec.suspend,
+            "successful_jobs_history_limit": cronjob.spec.successful_jobs_history_limit,
+            "failed_jobs_history_limit": cronjob.spec.failed_jobs_history_limit,
+            "starting_deadline_seconds": cronjob.spec.starting_deadline_seconds,
+            "selector": cronjob.spec.selector.match_labels if hasattr(cronjob.spec, 'selector') and cronjob.spec.selector else "<unset>",
+            "labels": cronjob.metadata.labels if isinstance(cronjob.metadata.labels, dict) else "<none>",
+            "annotations": cronjob.metadata.annotations if isinstance(cronjob.metadata.annotations, dict) else "<none>",
+            "pods_status": {
+                "active": cronjob.status.active,
+                "last_schedule_time": cronjob.status.last_schedule_time
+            },
+            "pod_template": {
+                "labels": cronjob.spec.job_template.spec.template.metadata.labels,
+                "containers": [
+                    {
+                        "name": container.name,
+                        "image": container.image,
+                        "command": container.command,
+                        "env": [env.name for env in (container.env or [])],
+                        "mounts": [mount.mount_path for mount in (container.volume_mounts or [])]
+                    }
+                    for container in cronjob.spec.job_template.spec.template.spec.containers
+                ],
+                "volumes": [
+                    {
+                        "name": volume.name,
+                        "type": volume.secret or volume.config_map or volume.projected
+                    }
+                    for volume in (cronjob.spec.job_template.spec.template.spec.volumes or [])
+                ],
+                "node_selectors": cronjob.spec.job_template.spec.template.spec.node_selector,
+                "tolerations": cronjob.spec.job_template.spec.template.spec.tolerations
+            },
+            "active_jobs": [job.name for job in cronjob.status.active] if cronjob.status.active else []
+        }
+
+        return cronjob_info
+
+    except client.exceptions.ApiException as e:
+        return {"error": f"Failed to fetch CronJob details: {e.reason}"}
+
+def get_cronjob_events(path, context, namespace, cronjob_name):
+    config.load_kube_config(config_file=path, context=context)
+    v1 = client.CoreV1Api()
+    events = v1.list_namespaced_event(namespace=namespace).items
+    cronjob_events = [event for event in events if event.involved_object.name == cronjob_name and event.involved_object.kind == "CronJob"]
+    return "\n".join([f"{e.reason}: {e.message}" for e in cronjob_events])
+
+def get_yaml_cronjob(path, context, namespace, cronjob_name):
+    config.load_kube_config(config_file=path, context=context)
+    v1 = client.BatchV1Api()
+    cronjob = v1.read_namespaced_cron_job(name=cronjob_name, namespace=namespace)
+    print(cronjob)
+    return yaml.dump(cronjob.to_dict(), default_flow_style=False)

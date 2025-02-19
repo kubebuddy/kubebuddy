@@ -7,7 +7,7 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 persistentvolumeclaim, storageclass, sts_info, daemonset_info, \
                                 role, rolebinding, clusterrole, clusterrolebinding, serviceAccount, \
                                 service_info, endpoint_info, jobs_info, limitrange_info, \
-                                resourcequota_info
+                                resourcequota_info, cronjob_info
 
 
 urlpatterns = [
@@ -29,6 +29,7 @@ urlpatterns = [
     path('<str:cluster_name>/statefulsets/<str:namespace>/<str:sts_name>/', sts_info, name='sts_info'),
     path('<str:cluster_name>/daemonset/<str:namespace>/<str:daemonset_name>/', daemonset_info, name='daemonset_info'),
     path('<str:cluster_name>/jobs/<str:namespace>/<str:job_name>/', jobs_info, name='jobs_info'),
+    path('<str:cluster_name>/cronjobs/<str:namespace>/<str:cronjob_name>/', cronjob_info, name='cronjob_info'),
     
     
     # Events

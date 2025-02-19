@@ -39,4 +39,4 @@ def get_service_accounts(path, context):
                 "age": age_str  # Store the calculated age string
             })
 
-    return all_service_accounts
+    return all_service_accounts, len(all_service_accounts)

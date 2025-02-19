@@ -350,10 +350,8 @@
     document.addEventListener("DOMContentLoaded", function () {
     let sidebarLinks = document.querySelectorAll(".sidebar a");
     let currentUrl = window.location.pathname; // Get current path without query params
-      console.log("Curren url ",currentUrl)
     sidebarLinks.forEach(link => {
         if (link.getAttribute("href").split('?')[0] === currentUrl) {
-          console.log(link.getAttribute("href").split('?')[0])
           link.style.backgroundColor = "#8ddbff";
           link.style.borderRadius = "5px";
           link.style.padding = "5px 10px"; 

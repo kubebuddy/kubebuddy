@@ -412,7 +412,29 @@ def services(request, cluster_name):
     registered_clusters = clusters_DB.get_registered_clusters()
     services = k8s_services.list_kubernetes_services(path, cluster_name)
     total_services = len(services)
-    return render(request, 'dashboard/services.html', {"services": services,"total_services": total_services, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
+    return render(request, 'dashboard/services/services.html', {"services": services,"total_services": total_services, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
+
+def service_info(request, cluster_name, namespace, service_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    service_info = {
+        "describe": k8s_services.get_service_description(path, current_cluster.cluster_name, namespace, service_name),
+        "events": k8s_services.get_service_events(path, current_cluster.cluster_name, namespace, service_name),
+        "yaml": k8s_services.get_service_yaml(path, current_cluster.cluster_name, namespace, service_name),
+    }
+
+    return render(request, 'dashboard/services/service_info.html', {
+        "service_info": service_info,
+        "cluster_id": cluster_id,
+        "service_name": service_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
+
 
 def endpoints(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
@@ -422,7 +444,30 @@ def endpoints(request, cluster_name):
     registered_clusters = clusters_DB.get_registered_clusters()
     endpoints = k8s_endpoints.get_endpoints(path, cluster_name)
     total_endpoints = len(endpoints)
-    return render(request, 'dashboard/endpoints.html', {"endpoints": endpoints,"total_endpoints":total_endpoints, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters}) 
+    return render(request, 'dashboard/services/endpoints.html', {"endpoints": endpoints,"total_endpoints":total_endpoints, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters}) 
+
+def endpoint_info(request, cluster_name, namespace, endpoint_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    endpoint_info = {
+        "describe": k8s_endpoints.get_endpoint_description(path, current_cluster.cluster_name, namespace, endpoint_name),
+        "events": k8s_endpoints.get_endpoint_events(path, current_cluster.cluster_name, namespace, endpoint_name),
+        "yaml": k8s_endpoints.get_endpoint_yaml(path, current_cluster.cluster_name, namespace, endpoint_name),
+    }
+
+    return render(request, 'dashboard/services/endpoint_info.html', {
+        "endpoint_info": endpoint_info,
+        "cluster_id": cluster_id,
+        "endpoint_name": endpoint_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
+
+
 
 def nodes(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')

@@ -1,0 +1,82 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Endpoints{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ep-128.png?raw=true{% endblock %}
+
+{% block content %}
+
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-start">
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/svc-128.png?raw=true" style="height: 5vh;" alt="ds">
+            <h2 class="mb-4 ps-3 text-primary">Endpoint: {{ endpoint_name }}</h2>
+        </div>
+        
+
+        <!-- Bootstrap Tabs -->
+        <ul class="nav nav-tabs" id="podTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="describe-tab" data-bs-toggle="tab" href="#describe">Describe</a>
+            </li> 
+            <li class="nav-item">
+                <a class="nav-link" id="events-tab" data-bs-toggle="tab" href="#events">Events</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="tab" href="#yaml">YAML</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="describe">
+                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                    <pre>
+<b>Name:</b> {{ endpoint_info.describe.name }}
+<b>Namespace:</b> {{ endpoint_info.describe.namespace }}
+<b>Subsets:</b>{% for subset in endpoint_info.describe.subsets %}
+<b>Addresses:</b>{% for address in subset.addresses %}
+<b>IP:</b> {{ address.ip }}
+<b>Hostname:</b> {% if address.hostname != "N/A" %}{{ address.hostname }}{% else %}N/A{% endif %}
+<b>Target Ref:</b> {% if address.target_ref != "N/A" %}{{ address.target_ref }}{% else %}N/A{% endif %}{% endfor %}
+<b>Not Ready Addresses:</b>{% for address in subset.not_ready_addresses %}
+<b>IP:</b> {{ address.ip }}
+<b>Hostname:</b> {% if address.hostname != "N/A" %}{{ address.hostname }}{% else %}N/A{% endif %}
+<b>Target Ref:</b> {% if address.target_ref != "N/A" %}{{ address.target_ref }}{% else %}N/A{% endif %}{% endfor %}
+<b>Ports:</b>{% for port in subset.ports %}
+<b>Name:</b> {{ port.name }}
+<b>Port:</b> {{ port.port }}
+<b>Protocol:</b> {{ port.protocol }}
+{% endfor %}
+{% endfor %}
+                    </pre>
+                </div>
+              </div>
+              
+
+            <div class="tab-pane fade" id="events">
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
+                    <pre>{{ endpoint.events }}</pre>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="yaml">
+                <!-- <h4>Pod YAML</h4> -->
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                    <!-- Copy Button inside the div -->
+                    <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
+                        Copy YAML
+                    </button>
+                    
+                
+                    <pre id="yamlContent">{{ endpoint_info.yaml }}</pre>
+                </div>
+            </div>
+            
+        </div>
+
+        <a href="/{{current_cluster}}/endpoints?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Endpoints</a>
+    </div>
+    
+    {% load static%}
+    <script src="{% static 'js/copyYAML.js' %}"></script>
+{% endblock %}

@@ -80,7 +80,11 @@
         {% for service in services %}
         <tr>
             <td>{{ service.namespace }}</td>
-            <td>{{ service.name }}</td>
+            <td>
+              <a href="/{{current_cluster}}/services/{{service.namespace}}/{{service.name}}?cluster_id={{cluster_id}}">
+                  {{ service.name }}
+              </a>
+          </td>
             <td>{{ service.type }}</td>
             <td>{{ service.cluster_ip }}</td>
             <td>{{ service.external_ip }}</td>

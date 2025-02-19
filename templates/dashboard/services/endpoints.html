@@ -62,7 +62,11 @@
       {% for ep in endpoints %}
         <tr>
           <td>{{ ep.namespace }}</td>
-          <td>{{ ep.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/endpoints/{{ep.namespace}}/{{ep.name}}?cluster_id={{cluster_id}}">
+                {{ ep.name }}
+            </a>
+        </td>
           <td>{{ ep.endpoints }}</td>
           <td>{{ ep.age }}</td>
           

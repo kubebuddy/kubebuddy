@@ -5,8 +5,9 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 statefulsets, daemonset, jobs, cronjobs, \
                                 namespace, limitrange, resourcequotas, persistentvolume, \
                                 persistentvolumeclaim, storageclass, sts_info, daemonset_info, \
-                                role, rolebinding, clusterrole, clusterrolebinding, serviceAccount \
-                                
+                                role, rolebinding, clusterrole, clusterrolebinding, serviceAccount, \
+                                service_info,endpoint_info
+
 
 urlpatterns = [
     path('<str:cluster_name>/dashboard/', dashboard, name='dashboard'),
@@ -39,4 +40,9 @@ urlpatterns = [
     path('<str:cluster_name>/clusterrole', clusterrole, name="clusterrole"),
     path('<str:cluster_name>/clusterrolebinding', clusterrolebinding, name="clusterrolebinding"),
     path('<str:cluster_name>/serviceAccount', serviceAccount, name="serviceAccount"),
+    path('<str:cluster_name>/daemonset/<str:namespace>/<str:daemonset_name>/', daemonset_info, name='daemonset_info'),
+    path('<str:cluster_name>/services/<str:namespace>/<str:service_name>/', service_info, name='service_info'),
+    path('<str:cluster_name>/endpoints/<str:namespace>/<str:endpoint_name>/', endpoint_info, name='endpoint_info'),
+
+
 ]

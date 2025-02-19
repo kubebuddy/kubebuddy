@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
+import yaml
 from ..utils import calculateAge
 
 def get_endpoints(path, context):
@@ -46,3 +47,71 @@ def get_endpoints(path, context):
     except Exception as e:
         print(f"Unexpected error: {e}")
         return []
+
+
+def get_endpoint_description(path=None, context=None, namespace=None, endpoint_name=None):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    try:
+        endpoints = v1.list_namespaced_endpoints(namespace=namespace).items  # THE CORRECT API CALL
+        target_endpoint = None
+        for endpoint in endpoints:
+            if endpoint.metadata.name == endpoint_name:
+                target_endpoint = endpoint
+                break
+        if target_endpoint is None:
+            return {"error": f"Endpoint {endpoint_name} not found in namespace {namespace}"}
+        endpoint_info = {
+            "name": target_endpoint.metadata.name,
+            "namespace": target_endpoint.metadata.namespace,
+            "subsets": [
+                {
+                    "addresses": [
+                        {"ip": address.ip, "hostname": getattr(address, "hostname", "N/A"), "target_ref": getattr(address, "target_ref", "N/A")}
+                        for address in subset.addresses or []
+                    ],
+                    "ports": [
+                        {"name": port.name, "port": port.port, "protocol": port.protocol}
+                        for port in subset.ports or []
+                    ],
+                    "not_ready_addresses": [
+                        {"ip": address.ip, "hostname": getattr(address, "hostname", "N/A"), "target_ref": getattr(address, "target_ref", "N/A")}
+                        for address in subset.not_ready_addresses or []
+                    ]
+                }
+                for subset in (target_endpoint.subsets if target_endpoint.subsets else [])
+            ],
+        }
+        return endpoint_info
+    except client.exceptions.ApiException as e:
+        return {"error": f"Failed to fetch endpoint details: {e.reason}"}
+
+def get_endpoint_events(path, context, namespace, endpoint_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    events = v1.list_namespaced_event(namespace=namespace).items
+    endpoint_events = [
+        event for event in events if event.involved_object.name == endpoint_name and event.involved_object.kind == "Endpoints"
+    ]
+    return "\n".join([f"{e.reason}: {e.message}" for e in endpoint_events])
+
+
+def get_endpoint_yaml(path, context, namespace, endpoint_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    try:
+        endpoints = v1.list_namespaced_endpoints(namespace=namespace).items # Correct API call
+
+        target_endpoint = None
+        for endpoint in endpoints:
+            if endpoint.metadata.name == endpoint_name:
+                target_endpoint = endpoint
+                break
+
+        if target_endpoint is None:
+            return {"error": f"Endpoint {endpoint_name} not found in namespace {namespace}"}
+
+        return yaml.dump(target_endpoint.to_dict(), default_flow_style=False) # Use target_endpoint
+
+    except client.exceptions.ApiException as e:
+        return {"error": f"Failed to fetch endpoint details: {e.reason}"}

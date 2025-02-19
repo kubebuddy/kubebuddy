@@ -55,7 +55,11 @@
       {% for cm in configmaps %}
         <tr>
           <td>{{ cm.namespace }}</td>
-          <td>{{ cm.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/configmaps/{{cm.namespace}}/{{cm.name}}?cluster_id={{cluster_id}}">
+                {{ cm.name }}
+            </a>
+        </td>
           <td>{{ cm.age }}</td>
           
         </tr>

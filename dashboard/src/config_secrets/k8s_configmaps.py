@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
+import yaml
 from ..utils import calculateAge
 
 def get_configmaps(path, context):
@@ -29,3 +30,56 @@ def get_configmaps(path, context):
         })
 
     return configmap_list, total_count
+
+
+
+def get_configmap_description(path=None, context=None, namespace=None, configmap_name=None):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    try:
+        configmaps = v1.list_namespaced_config_map(namespace=namespace).items
+
+        target_configmap = None
+        for cm in configmaps:
+            if cm.metadata.name == configmap_name:
+                target_configmap = cm
+                break
+
+        if target_configmap is None:
+            return {"error": f"ConfigMap {configmap_name} not found in namespace {namespace}"}
+
+        configmap_info = {
+            "name": target_configmap.metadata.name,
+            "namespace": target_configmap.metadata.namespace,
+            "data": {k: v for k, v in target_configmap.data.items()} if target_configmap.data else {}, # Handle missing data
+        }
+        return configmap_info
+
+    except client.exceptions.ApiException as e:
+        return {"error": f"Failed to fetch ConfigMap details: {e.reason}"}
+
+def get_configmap_events(path, context, namespace, configmap_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    events = v1.list_namespaced_event(namespace=namespace).items
+    configmap_events = [
+        event for event in events if event.involved_object.name == configmap_name and event.involved_object.kind == "ConfigMap"
+    ]
+    return "\n".join([f"{e.reason}: {e.message}" for e in configmap_events])
+
+
+def get_configmap_yaml(path, context, namespace, configmap_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    configmaps = v1.list_namespaced_config_map(namespace=namespace).items
+
+    target_configmap = None
+    for cm in configmaps:
+        if cm.metadata.name == configmap_name:
+            target_configmap = cm
+            break
+
+    if target_configmap is None:
+        return {"error": f"ConfigMap {configmap_name} not found in namespace {namespace}"}
+
+    return yaml.dump(target_configmap.to_dict(), default_flow_style=False)

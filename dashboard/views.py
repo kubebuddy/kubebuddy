@@ -430,7 +430,28 @@ def configmaps(request,cluster_name):
     # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
     configmaps, total_count = k8s_configmaps.get_configmaps(path, cluster_name)
-    return render(request, 'dashboard/configmaps.html', {"configmaps": configmaps, 'total_count':total_count, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
+    return render(request, 'dashboard/config_secrets/configmaps.html', {"configmaps": configmaps, 'total_count':total_count, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
+
+def configmap_info(request, cluster_name, namespace, configmap_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    configmap_info = {
+        "describe": k8s_configmaps.get_configmap_description(path, current_cluster.cluster_name, namespace, configmap_name),
+        "events": k8s_configmaps.get_configmap_events(path, current_cluster.cluster_name, namespace, configmap_name),
+        "yaml": k8s_configmaps.get_configmap_yaml(path, current_cluster.cluster_name, namespace, configmap_name),
+    }
+
+    return render(request, 'dashboard/config_secrets/configmap_info.html', {
+        "configmap_info": configmap_info,
+        "cluster_id": cluster_id,
+        "configmap_name": configmap_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
 
 
 def secrets(request, cluster_name):
@@ -440,7 +461,7 @@ def secrets(request, cluster_name):
     # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
     secrets, total_secrets = k8s_secrets.list_secrets(path, cluster_name)
-    return render(request, 'dashboard/secrets.html', {"secrets": secrets, "total_secrets": total_secrets, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
+    return render(request, 'dashboard/config_secrets/secrets.html', {"secrets": secrets, "total_secrets": total_secrets, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
 
 
 def services(request, cluster_name):

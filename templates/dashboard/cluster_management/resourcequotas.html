@@ -1,14 +1,14 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Limitranges{% endblock %}
+{% block title %}Resource Quotas{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/limits-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/quota-128.png?raw=true{% endblock %}
 
 {% block content %}
 
 <div class="container">
   <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Limitranges: {{total_limitranges}}</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Resource Quotas: {{total_quotas}}</i></b></div></div>
   </div>
   
   <div class="container">
@@ -32,8 +32,16 @@
                 <label class="form-check-label" for="Name"> Name</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="craetedAt" id="craetedAt" checked> 
-                <label class="form-check-label" for="craetedAt"> Created At</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="requests" id="requests" checked> 
+                <label class="form-check-label" for="requests"> Requests</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="limits" id="limits" checked> 
+                <label class="form-check-label" for="limits"> Limits</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
+                <label class="form-check-label" for="age"> Age</label>
             </li>
         </ul>
         </div>
@@ -43,18 +51,22 @@
     <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
       <thead class="table-dark">
         <tr>
-          <th id="colNamepsace">NAMESPACE</th>
+          <th id="colNamespace">NAMESPACE</th>
           <th id="colName">NAME</th>
-          <th id="colcreatedAt">CREATED AT</th>
+          <th id="colRequests">REQUESTS</th>
+          <th id="colLimits">LIMITS</th>
+          <th id="colAge">AGE<s/th>
         </tr>
       </thead>
 
       <tbody>
-      {% for lr in limitranges %}
+      {% for q in resourcequotas %}
         <tr>
-          <td>{{ lr.namespace }}</td>
-          <td>{{ lr.name }}</td>
-          <td>{{ lr.created_at }}</td>
+          <td>{{ q.namespace }}</td>
+          <td>{{ q.name }}</td>
+          <td>{{ q.requests }}</td>
+          <td>{{ q.limits }}</td>
+          <td>{{ q.age }}</td>
         </tr>
       {% endfor %}
       </tbody>

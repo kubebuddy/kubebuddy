@@ -117,7 +117,7 @@
               <li><a href="/{{current_cluster}}/nodes?cluster_id={{cluster_id}}" class="link-dark rounded">Nodes</a></li>
               <li><a href="#" class="link-dark rounded">PodDisruptionBudget</a></li>
               <li><a href="/{{current_cluster}}/limitrange?cluster_id={{cluster_id}}" class="link-dark rounded">LimitRange</a></li>
-              <li><a href="#" class="link-dark rounded">Resource Quota</a></li>
+              <li><a href="/{{current_cluster}}/resourcequotas?cluster_id={{cluster_id}}" class="link-dark rounded">Resource Quota</a></li>
             </ul>
           </div>
         </li>
@@ -350,12 +350,11 @@
     document.addEventListener("DOMContentLoaded", function () {
     let sidebarLinks = document.querySelectorAll(".sidebar a");
     let currentUrl = window.location.pathname; // Get current path without query params
-
+      console.log("Curren url ",currentUrl)
     sidebarLinks.forEach(link => {
         if (link.getAttribute("href").split('?')[0] === currentUrl) {
-          link.style.backgroundColor = "#56e8cd";
-          link.style.color = "white";
-          link.style.fontWeight = "bold";
+          console.log(link.getAttribute("href").split('?')[0])
+          link.style.backgroundColor = "#8ddbff";
           link.style.borderRadius = "5px";
           link.style.padding = "5px 10px"; 
           }

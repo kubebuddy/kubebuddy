@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from .src.cluster_management import k8s_namespaces, k8s_nodes, k8s_limit_range
+from .src.cluster_management import k8s_namespaces, k8s_nodes, k8s_limit_range, k8s_resource_quota
 
 from .src.services import k8s_endpoints, k8s_services
 
@@ -414,4 +414,21 @@ def limitrange(request, cluster_name):
         'registered_clusters': registered_clusters,
         'limitranges': limitranges,
         'total_limitranges': total_limitranges
+    })
+
+def resourcequotas(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    resourcequotas, total_quotas = k8s_resource_quota.get_resource_quotas(path, cluster_name)
+
+    return render(request, 'dashboard/cluster_management/resourcequotas.html',{
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'resourcequotas': resourcequotas,
+        'total_quotas': total_quotas
     })

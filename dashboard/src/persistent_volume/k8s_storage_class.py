@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
+from ..utils import calculateAge
 
 def list_storage_classes(path: str, context: str):
     # Load Kubernetes config
@@ -10,14 +11,14 @@ def list_storage_classes(path: str, context: str):
     
     storage_data = []
     for sc in storage_classes:
-        age = datetime.now(timezone.utc) - sc.metadata.creation_timestamp.replace(tzinfo=timezone.utc)
+        age = calculateAge(datetime.now(timezone.utc) - sc.metadata.creation_timestamp)
         storage_data.append({
             "name": sc.metadata.name,
             "provisioner": sc.provisioner,
             "reclaimPolicy": sc.reclaim_policy,
             "volumeBindingMode": sc.volume_binding_mode,
             "allowVolumeExpansion": sc.allow_volume_expansion,
-            "age": f"{age.days}d {age.seconds // 3600}h"
+            "age": age
         })
     
     return storage_data

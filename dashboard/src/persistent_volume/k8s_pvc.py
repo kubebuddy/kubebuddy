@@ -1,4 +1,6 @@
 from kubernetes import client, config
+from datetime import datetime, timezone
+from ..utils import calculateAge
 
 def list_pvc(path: str, context: str):
     # Load Kubernetes configuration
@@ -19,8 +21,8 @@ def list_pvc(path: str, context: str):
             "storage_class": pvc.spec.storage_class_name if pvc.spec.storage_class_name else "N/A",
             "volume_attribute_class": pvc.spec.data_source.name if pvc.spec.data_source else "N/A",
             "volume_mode": pvc.spec.volume_mode if pvc.spec.volume_mode else "N/A",
-            "age": pvc.metadata.creation_timestamp.strftime('%Y-%m-%d %H:%M:%S') if pvc.metadata.creation_timestamp else "N/A"
+            "age": calculateAge(datetime.now(timezone.utc) - pvc.metadata.creation_timestamp) if pvc.metadata.creation_timestamp else "N/A"
         }
         pvc_list.append(pvc_info)
     
-    return pvc_list
+    return pvc_list, len(pvc_list)

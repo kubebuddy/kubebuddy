@@ -8,6 +8,7 @@ from .src.events import k8s_events
 
 from .src.config_secrets import k8s_configmaps, k8s_secrets
 from .src.workloads import k8s_cronjobs, k8s_daemonset, k8s_deployments, k8s_jobs, k8s_pods, k8s_replicaset, k8s_statefulset
+from .src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
 from main.models import KubeConfig, Cluster
 from .src import k8s_cluster_metric
 from django.contrib.auth.decorators import login_required
@@ -265,6 +266,26 @@ def statefulsets(request, cluster_name):
         'registered_clusters': registered_clusters
     })
 
+def sts_info(request, cluster_name, namespace, sts_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    sts_info = {
+        "describe": k8s_statefulset.get_statefulset_description(path, current_cluster.cluster_name, namespace, sts_name),
+        "events": k8s_statefulset.get_sts_events(path, current_cluster.cluster_name, namespace, sts_name),
+        "yaml": k8s_statefulset.get_yaml_sts(path, current_cluster.cluster_name, namespace, sts_name)
+    }
+
+    return render(request, 'dashboard/workloads/sts_info.html', {
+        "sts_info": sts_info,
+        "cluster_id": cluster_id,
+        "sts_name": sts_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters
+    })
+
 def daemonset(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
@@ -455,22 +476,54 @@ def resourcequotas(request, cluster_name):
         'resourcequotas': resourcequotas,
         'total_quotas': total_quotas
     })
-def sts_info(request, cluster_name, namespace, sts_name):
+
+def persistentvolume(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
-    current_cluster = Cluster.objects.get(id=cluster_id)
+    current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
+    # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
 
-    sts_info = {
-        "describe": k8s_statefulset.get_statefulset_description(path, current_cluster.cluster_name, namespace, sts_name),
-        "events": k8s_statefulset.get_sts_events(path, current_cluster.cluster_name, namespace, sts_name),
-        "yaml": k8s_statefulset.get_yaml_sts(path, current_cluster.cluster_name, namespace, sts_name)
-    }
+    pvs, total_pvs = k8s_pv.list_persistent_volumes(path, cluster_name)
 
-    return render(request, 'dashboard/workloads/sts_info.html', {
-        "sts_info": sts_info,
-        "cluster_id": cluster_id,
-        "sts_name": sts_name,
+    return render(request, 'dashboard/persistent_storage/persistentvolume.html', {
+        'cluster_id': cluster_id,
         'current_cluster': cluster_name,
-        'registered_clusters': registered_clusters
+        'registered_clusters': registered_clusters,
+        'pvs': pvs,
+        'total_pvs': total_pvs
+    })
+
+def persistentvolumeclaim(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    pvc, total_pvc = k8s_pvc.list_pvc(path, cluster_name)
+
+    return render(request, 'dashboard/persistent_storage/persistentvolumeclaim.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'pvc': pvc,
+        'total_pvc': total_pvc
+    })
+
+def storageclass(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    sc, total_sc = k8s_storage_class.list_storage_classes(path, cluster_name)
+
+    return render(request, 'dashboard/persistent_storage/storageclass.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'sc': sc,
+        'total_sc': total_sc
     })

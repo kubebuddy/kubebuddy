@@ -1,4 +1,6 @@
 from kubernetes import client, config
+from datetime import datetime, timezone
+from ..utils import calculateAge
 
 def list_persistent_volumes(path: str, context: str):
     # Load Kubernetes configuration
@@ -19,8 +21,8 @@ def list_persistent_volumes(path: str, context: str):
             "claim": f"{pv.spec.claim_ref.namespace}/{pv.spec.claim_ref.name}" if pv.spec.claim_ref else "-",
             "storage_class": pv.spec.storage_class_name,
             "volume_attribute_class": getattr(pv.spec, 'volume_mode', '-'),
-            "volume_system": getattr(pv.spec, 'csi', {}).get('volume_handle', '-'),
-            "age": pv.metadata.creation_timestamp,
+            "volume_system": getattr(pv.spec.csi, 'volume_handle', '-') if pv.spec.csi else '-',
+            "age": calculateAge(datetime.now(timezone.utc) -  pv.metadata.creation_timestamp),
         })
     
-    return pv_details
+    return pv_details, len(pv_details)

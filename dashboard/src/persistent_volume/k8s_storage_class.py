@@ -21,4 +21,4 @@ def list_storage_classes(path: str, context: str):
             "age": age
         })
     
-    return storage_data
+    return storage_data, len(storage_data)

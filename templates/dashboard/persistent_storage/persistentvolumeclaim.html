@@ -1,14 +1,14 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Limitranges{% endblock %}
+{% block title %}Persistent Volume Claim{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/limits-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pvc-128.png?raw=true{% endblock %}
 
 {% block content %}
 
 <div class="container">
   <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Limitranges: {{total_limitranges}}</i></b></div></div>
+    <div class="col-md-4"><div class="stats-card bg-primary"><b><i>Total Persistent Volume Claim: {{total_pvc}}</i></b></div></div>
   </div>
   
   <div class="container">
@@ -32,8 +32,36 @@
                 <label class="form-check-label" for="Name"> Name</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="craetedAt" id="craetedAt" checked> 
-                <label class="form-check-label" for="craetedAt"> Created At</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="status" id="status" checked> 
+                <label class="form-check-label" for="status"> Status</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="volume" id="volume" checked> 
+                <label class="form-check-label" for="volume"> Volume</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="capacity" id="capacity" checked> 
+                <label class="form-check-label" for="capacity"> Capacity</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="access mode" id="access mode" checked> 
+                <label class="form-check-label" for="access mode"> Access Mode</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="storage class" id="storage class" checked> 
+                <label class="form-check-label" for="storage class"> Storage Class</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="volume attribute class" id="volume attribute class" checked> 
+                <label class="form-check-label" for="volume attribute class"> Volume Attribute Class</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="volume mode" id="volume mode" checked> 
+                <label class="form-check-label" for="volume mode"> Volume Mode</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
+                <label class="form-check-label" for="age"> Age</label>
             </li>
         </ul>
         </div>
@@ -45,16 +73,30 @@
         <tr>
           <th id="colNamepsace">NAMESPACE</th>
           <th id="colName">NAME</th>
-          <th id="colcreatedAt">CREATED AT</th>
+          <th id="colStatus">STATUS</th>
+          <th id="colVolume">VOLUME</th>
+          <th id="colCapacity">CAPACITY</th>
+          <th id="colAccessMode">ACCESS MODE</th>
+          <th id="colStorageClass">STORAGE CLASS</th>
+          <th id="colVolumeAttributeClass">VOLUME ATTRIBUTE CLASS</th>
+          <th id="colVolumeMode">VOLUME MODE</th>
+          <th id="colAge">AGE</th>
         </tr>
       </thead>
 
       <tbody>
-      {% for lr in limitranges %}
+      {% for p in pvc %}
         <tr>
-          <td>{{ lr.namespace }}</td>
-          <td>{{ lr.name }}</td>
-          <td>{{ lr.created_at }}</td>
+          <td>{{ p.namespace }}</td>
+          <td>{{ p.name }}</td>
+          <td>{{ p.status }}</td>
+          <td>{{ p.volume }}</td>
+          <td>{{ p.capacity }}</td>
+          <td>{{ p.access_mode }}</td>
+          <td>{{ p.storage_class }}</td>
+          <td>{{ p.volume_attribute_class }}</td>
+          <td>{{ p.volume_mode }}</td>
+          <td>{{ p.age }}</td>
         </tr>
       {% endfor %}
       </tbody>

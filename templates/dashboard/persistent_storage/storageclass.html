@@ -1,14 +1,14 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Limitranges{% endblock %}
+{% block title %}Storage Class{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/limits-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/sc-128.png?raw=true{% endblock %}
 
 {% block content %}
 
 <div class="container">
   <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Limitranges: {{total_limitranges}}</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Storage Class: {{total_sc}}</i></b></div></div>
   </div>
   
   <div class="container">
@@ -24,16 +24,28 @@
                 <label class="form-check-label" for="All"> All</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
-                <label class="form-check-label" for="Namespace"> Namespace</label>
-            </li>
-            <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
                 <label class="form-check-label" for="Name"> Name</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="craetedAt" id="craetedAt" checked> 
-                <label class="form-check-label" for="craetedAt"> Created At</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Provisioner" id="Provisioner" checked> 
+                <label class="form-check-label" for="Provisioner"> Provisoner</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="reclaimPolicy" id="reclaimPolicy" checked> 
+                <label class="form-check-label" for="reclaimPolicy"> Reclaim Policy</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="VolumeBindingMode" id="VolumeBindingMode" checked> 
+                <label class="form-check-label" for="VolumeBindingMode"> Volume Binding Mode</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="allowVolumeExpansion" id="allowVolumeExpansion" checked> 
+                <label class="form-check-label" for="AllowVolumeExpansion"> Allow Volume Expansion</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
+                <label class="form-check-label" for="age"> Age</label>
             </li>
         </ul>
         </div>
@@ -43,18 +55,24 @@
     <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
       <thead class="table-dark">
         <tr>
-          <th id="colNamepsace">NAMESPACE</th>
           <th id="colName">NAME</th>
-          <th id="colcreatedAt">CREATED AT</th>
+          <th id="colProvisoner">PROVISIONER</th>
+          <th id="colReclaimPolicy">RECLAIM POLICY</th>
+          <th id="colVolumeBindingMode">VOLUME BINDING MODE</th>
+          <th id="colAllowVolumeExpansion">ALLOW VOLUME EXPANSION</th>
+          <th id="colAge">AGE</th>
         </tr>
       </thead>
 
       <tbody>
-      {% for lr in limitranges %}
+      {% for c in sc %}
         <tr>
-          <td>{{ lr.namespace }}</td>
-          <td>{{ lr.name }}</td>
-          <td>{{ lr.created_at }}</td>
+          <td>{{ c.name }}</td>
+          <td>{{ c.provisioner }}</td>
+          <td>{{ c.reclaimPolicy }}</td>
+          <td>{{ c.volumeBindingMode }}</td>
+          <td>{{ c.allowVolumeExpansion }}</td>
+          <td>{{ c.age }}</td>
         </tr>
       {% endfor %}
       </tbody>

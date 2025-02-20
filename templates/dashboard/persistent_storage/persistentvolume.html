@@ -87,7 +87,11 @@
       <tbody>
       {% for pv in pvs %}
         <tr>
-          <td>{{ pv.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/persistentvolume/{{pv.name}}?cluster_id={{cluster_id}}">
+                {{ pv.name }}
+            </a>
+          </td>
           <td>{{ pv.capacity }}</td>
           <td>{{ pv.access_modes }}</td>
           <td>{{ pv.reclaim_policy }}</td>

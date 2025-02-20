@@ -255,6 +255,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{% static 'js/sidebars.js' %}"></script>
   <script src="{% static 'js/toggleTable.js' %}"></script>
+  <script src="{% static 'js/bot.js' %}"></script>
   
   <script>
     // reload
@@ -273,27 +274,6 @@
     function toggleChat() {
         var chatWindow = document.getElementById("chatbotWindow");
         chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
-    }
-    
-    function sendMessage() {
-        var inputField = document.getElementById("chatInput");
-        var message = inputField.value;
-        if (message.trim() === "") return;
-        
-        var chatBody = document.getElementById("chatBody");
-        var messageElement = document.createElement("div");
-        messageElement.textContent = message;
-        messageElement.style.padding = "10px";
-        messageElement.style.margin = "5px 0";
-        messageElement.style.background = "#65fff6";
-        messageElement.style.color = "black";
-        messageElement.style.borderRadius = "8px";
-        messageElement.style.textAlign = "right";
-        messageElement.style.fontSize = "14px";
-        
-        chatBody.appendChild(messageElement);
-        chatBody.scrollTop = chatBody.scrollHeight;
-        inputField.value = "";
     }
 
     // Reload button event listener

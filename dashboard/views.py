@@ -744,6 +744,26 @@ def storageclass(request, cluster_name):
         'total_sc': total_sc
     })
 
+def storageclass_info(request, cluster_name, sc_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    sc_info = {
+        "describe": k8s_storage_class.get_storage_class_description(path, cluster_name, sc_name),
+        "events": k8s_storage_class.get_storage_class_events(path, cluster_name, sc_name),
+        "yaml": k8s_storage_class.get_sc_yaml(path, cluster_name, sc_name)
+    }    
+
+    return render(request, 'dashboard/persistent_storage/storageclass_info.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'sc_info': sc_info,
+    })
+
 def role(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)

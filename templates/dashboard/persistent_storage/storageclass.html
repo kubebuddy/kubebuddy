@@ -67,7 +67,7 @@
       <tbody>
       {% for c in sc %}
         <tr>
-          <td>{{ c.name }}</td>
+          <td><a href="/{{current_cluster}}/sc/{{c.name}}?cluster_id={{cluster_id}}">{{ c.name }}</a></td>
           <td>{{ c.provisioner }}</td>
           <td>{{ c.reclaimPolicy }}</td>
           <td>{{ c.volumeBindingMode }}</td>

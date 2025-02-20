@@ -464,6 +464,28 @@ def secrets(request, cluster_name):
     return render(request, 'dashboard/config_secrets/secrets.html', {"secrets": secrets, "total_secrets": total_secrets, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters})
 
 
+def secret_info(request, cluster_name, namespace, secret_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    secret_info = {
+        "describe": k8s_secrets.get_secret_description(path, current_cluster.cluster_name, namespace, secret_name),
+        "events": k8s_secrets.get_secret_events(path, current_cluster.cluster_name, namespace, secret_name),
+        "yaml": k8s_secrets.get_secret_yaml(path, current_cluster.cluster_name, namespace, secret_name),
+    }
+
+    return render(request, 'dashboard/config_secrets/secret_info.html', {
+        "secret_info": secret_info,
+        "cluster_id": cluster_id,
+        "secret_name": secret_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
+
+
 def services(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)

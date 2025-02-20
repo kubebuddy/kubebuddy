@@ -7,7 +7,8 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 persistentvolumeclaim, storageclass, sts_info, daemonset_info, \
                                 role, rolebinding, clusterrole, clusterrolebinding, serviceAccount, \
                                 service_info, endpoint_info, jobs_info, limitrange_info, \
-                                resourcequota_info, cronjob_info, configmap_info, pvc_info
+                                resourcequota_info, cronjob_info, configmap_info, pvc_info, \
+                                secret_info
 
 
 urlpatterns = [
@@ -40,6 +41,7 @@ urlpatterns = [
     path('<str:cluster_name>/secrets', secrets, name='secrets'),
 
     path('<str:cluster_name>/configmaps/<str:namespace>/<str:configmap_name>/', configmap_info, name='configmap_info'),
+    path('<str:cluster_name>/secrets/<str:namespace>/<str:secret_name>/', secret_info, name='secret_info'),
 
 
     # Services

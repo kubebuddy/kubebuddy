@@ -9,7 +9,7 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 service_info, endpoint_info, jobs_info, limitrange_info, \
                                 resourcequota_info, cronjob_info, configmap_info, pvc_info, \
                                 secret_info, role_info, pv_info, storageclass_info, role_binding_info, \
-                                clusterrole_info
+                                clusterrole_info, cluster_role_binding_info
 
 
 urlpatterns = [
@@ -82,6 +82,7 @@ urlpatterns = [
     path('<str:cluster_name>/role/<str:namespace>/<str:role_name>/', role_info, name='role_info'),
     path('<str:cluster_name>/clusterrole/<str:cluster_role_name>/', clusterrole_info, name='clusterrole_info'),
     path('<str:cluster_name>/rolebinding/<str:namespace>/<str:role_binding_name>/', role_binding_info, name='role_binding_info'),
+    path('<str:cluster_name>/clusterrolebinding/<str:cluster_role_binding_name>/', cluster_role_binding_info, name='cluster_role_binding_info'),
 
     
 

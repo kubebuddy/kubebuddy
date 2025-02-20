@@ -892,6 +892,26 @@ def clusterrolebinding(request, cluster_name):
         'total_clusterrolebinding': total_clusterrolebinding
     })
 
+def cluster_role_binding_info(request, cluster_name, cluster_role_binding_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    cluster_role_binding_info = {
+        "describe": k8s_cluster_role_bindings.get_cluster_role_binding_description(path, cluster_name, cluster_role_binding_name),
+        "events": k8s_cluster_role_bindings.get_cluster_role_binding_events(path, cluster_name, cluster_role_binding_name),
+        "yaml": k8s_cluster_role_bindings.get_cluster_role_binding_yaml(path, cluster_name, cluster_role_binding_name),
+    }
+
+    return render(request, 'dashboard/RBAC/clusterrolebinding_info.html', {
+        "cluster_role_binding_info": cluster_role_binding_info,
+        "cluster_id": cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
+
 def serviceAccount(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)

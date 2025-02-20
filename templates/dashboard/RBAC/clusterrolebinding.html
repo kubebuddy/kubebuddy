@@ -67,7 +67,7 @@
       <tbody>
       {% for crb in clusterrolebinding %}
         <tr>
-          <td>{{ crb.name }}</td>
+          <td><a href="/{{current_cluster}}/clusterrolebinding/{{crb.name}}?cluster_id={{cluster_id}}">{{ crb.name }}</a></td>
           <td>{{ crb.role }}</td>
           <td>{{ crb.users }}</td>
           <td>{{ crb.groups }}</td>

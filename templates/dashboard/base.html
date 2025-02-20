@@ -236,6 +236,19 @@
       {% block content %}{% endblock %}
     </div>
 
+    <div class="chatbot-container">
+      <button class="chatbot-button" onclick="toggleChat()"><i class="bi bi-robot"></i></button>
+      <div class="chatbot-window" id="chatbotWindow" style="display: none;">
+          <div class="chat-header">Buddy AI 🤘🏻✨</div>
+          <div class="chat-body" id="chatBody"></div>
+          <div class="chat-input">
+              <input type="text" id="chatInput" placeholder="Type a message...">
+              <button onclick="sendMessage()">Send</button>
+          </div>
+      </div>
+  </div>
+    
+
   </main>
   <!-- Include Bootstrap JS and dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -255,6 +268,32 @@
       setTimeout(() => {
           location.reload();
       }, 100);  // 1-second delay before reloading
+    }
+
+    function toggleChat() {
+        var chatWindow = document.getElementById("chatbotWindow");
+        chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
+    }
+    
+    function sendMessage() {
+        var inputField = document.getElementById("chatInput");
+        var message = inputField.value;
+        if (message.trim() === "") return;
+        
+        var chatBody = document.getElementById("chatBody");
+        var messageElement = document.createElement("div");
+        messageElement.textContent = message;
+        messageElement.style.padding = "10px";
+        messageElement.style.margin = "5px 0";
+        messageElement.style.background = "#65fff6";
+        messageElement.style.color = "black";
+        messageElement.style.borderRadius = "8px";
+        messageElement.style.textAlign = "right";
+        messageElement.style.fontSize = "14px";
+        
+        chatBody.appendChild(messageElement);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        inputField.value = "";
     }
 
     // Reload button event listener

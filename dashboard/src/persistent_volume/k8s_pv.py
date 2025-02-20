@@ -26,6 +26,13 @@ def     list_persistent_volumes(path: str, context: str):
             "age": calculateAge(datetime.now(timezone.utc) -  pv.metadata.creation_timestamp),
         })
     
+    # Split the claim value into namespace and claim
+    for vol in pv_details:
+        if vol['claim']:  # Only split if there is a claim
+            vol['namespace'], vol['claim_name'] = vol['claim'].split('/')
+        else:
+            vol['namespace'], vol['claim_name'] = None, None  # No claim
+
     return pv_details, len(pv_details)
 
 def get_pv_description(path=None, context=None, pv_name=None):

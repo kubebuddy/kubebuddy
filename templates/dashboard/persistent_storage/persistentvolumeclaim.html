@@ -94,7 +94,11 @@
             </a>
           </td>
           <td>{{ p.status }}</td>
-          <td>{{ p.volume }}</td>
+          <td>
+            <a href="/{{current_cluster}}/persistentvolume/{{p.volume}}?cluster_id={{cluster_id}}">
+                {{ p.volume }}
+            </a>
+          </td>
           <td>{{ p.capacity }}</td>
           <td>{{ p.access_mode }}</td>
           <td>{{ p.storage_class }}</td>

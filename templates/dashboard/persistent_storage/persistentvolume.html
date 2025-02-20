@@ -96,7 +96,11 @@
           <td>{{ pv.access_modes }}</td>
           <td>{{ pv.reclaim_policy }}</td>
           <td>{{ pv.status }}</td>
-          <td>{{ pv.claim }}</td>
+          <td>
+            <a href="/{{current_cluster}}/persistentvolumeclaim/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}">
+                {{ pv.claim }}
+            </a>
+          </td>
           <td>{{ pv.storage_class }}</td>
           <td>{{ pv.volume_attribute_class }}</td>
           <td>{{ pv.volume_system }}</td>

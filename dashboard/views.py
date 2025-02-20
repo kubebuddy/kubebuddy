@@ -928,3 +928,23 @@ def serviceAccount(request, cluster_name):
         'serviceAccount': serviceAccount,
         'total_serviceAccount': total_serviceAccount
     })
+
+def serviceAccountInfo(request, cluster_name, namespace, sa_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    serviceAccountInfo = {
+        "describe": k8s_service_accounts.get_sa_description(path, cluster_name, namespace, sa_name),
+        "events": k8s_service_accounts.get_sa_events(path, cluster_name, namespace, sa_name),
+        "yaml": k8s_service_accounts.get_sa_yaml(path, cluster_name, namespace, sa_name),
+    }
+
+    return render(request, 'dashboard/RBAC/serviceAccountInfo.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'serviceAccountInfo': serviceAccountInfo,
+    })

@@ -88,7 +88,7 @@
       {% for pv in pvs %}
         <tr>
           <td>
-            <a href="/{{current_cluster}}/persistentvolume/{{pv.name}}?cluster_id={{cluster_id}}">
+            <a href="/{{current_cluster}}/pv/{{pv.name}}?cluster_id={{cluster_id}}">
                 {{ pv.name }}
             </a>
           </td>
@@ -97,8 +97,8 @@
           <td>{{ pv.reclaim_policy }}</td>
           <td>{{ pv.status }}</td>
           <td>
-            <a href="/{{current_cluster}}/persistentvolumeclaim/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}">
-                {{ pv.claim }}
+            <a href="/{{current_cluster}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}">
+              {{pv.claim}}
             </a>
           </td>
           <td>{{ pv.storage_class }}</td>

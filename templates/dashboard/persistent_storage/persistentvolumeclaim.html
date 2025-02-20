@@ -89,13 +89,13 @@
         <tr>
           <td>{{ p.namespace }}</td>
           <td>
-            <a href="/{{current_cluster}}/persistentvolumeclaim/{{p.namespace}}/{{p.name}}?cluster_id={{cluster_id}}">
+            <a href="/{{current_cluster}}/pvc/{{p.namespace}}/{{p.name}}?cluster_id={{cluster_id}}">
                 {{ p.name }}
             </a>
           </td>
           <td>{{ p.status }}</td>
           <td>
-            <a href="/{{current_cluster}}/persistentvolume/{{p.volume}}?cluster_id={{cluster_id}}">
+            <a href="/{{current_cluster}}/pv/{{p.volume}}?cluster_id={{cluster_id}}">
                 {{ p.volume }}
             </a>
           </td>

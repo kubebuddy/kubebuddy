@@ -1,16 +1,16 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Role{% endblock %}
+{% block title %}Role Binding{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/role-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/rb-128.png?raw=true{% endblock %}
 
 {% block content %}
 
 
     <div class="container mt-4">
         <div class="d-flex justify-content-start">
-            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/role-128.png?raw=true" style="height: 5vh;" alt="ds">
-            <h2 class="mb-4 ps-3 text-primary">Role: {{ role_info.describe.name }}</h2>
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/rb-128.png?raw=true" style="height: 5vh;" alt="ds">
+            <h2 class="mb-4 ps-3 text-primary">Role Binding: {{ role_binding_info.describe.name }}</h2>
         </div>
         
 
@@ -32,25 +32,26 @@
             <div class="tab-pane fade show active" id="describe">
                 <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
                     <pre>
-<b>Name:</b> {{ role_info.describe.name }}
-<b>Labels:</b> {{ role_info.describe.labels }}
-<b>Annotations:</b> {{ role_info.describe.annotations }}
-<b>PolicyRule:</b>
+<b>Name:</b> {{ resourcequota_info.describe.name }}
+<b>Labels:</b> {{ role_binding_info.describe.labels }}
+<b>Annotations:</b> {{ role_binding_info.describe.annotations }}
+<b>Role:</b>
+    <b>Kind:</b> {{ role_binding_info.describe.role.kind }}
+    <b>Name:</b> {{ role_binding_info.describe.role.name }}
+<b>Subjects:</b>
 </pre>
     <table class="text-center align-middle" style="border-collapse: separate; border-spacing: 0.4rem ;font-size: 0.9rem; ">
         <thead>
-            <th>Resources</th>
-            <th>Non-Resource URLs</th>
-            <th>Resource Names</th>
-            <th>Verbs</th>
+            <th>Kind</th>
+            <th>Name</th>
+            <th>Namespace</th>
         </thead>
         <tbody>
-            {% for pr in role_info.describe.policy_rule %}
+            {% for rb in role_binding_info.describe.subjects %}
             <tr>
-                <td>{{pr.resources}}</td>
-                <td>{{pr.non_resource_urls}}</td>
-                <td>{{pr.resource_names}}</td>
-                <td>{{pr.verbs}}</td>
+                <td>{{rb.kind}}</td>
+                <td>{{rb.name}}</td>
+                <td>{{rb.namespace}}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -61,7 +62,7 @@
 
             <div class="tab-pane fade" id="events">
                 <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
-                    <pre>{{ role_info.events }}</pre>
+                    <pre>{{ role_binding_info.events }}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">
@@ -73,13 +74,13 @@
                     </button>
                     
                 
-                    <pre id="yamlContent">{{ role_info.yaml }}</pre>
+                    <pre id="yamlContent">{{ role_binding_info.yaml }}</pre>
                 </div>
             </div>
             
         </div>
 
-        <a href="/{{current_cluster}}/role?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Role</a>
+        <a href="/{{current_cluster}}/rolebinding?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Role Binding</a>
     </div>
     
     {% load static%}

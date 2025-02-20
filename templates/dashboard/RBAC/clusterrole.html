@@ -47,7 +47,7 @@
       <tbody>
       {% for cr in clusterrole %}
         <tr>
-          <td>{{ cr.name }}</td>
+          <td><a href="/{{current_cluster}}/clusterrole/{{cr.name}}?cluster_id={{cluster_id}}">{{ cr.name }}</a></td>
           <td>{{ cr.created_at }}</td>
         </tr>
       {% endfor %}

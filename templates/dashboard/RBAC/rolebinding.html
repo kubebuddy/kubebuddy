@@ -73,7 +73,7 @@
       {% for rb in rolebinding %}
         <tr>
           <td>{{ rb.namespace }}</td>
-          <td>{{ rb.name }}</td>
+          <td><a href="/{{current_cluster}}/rolebinding/{{rb.namespace}}/{{rb.name}}?cluster_id={{cluster_id}}">{{ rb.name }}</a></td>
           <td>{{ rb.role }}</td>
           <td>{{ rb.users }}</td>
           <td>{{ rb.groups }}</td>

@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from ..utils import calculateAge
 import yaml
 
-def     list_persistent_volumes(path: str, context: str):
+def list_persistent_volumes(path: str, context: str):
     # Load Kubernetes configuration
     config.load_kube_config(path, context)
     
@@ -19,19 +19,15 @@ def     list_persistent_volumes(path: str, context: str):
             "access_modes": ", ".join(pv.spec.access_modes),
             "reclaim_policy": pv.spec.persistent_volume_reclaim_policy,
             "status": pv.status.phase,
-            "claim": f"{pv.spec.claim_ref.namespace}/{pv.spec.claim_ref.name}" if pv.spec.claim_ref else "-",
+            "claim": f"{pv.spec.claim_ref.namespace}/{pv.spec.claim_ref.name}" if pv.spec.claim_ref else "",
             "storage_class": pv.spec.storage_class_name,
             "volume_attribute_class": getattr(pv.spec, 'volume_mode', '-'),
-            "volume_system": getattr(pv.spec.csi, 'volume_handle', '-') if pv.spec.csi else '-',
+            "volume_system": getattr(pv.spec.csi, 'volume_handle', '-') if pv.spec.csi else '',
             "age": calculateAge(datetime.now(timezone.utc) -  pv.metadata.creation_timestamp),
+            "namespace": pv.spec.claim_ref.namespace if pv.spec.claim_ref else "",
+            "claim_name": pv.spec.claim_ref.name if pv.spec.claim_ref else ""
         })
     
-    # Split the claim value into namespace and claim
-    for vol in pv_details:
-        if vol['claim']:  # Only split if there is a claim
-            vol['namespace'], vol['claim_name'] = vol['claim'].split('/')
-        else:
-            vol['namespace'], vol['claim_name'] = None, None  # No claim
 
     return pv_details, len(pv_details)
 

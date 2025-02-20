@@ -8,7 +8,8 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 role, rolebinding, clusterrole, clusterrolebinding, serviceAccount, \
                                 service_info, endpoint_info, jobs_info, limitrange_info, \
                                 resourcequota_info, cronjob_info, configmap_info, pvc_info, \
-                                secret_info, role_info, pv_info, storageclass_info
+                                secret_info, role_info, pv_info, storageclass_info, role_binding_info, \
+                                clusterrole_info
 
 
 urlpatterns = [
@@ -62,12 +63,12 @@ urlpatterns = [
     path('<str:cluster_name>/resourcequotas/<str:namespace>/<str:resourcequota_name>/', resourcequota_info, name='resourcequota_info'),
 
     # Persistent Storage
-    path('<str:cluster_name>/persistentvolume', persistentvolume, name="persistentvolume"),
-    path('<str:cluster_name>/persistentvolumeclaim', persistentvolumeclaim, name="persistentvolumeclaim"),
+    path('<str:cluster_name>/pv', persistentvolume, name="persistentvolume"),
+    path('<str:cluster_name>/pvc', persistentvolumeclaim, name="persistentvolumeclaim"),
     path('<str:cluster_name>/storageclass', storageclass, name="storageclass"),
 
-    path('<str:cluster_name>/persistentvolume/<str:pv_name>/', pv_info, name='pv_info'),
-    path('<str:cluster_name>/persistentvolumeclaim/<str:namespace>/<str:pvc_name>/', pvc_info, name='pvc_info'),
+    path('<str:cluster_name>/pv/<str:pv_name>/', pv_info, name='pv_info'),
+    path('<str:cluster_name>/pvc/<str:namespace>/<str:pvc_name>/', pvc_info, name='pvc_info'),
 
     path('<str:cluster_name>/sc/<str:sc_name>/', storageclass_info, name='sc_info'),
     
@@ -79,6 +80,8 @@ urlpatterns = [
     path('<str:cluster_name>/serviceAccount', serviceAccount, name="serviceAccount"),
     
     path('<str:cluster_name>/role/<str:namespace>/<str:role_name>/', role_info, name='role_info'),
+    path('<str:cluster_name>/clusterrole/<str:cluster_role_name>/', clusterrole_info, name='clusterrole_info'),
+    path('<str:cluster_name>/rolebinding/<str:namespace>/<str:role_binding_name>/', role_binding_info, name='role_binding_info'),
 
     
 

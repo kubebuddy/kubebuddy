@@ -818,6 +818,26 @@ def rolebinding(request, cluster_name):
         'total_rolebinding': total_rolebinding
     })
 
+def role_binding_info(request, cluster_name, namespace, role_binding_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    role_binding_info = {
+        "describe": k8s_rolebindings.get_role_binding_description(path, cluster_name, namespace, role_binding_name),
+        "events": k8s_rolebindings.get_role_binding_events(path, cluster_name, namespace, role_binding_name),
+        "yaml": k8s_rolebindings.get_role_binding_yaml(path, cluster_name, namespace, role_binding_name),
+    }
+
+    return render(request, 'dashboard/RBAC/rolebinding_info.html', {
+        "role_binding_info": role_binding_info,
+        "cluster_id": cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
+
 def clusterrole(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
@@ -833,6 +853,26 @@ def clusterrole(request, cluster_name):
         'registered_clusters': registered_clusters,
         'clusterrole': clusterrole,
         'total_clusterrole': total_clusterrole
+    })
+
+def clusterrole_info(request, cluster_name, cluster_role_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    cluster_role_info = {
+        "describe": k8s_cluster_roles.get_cluster_role_description(path, cluster_name, cluster_role_name),
+        "events": k8s_cluster_roles.get_cluster_role_events(path, cluster_name, cluster_role_name),
+        "yaml": k8s_cluster_roles.get_cluster_role_yaml(path, cluster_name, cluster_role_name)
+    }
+
+    return render(request, 'dashboard/RBAC/clusterrole_info.html', {
+        "cluster_role_info": cluster_role_info,
+        "cluster_id": cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
     })
 
 def clusterrolebinding(request, cluster_name):

@@ -1,16 +1,16 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}ResourceQuota{% endblock %}
+{% block title %}Role{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/quota-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/role-128.png?raw=true{% endblock %}
 
 {% block content %}
 
 
     <div class="container mt-4">
         <div class="d-flex justify-content-start">
-            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/quota-128.png?raw=true" style="height: 5vh;" alt="ds">
-            <h2 class="mb-4 ps-3 text-primary">ResourceQuota: {{ resourcequota_name }}</h2>
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/role-128.png?raw=true" style="height: 5vh;" alt="ds">
+            <h2 class="mb-4 ps-3 text-primary">Role: {{ role_info.describe.name }}</h2>
         </div>
         
 
@@ -33,25 +33,35 @@
                 <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
                     <pre>
 <b>Name:</b> {{ resourcequota_info.describe.name }}
-<b>Namespace:</b> {{ resourcequota_info.describe.namespace }}
-<b>Spec:</b>
-    <b>Hard:</b>{% for k, v in resourcequota_info.describe.spec.hard.items %}
-            {{ k }}: {{ v }}{% endfor %}
-    <b>Scopes:</b>{% for scope in resourcequota_info.describe.spec.scopes %}
-            {{ scope }}{% endfor %}
-<b>Status:</b>
-    <b>Hard:</b>{% for k, v in resourcequota_info.describe.status.hard.items %}
-            {{ k }}: {{ v }}{% endfor %}
-    <b>Used:</b>{% for k, v in resourcequota_info.describe.status.used.items %}
-            {{ k }}: {{ v }}{% endfor %}
-                    </pre>
+<b>Labels:</b> {{ role_info.describe.labels }}
+<b>Annotations:</b> {{ role_info.describe.annotations }}
+<b>PolicyRule:</b>
+</pre>
+    <table class="text-center align-middle fs-6" style="border-collapse: separate; border-spacing: 15px 0;">
+        <thead>
+            <th>Resources</th>
+            <th>Non-Resource URLs</th>
+            <th>Resource Names</th>
+            <th>Verbs</th>
+        </thead>
+        <tbody>
+            {% for pr in role_info.describe.policy_rule %}
+            <tr>
+                <td>{{pr.resources}}</td>
+                <td>{{pr.non_resource_urls}}</td>
+                <td>{{pr.resource_names}}</td>
+                <td>{{pr.verbs}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
                 </div>
               </div>
               
 
             <div class="tab-pane fade" id="events">
                 <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
-                    <pre>{{ resourcequota_info.events }}</pre>
+                    <pre>{{ role_info.events }}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">
@@ -63,13 +73,13 @@
                     </button>
                     
                 
-                    <pre id="yamlContent">{{ resourcequota_info.yaml }}</pre>
+                    <pre id="yamlContent">{{ role_info.yaml }}</pre>
                 </div>
             </div>
             
         </div>
 
-        <a href="/{{current_cluster}}/resourcequotas?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to ResourceQuota</a>
+        <a href="/{{current_cluster}}/role?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Role</a>
     </div>
     
     {% load static%}

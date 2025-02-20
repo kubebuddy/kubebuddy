@@ -234,3 +234,9 @@ main {
 .container {
   margin-top: 50px;
 }
+
+/* table font style */
+
+table th, td {
+  font-family:Verdana, Geneva, Tahoma, sans-serif;
+}

@@ -53,7 +53,8 @@
       {% for r in role %}
         <tr>
           <td>{{ r.namespace }}</td>
-          <td>{{ r.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/role/{{r.namespace}}/{{r.name}}?cluster_id={{cluster_id}}">{{ r.name }}</a></td>
           <td>{{ r.created_at }}</td>
         </tr>
       {% endfor %}

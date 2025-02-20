@@ -7,7 +7,7 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 persistentvolumeclaim, storageclass, sts_info, daemonset_info, \
                                 role, rolebinding, clusterrole, clusterrolebinding, serviceAccount, \
                                 service_info, endpoint_info, jobs_info, limitrange_info, \
-                                resourcequota_info, cronjob_info, configmap_info
+                                resourcequota_info, cronjob_info, configmap_info, pvc_info
 
 
 urlpatterns = [
@@ -63,6 +63,8 @@ urlpatterns = [
     path('<str:cluster_name>/persistentvolume', persistentvolume, name="persistentvolume"),
     path('<str:cluster_name>/persistentvolumeclaim', persistentvolumeclaim, name="persistentvolumeclaim"),
     path('<str:cluster_name>/storageclass', storageclass, name="storageclass"),
+
+    path('<str:cluster_name>/persistentvolumeclaim/<str:namespace>/<str:pvc_name>/', pvc_info, name='pvc_info'),
     
     # RBAC
     path('<str:cluster_name>/role', role, name="role"),

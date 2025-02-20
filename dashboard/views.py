@@ -662,6 +662,28 @@ def persistentvolumeclaim(request, cluster_name):
         'total_pvc': total_pvc
     })
 
+def pvc_info(request, cluster_name, namespace, pvc_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    pvc_info = {
+        "describe": k8s_pvc.get_pvc_description(path, current_cluster.cluster_name, namespace, pvc_name),
+        "events": k8s_pvc.get_pvc_events(path, current_cluster.cluster_name, namespace, pvc_name),
+        "yaml": k8s_pvc.get_pvc_yaml(path, current_cluster.cluster_name, namespace, pvc_name),
+    }
+
+    return render(request, 'dashboard/persistent_storage/pvc_info.html', {
+        "pvc_info": pvc_info,
+        "cluster_id": cluster_id,
+        "pvc_name": pvc_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
+
+
 def storageclass(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)

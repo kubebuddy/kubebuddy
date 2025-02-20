@@ -88,7 +88,11 @@
       {% for p in pvc %}
         <tr>
           <td>{{ p.namespace }}</td>
-          <td>{{ p.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/persistentvolumeclaim/{{p.namespace}}/{{p.name}}?cluster_id={{cluster_id}}">
+                {{ p.name }}
+            </a>
+          </td>
           <td>{{ p.status }}</td>
           <td>{{ p.volume }}</td>
           <td>{{ p.capacity }}</td>

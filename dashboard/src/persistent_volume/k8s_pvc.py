@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
 from ..utils import calculateAge
+import yaml
 
 def list_pvc(path: str, context: str):
     # Load Kubernetes configuration
@@ -26,3 +27,48 @@ def list_pvc(path: str, context: str):
         pvc_list.append(pvc_info)
     
     return pvc_list, len(pvc_list)
+
+def get_pvc_description(path=None, context=None, namespace=None, pvc_name=None):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    pvc = v1.read_namespaced_persistent_volume_claim(name=pvc_name, namespace=namespace)
+
+    pvc_info = {
+        "Name": pvc.metadata.name,
+        "Namespace": pvc.metadata.namespace,
+        "StorageClass": pvc.spec.storage_class_name,
+        "Status": pvc.status.phase,
+        "Volume": pvc.spec.volume_name,
+        "Labels": pvc.metadata.labels,
+        "Annotations": pvc.metadata.annotations,
+        "Finalizers": pvc.metadata.finalizers,
+        "Capacity": pvc.spec.resources.requests.get("storage"),  # Get storage capacity
+        "Access Modes": pvc.spec.access_modes,
+        "VolumeMode": pvc.spec.volume_mode,
+        "Used By": [],  # Initialize Used By list
+    }
+
+    # Find Pods using this PVC (Used By) -  This requires iterating through pods
+    pods = v1.list_namespaced_pod(namespace=namespace).items
+    for pod in pods:
+        for volume in pod.spec.volumes:
+            if volume.persistent_volume_claim and volume.persistent_volume_claim.claim_name == pvc_name:
+                pvc_info["Used By"].append(pod.metadata.name)
+    pvc_info["Used By"] = ", ".join(pvc_info["Used By"]) if pvc_info["Used By"] else "N/A" # Format Used By
+
+    return pvc_info
+
+def get_pvc_events(path, context, namespace, pvc_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    events = v1.list_namespaced_event(namespace=namespace).items
+    pvc_events = [
+        event for event in events if event.involved_object.name == pvc_name and event.involved_object.kind == "PersistentVolumeClaim"
+    ]
+    return "\n".join([f"{e.reason}: {e.message}" for e in pvc_events])
+
+def get_pvc_yaml(path, context, namespace, pvc_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    pvc = v1.read_namespaced_persistent_volume_claim(name=pvc_name, namespace=namespace)
+    return yaml.dump(pvc.to_dict(), default_flow_style=False)

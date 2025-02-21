@@ -1,6 +1,6 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Persistent Volumes{% endblock %}
+{% block title %}Persistent Volume{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pv-128.png?raw=true{% endblock %}
 
@@ -48,16 +48,16 @@
                 <label class="form-check-label" for="claim"> Claim</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="storaceclass" id="storaceclass" checked> 
-                <label class="form-check-label" for="storaceclass"> Storace Class</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="storageclass" id="storageclass" checked> 
+                <label class="form-check-label" for="storageclass"> Storage Class</label>
             </li>
             <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="volumeattributeclass" id="volumeattributeclass" checked> 
                 <label class="form-check-label" for="volumeattributeclass"> Volume Attribute Class</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="volumesytem" id="volumesytem" checked> 
-                <label class="form-check-label" for="volumesytem"> Volume System</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="volumesystem" id="volumesystem" checked> 
+                <label class="form-check-label" for="volumesystem"> Volume System</label>
             </li>
             <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
@@ -73,7 +73,7 @@
         <tr>
           <th id="colName">NAME</th>
           <th id="colCapacity">CAPACITY</th>
-          <th id="colAccessModes">ACESS MODES</th>
+          <th id="colAccessModes">ACCESS MODES</th>
           <th id="colReclaimPolicy">RECLAIM POLICY</th>
           <th id="colStatus">STATUS</th>
           <th id="colClaim">CLAIM</th>

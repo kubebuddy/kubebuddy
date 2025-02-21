@@ -22,7 +22,7 @@ def list_roles(path, context):
             roles_data.append({
                 "namespace": namespace_name,
                 "name": role.metadata.name,
-                "created_at": role.metadata.creation_timestamp
+                "created_at": role.metadata.creation_timestamp.strftime("%Y-%m-%d %H:%M:%S")
             })
 
     return roles_data, len(roles_data)

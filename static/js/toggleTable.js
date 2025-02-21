@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to get the column index by column name
     function getColumnIndex(columnName) {
         for (let i = 0; i < tableHeaders.length; i++) {
-            if (tableHeaders[i].textContent.split(" ").join("").toLowerCase() === columnName.split(" ").join("").toLowerCase()) {
+            if (tableHeaders[i].textContent.replace("-", "").split(" ").join("").toLowerCase() === columnName.split(" ").join("").toLowerCase()) {
                 return i;
             }
         }

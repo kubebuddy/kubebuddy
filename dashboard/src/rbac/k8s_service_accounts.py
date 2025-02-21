@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
+from ..utils import calculateAge
 import yaml
 
 def get_service_accounts(path, context):
@@ -13,31 +14,14 @@ def get_service_accounts(path, context):
         service_accounts = v1.list_namespaced_service_account(namespace=namespace_name)
         for sa in service_accounts.items:
             secrets = [secret.name for secret in sa.secrets] if sa.secrets else []
-            creation_timestamp = sa.metadata.creation_timestamp
 
-            if creation_timestamp:
-                now = datetime.now(timezone.utc)
-                age = now - creation_timestamp
-                days = age.days
-                hours, remainder = divmod(age.seconds, 3600)
-                minutes, seconds = divmod(remainder, 60)
-
-                age_str = ""
-                if days > 0:
-                    age_str += f"{days}d "
-                if hours > 0:
-                    age_str += f"{hours}h "
-                if minutes > 0:
-                    age_str += f"{minutes}m "
-                age_str += f"{seconds}s"
-            else:
-                age_str = "Unknown"
+            age = calculateAge(datetime.now(timezone.utc) - sa.metadata.creation_timestamp)
 
             all_service_accounts.append({
                 "namespace": namespace_name,
                 "name": sa.metadata.name,
                 "secrets": secrets,
-                "age": age_str  # Store the calculated age string
+                "age": age 
             })
 
     return all_service_accounts, len(all_service_accounts)
@@ -56,7 +40,6 @@ def get_sa_description(path=None, context=None, namespace=None, sa_name=None):
             'annotations': sa.metadata.annotations,
             'image_pull_secrets': sa.image_pull_secrets,
             'mountable_secrets': sa.secrets,
-            'tokens': "coudlnt find in api"
         }
     
     except client.exceptions.ApiException as e:

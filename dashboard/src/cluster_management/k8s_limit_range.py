@@ -20,7 +20,7 @@ def get_limit_ranges(path, context):
                 limit_ranges.append({
                     "namespace": ns,
                     "name": lr.metadata.name,
-                    "created_at": lr.metadata.creation_timestamp
+                    "created_at": lr.metadata.creation_timestamp.strftime("%Y-%m-%d %H:%M:%S")
                 })
         except Exception as e:
             print(f"Error fetching LimitRange for namespace {ns}: {e}")

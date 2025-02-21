@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
-from datetime import datetime
+from datetime import datetime, timezone
+from ..utils import calculateAge
 import yaml
 
 def list_rolebindings(path, context):
@@ -34,7 +35,7 @@ def list_rolebindings(path, context):
 
             # Calculate the age of the rolebinding
             creation_time = rb.metadata.creation_timestamp
-            age = str(datetime.now() - creation_time.replace(tzinfo=None))
+            age = calculateAge(datetime.now(timezone.utc) - creation_time)
 
             rolebindings_data.append({
                 'namespace': namespace,

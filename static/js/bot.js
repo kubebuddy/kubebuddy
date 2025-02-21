@@ -1,5 +1,5 @@
 // Add this to your existing JavaScript section
-const API_KEY = 'api_key'; // Replace with your actual API key
+const API_KEY = 'API Key'; // Replace with your actual API key
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
 async function sendMessage() {

@@ -1,5 +1,6 @@
 <!-- templates/dashboard/dashboard.html -->
 {% extends 'dashboard/base.html' %}
+{% load static %}
 
 {% block title %}Dashboard{% endblock %}
 
@@ -17,7 +18,6 @@
     {% endif %}
 
     <div class="container mt-3">
-        <div class="">
             <form>
                 <div class="form-group d-flex align-items-center" style="width: 30%;">
                     <select id="categorySelect" class="form-control mr-2">
@@ -29,7 +29,6 @@
                     <button type="submit" class="btn btn-primary ms-3">Go</button>
                 </div>
             </form>
-        </div>
     </div>
 
 
@@ -272,9 +271,10 @@
             More Events
         </a>
     </div>
-
+  <script src="{% static 'js/cluster_actions.js' %}"></script>
   <script>
-
+    let current_cluster = "{{ current_cluster }}";  // Injected from Django template
+    let cluster_id =  "{{ cluster_id|default:0 }}";  // Injected from Django template
     // CPU and Memory usage graph
     var usageChart = document.getElementById('usageChart').getContext('2d');
         var myChart0 = new Chart(usageChart, {

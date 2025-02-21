@@ -13,7 +13,7 @@ def getpods():
         pod_list.append(name)
     return pod_list, len(pod_list)
 
-def getPodsStatus(path, context, namespace):
+def getPodsStatus(path, context):
     config.load_kube_config(config_file=path, context=context)
     v1 = client.CoreV1Api()
     pods = v1.list_pod_for_all_namespaces()

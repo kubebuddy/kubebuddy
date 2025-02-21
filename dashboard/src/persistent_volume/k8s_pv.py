@@ -16,7 +16,14 @@ def list_persistent_volumes(path: str, context: str):
         pv_details.append({
             "name": pv.metadata.name,
             "capacity": pv.spec.capacity["storage"],
-            "access_modes": ", ".join(pv.spec.access_modes),
+            "access_modes": ", ".join(
+                "RWO" if mode == "ReadWriteOnce" else
+                "ROX" if mode == "ReadOnlyMany" else
+                "RWX" if mode == "ReadWriteMany" else
+                "RWOP" if mode == "ReadWriteOncePod" else
+                "Unknown"
+                for mode in pv.spec.access_modes
+            ),
             "reclaim_policy": pv.spec.persistent_volume_reclaim_policy,
             "status": pv.status.phase,
             "claim": f"{pv.spec.claim_ref.namespace}/{pv.spec.claim_ref.name}" if pv.spec.claim_ref else "",

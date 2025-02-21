@@ -46,13 +46,12 @@ def get_secret_description(path=None, context=None, namespace=None, secret_name=
 
         if target_secret is None:
             return {"error": f"Secret {secret_name} not found in namespace {namespace}"}
-
+        
         secret_info = {
             "name": target_secret.metadata.name,
             "namespace": target_secret.metadata.namespace,
             "type": target_secret.type, # Include type
-            # "data": {k: base64.b64decode(v).decode('utf-8') for k, v in target_secret.data.items()} if target_secret.data else {}, # Decode base64 and handle missing data
-            "data": {k: base64.b64decode(v).decode('utf-8') for k, v in target_secret.data.items()} if target_secret.data else {}, # Decode base64 and handle missing data
+            "data": {k: str(len(base64.b64decode(v))) + " bytes" for k, v in target_secret.data.items()} if target_secret.data else {}, # Decode base64 and handle missing data
         }
         return secret_info
 

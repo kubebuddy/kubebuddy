@@ -1,5 +1,6 @@
 from kubernetes import client, config
-from datetime import datetime
+from datetime import datetime, timezone
+from ..utils import calculateAge
 import yaml
 
 
@@ -22,10 +23,10 @@ def list_kubernetes_services(path, context):
         cluster_ip = svc.spec.cluster_ip
         external_ip = ", ".join(svc.status.load_balancer.ingress[0].ip 
                                 for svc.status.load_balancer.ingress in (svc.status.load_balancer.ingress or []) 
-                                if svc.status.load_balancer.ingress) or "None"
+                                if svc.status.load_balancer.ingress) or "-"
         ports = ", ".join(f"{p.port}/{p.protocol}" for p in svc.spec.ports)
-        selector = svc.spec.selector if svc.spec.selector else "None"
-        age = (datetime.utcnow() - svc.metadata.creation_timestamp.replace(tzinfo=None)).days
+        selector = svc.spec.selector if svc.spec.selector else "-"
+        age = calculateAge(datetime.now(timezone.utc) - svc.metadata.creation_timestamp)
 
         service_data.append({
             "namespace": namespace,
@@ -35,7 +36,7 @@ def list_kubernetes_services(path, context):
             "external_ip": external_ip,
             "ports": ports,
             "selector": selector,
-            "age": f"{age}d"
+            "age": age
         })
 
     return service_data

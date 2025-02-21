@@ -16,20 +16,20 @@ def list_pvc(path: str, context: str):
             "namespace": pvc.metadata.namespace,
             "name": pvc.metadata.name,
             "status": pvc.status.phase,
-            "volume": pvc.spec.volume_name if pvc.spec.volume_name else "N/A",
-            "capacity": pvc.status.capacity["storage"] if pvc.status.capacity else "N/A",
+            "volume": pvc.spec.volume_name if pvc.spec.volume_name else "-",
+            "capacity": pvc.status.capacity["storage"] if pvc.status.capacity else "-",
             "access_modes": ", ".join(
                 "RWO" if mode == "ReadWriteOnce" else
                 "ROX" if mode == "ReadOnlyMany" else
                 "RWX" if mode == "ReadWriteMany" else
                 "RWOP" if mode == "ReadWriteOncePod" else
                 "Unknown"
-                for mode in pvc.spec.access_modes
+                for mode in (pvc.spec.access_modes if pvc.spec.access_modes else "-")
             ),
-            "storage_class": pvc.spec.storage_class_name if pvc.spec.storage_class_name else "N/A",
-            "volume_attribute_class": pvc.spec.data_source.name if pvc.spec.data_source else "N/A",
-            "volume_mode": pvc.spec.volume_mode if pvc.spec.volume_mode else "N/A",
-            "age": calculateAge(datetime.now(timezone.utc) - pvc.metadata.creation_timestamp) if pvc.metadata.creation_timestamp else "N/A"
+            "storage_class": pvc.spec.storage_class_name if pvc.spec.storage_class_name else "-",
+            "volume_attribute_class": pvc.spec.data_source.name if pvc.spec.data_source else "-",
+            "volume_mode": pvc.spec.volume_mode if pvc.spec.volume_mode else "-",
+            "age": calculateAge(datetime.now(timezone.utc) - pvc.metadata.creation_timestamp) if pvc.metadata.creation_timestamp else "-"
         }
         pvc_list.append(pvc_info)
     

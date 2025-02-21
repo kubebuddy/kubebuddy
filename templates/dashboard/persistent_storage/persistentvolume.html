@@ -97,9 +97,13 @@
           <td>{{ pv.reclaim_policy }}</td>
           <td>{{ pv.status }}</td>
           <td>
+            {% if pv.claim == "-" %}
+            {{pv.claim}}
+            {% else %}
             <a href="/{{current_cluster}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}">
               {{pv.claim}}
             </a>
+            {% endif %}
           </td>
           <td>{{ pv.storage_class }}</td>
           <td>{{ pv.volume_attribute_class }}</td>

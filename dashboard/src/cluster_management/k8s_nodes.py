@@ -55,28 +55,28 @@ def get_nodes_info(path: str, context: str):
             status = "Not Ready"
 
         if node.status.addresses:
-            internal_ip = next((addr.address for addr in node.status.addresses if addr.type == "InternalIP"), "N/A")
-            external_ip = next((addr.address for addr in node.status.addresses if addr.type == "ExternalIP"), "N/A")
+            internal_ip = next((addr.address for addr in node.status.addresses if addr.type == "InternalIP"), "Unknown")
+            external_ip = next((addr.address for addr in node.status.addresses if addr.type == "ExternalIP"), "Unknown")
         else:
-            internal_ip = "None"
-            external_ip = "None"
+            internal_ip = "-"
+            external_ip = "-"
 
         if node.metadata.labels:
             roles = node.metadata.labels.get("kubernetes.io/role", "Unknown")
         else:
-            roles = "None"
+            roles = "-"
 
         node_info = {
             "name": node.metadata.name,
             "status": status,
             "age": calculateAge(datetime.now(timezone.utc) - node.metadata.creation_timestamp),
             "roles": roles,
-            "version": node.status.node_info.kubelet_version if node.status.node_info.kubelet_version else "Unknown",
+            "version": node.status.node_info.kubelet_version if node.status.node_info.kubelet_version else "-",
             "internal_ip": internal_ip,
             "external_ip": external_ip,
-            "os_image": node.status.node_info.os_image if node.status.node_info.os_image else "Unknown",
-            "kernel_version": node.status.node_info.kernel_version if node.status.node_info.kernel_version else "Unknown",
-            "container_runtime": node.status.node_info.container_runtime_version if node.status.node_info.container_runtime_version else "Unkown",
+            "os_image": node.status.node_info.os_image if node.status.node_info.os_image else "-",
+            "kernel_version": node.status.node_info.kernel_version if node.status.node_info.kernel_version else "-",
+            "container_runtime": node.status.node_info.container_runtime_version if node.status.node_info.container_runtime_version else "-",
         }
         node_data.append(node_info)
     

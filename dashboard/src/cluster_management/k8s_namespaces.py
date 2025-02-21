@@ -2,18 +2,19 @@ from kubernetes import client, config
 from django.shortcuts import render
 from datetime import datetime, timezone
 from ..utils import calculateAge
-config.load_kube_config()
-v1 = client.CoreV1Api()
 
-def get_namespace(request):
+def get_namespace(path, context):
     try:
+        config.load_kube_config(path, context)
+        v1 = client.CoreV1Api()
         list_ns = []
         namespaces = v1.list_namespace()
         for ns in namespaces.items:
             list_ns.append(ns.metadata.name)
         return list_ns
-    except Exception as e:
-        return render(request, "templates/500.html")
+    except client.exceptions.ApiException as e:
+        return {"error": f"Failed to fetch ResourceQuota details: {e.reason}"}
+
     
 
 

@@ -26,10 +26,10 @@ def list_persistent_volumes(path: str, context: str):
             ),
             "reclaim_policy": pv.spec.persistent_volume_reclaim_policy,
             "status": pv.status.phase,
-            "claim": f"{pv.spec.claim_ref.namespace}/{pv.spec.claim_ref.name}" if pv.spec.claim_ref else "",
-            "storage_class": pv.spec.storage_class_name,
+            "claim": f"{pv.spec.claim_ref.namespace}/{pv.spec.claim_ref.name}" if pv.spec.claim_ref else "-",
+            "storage_class": pv.spec.storage_class_name if pv.spec.storage_class_name != None else "-",
             "volume_attribute_class": getattr(pv.spec, 'volume_mode', '-'),
-            "volume_system": getattr(pv.spec.csi, 'volume_handle', '-') if pv.spec.csi else '',
+            "volume_system": getattr(pv.spec.csi, 'volume_handle', '-') if pv.spec.csi else '-',
             "age": calculateAge(datetime.now(timezone.utc) -  pv.metadata.creation_timestamp),
             "namespace": pv.spec.claim_ref.namespace if pv.spec.claim_ref else "",
             "claim_name": pv.spec.claim_ref.name if pv.spec.claim_ref else ""

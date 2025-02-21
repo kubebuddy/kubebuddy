@@ -13,7 +13,7 @@ def getpods():
         pod_list.append(name)
     return pod_list, len(pod_list)
 
-def getPodsStatus(path, context):
+def getPodsStatus(path, context, namespace):
     config.load_kube_config(config_file=path, context=context)
     v1 = client.CoreV1Api()
     pods = v1.list_pod_for_all_namespaces()
@@ -45,6 +45,21 @@ def getPodsStatus(path, context):
 
     return status_counts
 
+def getPodStatus(pod):
+    if pod.status.phase == "Succeeded":
+            return "Succeeded"
+    elif pod.status.phase == "Pending":
+            return "Pending"
+    elif pod.status.phase == "Running":
+        all_container_running = True
+        for status in pod.status.container_statuses:
+            if status.state.running:
+                pass
+            else:
+                all_container_running = False
+                return "Failed"
+        if all_container_running:
+            return "Running"
 
 def get_pod_info(config_path, cluster_name):
 
@@ -55,6 +70,8 @@ def get_pod_info(config_path, cluster_name):
 
     pod_info_list = []
     for pod in pods.items:
+
+        status = getPodStatus(pod)
         pod_info_list.append({
             "namespace": pod.metadata.namespace,
             "name": pod.metadata.name,
@@ -63,7 +80,7 @@ def get_pod_info(config_path, cluster_name):
             "ip": pod.status.pod_ip or "N/A",
             "restarts": sum(container.restart_count for container in pod.status.container_statuses or []),
             "age": calculateAge(datetime.now(timezone.utc) - pod.metadata.creation_timestamp),
-            "status": pod.status.phase,
+            "status": status,
         })
 
     return pod_info_list

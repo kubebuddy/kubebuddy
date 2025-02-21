@@ -16,52 +16,65 @@
   </div>
   
   <div class="container">
-    <!-- Dropdown with checkboxes to select columns -->
-    <div class="mb-3">
-        <div class="dropdown d-flex justify-content-end">
-          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
-            Select Columns to Display
-          </button>
-          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
-                <label class="form-check-label" for="All"> All</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
-                <label class="form-check-label" for="Namespace"> Namespace</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
-                <label class="form-check-label" for="Name"> Name</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Containers" id="Containers" checked> 
-                <label class="form-check-label" for="Containers"> Containers</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Node" id="Node" checked> 
-                <label class="form-check-label" for="Node"> Node</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="IP" id="IP" checked> 
-                <label class="form-check-label" for="IP"> IP</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Restarts" id="Restarts" checked> 
-                <label class="form-check-label" for="Restarts"> Restarts</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
-                <label class="form-check-label" for="Age"> Age</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Status" id="Status" checked> 
-                <label class="form-check-label" for="Status"> Status</label>
-            </li>
+    <!-- Dropdowns container -->
+    <div class="mb-3 d-flex justify-content-between">
+      <!-- New dropdown on the left -->
+      <div class="dropdown">
+        <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          All Namespaces
+        </button>
+        <ul class="dropdown-menu p-2" aria-labelledby="newDropdown">
+        <li class="dropdown-item" onclick="namespaceHandler(event)">All Namespaces</li>
+        {% for ns in namespaces %}
+        <li class="dropdown-item" onclick="namespaceHandler(event)">{{ns}}</li>
+        {% endfor %}          
         </ul>
-        
-        </div>
+      </div>
+      
+      <!-- Original column selector dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+          Select Columns to Display
+        </button>
+        <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+              <label class="form-check-label" for="All"> All</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
+              <label class="form-check-label" for="Namespace"> Namespace</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
+              <label class="form-check-label" for="Name"> Name</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Containers" id="Containers" checked> 
+              <label class="form-check-label" for="Containers"> Containers</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Node" id="Node" checked> 
+              <label class="form-check-label" for="Node"> Node</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="IP" id="IP" checked> 
+              <label class="form-check-label" for="IP"> IP</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Restarts" id="Restarts" checked> 
+              <label class="form-check-label" for="Restarts"> Restarts</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
+              <label class="form-check-label" for="Age"> Age</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Status" id="Status" checked> 
+              <label class="form-check-label" for="Status"> Status</label>
+          </li>
+        </ul>
+      </div>
     </div>
   
     <!-- Table -->
@@ -90,7 +103,7 @@
             <a href="/{{current_cluster}}/pods/{{pod.namespace}}/{{pod.name}}?cluster_id={{cluster_id}}">
                 {{ pod.name }}
             </a>
-        </td>
+          </td>
           <td>{{ pod.containers }}</td>
           <td>{{ pod.node }}</td>
           <td>{{ pod.ip }}</td>
@@ -102,5 +115,43 @@
       </tbody>
     </table>
   </div>
+</div>
+
+<script>
+function namespaceHandler(event) {
+  let selectedNamespace = event.target.innerText.trim();
+    let tableRows = document.querySelectorAll("tbody tr");
+    pod_count = {
+      "Total": 0,
+      "Running": 0,
+      "Failed": 0,
+      "Pending": 0
+    }
+    tableRows.forEach(row => {
+        let namespaceCell = row.querySelector("td:first-child");
+        let statusCell = row.querySelector("td:last-child");
+        if (namespaceCell && statusCell) {
+            let namespace = namespaceCell.innerText.trim();
+            let status = statusCell.innerText.trim();
+            if (selectedNamespace === "All Namespaces" || namespace === selectedNamespace) {
+                row.style.display = "table-row";
+                pod_count["Total"]++;
+                if (pod_count.hasOwnProperty(status)) {
+                    pod_count[status]++;
+                }
+            } else {
+                row.style.display = "none";
+            }
+        }
+    });
+    // Update pod count display
+    document.querySelector(".stats-card.bg-primary b i").innerText = `Total Pods: ${pod_count["Total"]}`;
+    document.querySelector(".stats-card.bg-success b i").innerText = `Running: ${pod_count["Running"] || 0}`;
+    document.querySelector(".stats-card.bg-danger b i").innerText = `Failed: ${pod_count["Failed"] || 0}`;
+    document.querySelector(".stats-card.bg-warning b i").innerText = `Pending: ${pod_count["Pending"] || 0}`;
+    // Update dropdown text to reflect the selected namespace
+    document.getElementById("newDropdown").innerText = selectedNamespace;
+}
+</script>
 
 {% endblock %}

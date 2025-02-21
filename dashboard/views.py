@@ -81,7 +81,7 @@ def dashboard(request, cluster_name):
     namespaces = k8s_namespaces.get_namespace(path, cluster_name)
 
     # get cluster metrics 
-    # metrics = k8s_cluster_metric.getMetrics(path, current_cluster)
+    metrics = k8s_cluster_metric.getMetrics(path, current_cluster)
 
     # get cluster events
     events = k8s_events.get_events(path, current_cluster, True)
@@ -103,7 +103,7 @@ def dashboard(request, cluster_name):
                                                         'namespaces':namespaces,
                                                         'namespaces_count': namespaces_count,
                                                         'cluster_id': cluster_id,
-                                                        # 'metrics' : metrics,
+                                                        'metrics' : metrics,
                                                         'registered_clusters': registered_clusters,
                                                         'events': events,})
     

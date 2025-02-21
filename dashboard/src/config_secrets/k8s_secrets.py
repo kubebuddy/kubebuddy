@@ -53,6 +53,7 @@ def get_secret_description(path=None, context=None, namespace=None, secret_name=
             "type": target_secret.type, # Include type
             "data": {k: str(len(base64.b64decode(v))) + " bytes" for k, v in target_secret.data.items()} if target_secret.data else {}, # Decode base64 and handle missing data
         }
+        
         return secret_info
 
     except client.exceptions.ApiException as e:

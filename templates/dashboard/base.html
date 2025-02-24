@@ -263,11 +263,6 @@
       var reloadButton = document.getElementById("reload-btn");
       reloadButton.innerHTML = 'Refreshing... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
       reloadButton.disabled = true;
-
-      // Reload the page after a short delay to show the spinner
-      setTimeout(() => {
-          location.reload();
-      }, 100);  // 1-second delay before reloading
     }
 
     function toggleChat() {
@@ -372,7 +367,7 @@
           link.style.backgroundColor = "#8ddbff";
           link.style.borderRadius = "5px";
           link.style.padding = "5px 10px";
-          link.focus();
+          link.scrollIntoView({ behavior: "smooth", block: "center" });
           }
       });
     });

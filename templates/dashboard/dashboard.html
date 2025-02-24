@@ -21,9 +21,9 @@
             <form>
                 <div class="form-group d-flex align-items-center" style="width: 30%;">
                     <select id="categorySelect" class="form-control mr-2">
-                        <option value="all">Select a Namespace</option>
+                        <option value="all">All</option>
                         {% for ns in namespaces %}
-                            <option value="{{ ns }}">{{ ns }}</option>
+                            <option value="{{ ns }}" {% if ns == selected_namespace %}selected{% endif %} >{{ ns }}</option>
                         {% endfor %}
                     </select>
                     <button type="submit" class="btn btn-primary ms-3">Go</button>

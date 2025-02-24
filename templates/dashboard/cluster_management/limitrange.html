@@ -1,5 +1,7 @@
 {% extends 'dashboard/base.html' %}
 
+{% load static %}
+
 {% block title %}Limitrange{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/limits-128.png?raw=true{% endblock %}
@@ -13,8 +15,21 @@
   
   <div class="container">
     <!-- Dropdown with checkboxes to select columns -->
-    <div class="mb-3">
-        <div class="dropdown d-flex justify-content-end">
+    <div class="mb-3 d-flex justify-content-between">
+      <!-- New dropdown (namespaces) -->
+      <div class="dropdown">
+        <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          All Namespaces
+        </button>
+        <ul class="dropdown-menu p-2" aria-labelledby="newDropdown">
+        <li class="dropdown-item" onclick="namespaceHandler(event)">All Namespaces</li>
+        {% for ns in namespaces %}
+        <li class="dropdown-item" onclick="namespaceHandler(event)">{{ns}}</li>
+        {% endfor %}          
+        </ul>
+      </div>
+
+        <div class="dropdown">
           <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
             Select Columns to Display
           </button>
@@ -64,5 +79,5 @@
       </tbody>
       </table>
   </div>
-
+<script src="{% static 'js/namespaceFilter.js' %}"></script>
 {% endblock %}

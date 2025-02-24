@@ -3,20 +3,20 @@ from datetime import datetime, timezone
 import yaml
 from ..utils import calculateAge
 
-def getpods():
-    config.load_kube_config()
+def getpods(path, context, namespace="all"):
+    config.load_kube_config(config_file=path, context=context)
     v1 = client.CoreV1Api()
-    pods = v1.list_pod_for_all_namespaces()
+    pods = v1.list_pod_for_all_namespaces() if namespace == "all" else v1.list_namespaced_pod(namespace=namespace)
     pod_names = [pod.metadata.name for pod in pods.items]
     pod_list = []
     for name in pod_names:
         pod_list.append(name)
     return pod_list, len(pod_list)
 
-def getPodsStatus(path, context):
+def getPodsStatus(path, context, namespace="all"):
     config.load_kube_config(config_file=path, context=context)
     v1 = client.CoreV1Api()
-    pods = v1.list_pod_for_all_namespaces()
+    pods = v1.list_pod_for_all_namespaces() if namespace == "all" else v1.list_namespaced_pod(namespace=namespace)
 
     status_counts = {
     "Pending": 0,

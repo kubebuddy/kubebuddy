@@ -12,6 +12,7 @@ function deleteCluster(event, clusterId) {
     });
 }
 
+// namesapce filtering
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("form").addEventListener("submit", function (event) {
         event.preventDefault(); // Prevent default form submission

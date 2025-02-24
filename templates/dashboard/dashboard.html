@@ -44,6 +44,9 @@
         <div class="cluster-charts">
             <div class="text-center">
                 <h6>Current Usage</h6>
+                {% if metrics.error %}
+                    <h6>Set up Metric Server to view cluster metrics.</h6>
+                {% endif %}
                 <div class="chart-container-bar">
                     <canvas id="usageChart"></canvas>
                 </div>

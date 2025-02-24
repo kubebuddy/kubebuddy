@@ -37,7 +37,6 @@ def getReplicaSetsInfo(path, context, namespace="all"):
             'ready': rs.status.ready_replicas if rs.status.ready_replicas else 0,
             'age': age,
             'images': image_names,   # List of image names for the ReplicaSet
-            'selector': selector     # Labels used as the selector for the ReplicaSet
         })
     
     return replicaset_info_list

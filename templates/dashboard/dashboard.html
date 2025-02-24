@@ -21,7 +21,7 @@
             <form>
                 <div class="form-group d-flex align-items-center" style="width: 30%;">
                     <select id="categorySelect" class="form-control mr-2">
-                        <option value="all">All</option>
+                        <option value="all">All Namespaces</option>
                         {% for ns in namespaces %}
                             <option value="{{ ns }}" {% if ns == selected_namespace %}selected{% endif %} >{{ ns }}</option>
                         {% endfor %}

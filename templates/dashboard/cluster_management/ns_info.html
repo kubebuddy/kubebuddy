@@ -1,0 +1,74 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Namespace{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ns-128.png?raw=true{% endblock %}
+
+{% block content %}
+
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-start">
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ns-128.png?raw=true" style="height: 5vh;" alt="ds">
+            <h2 class="mb-4 ps-3 text-primary">Namespace: {{ namespace }}</h2>
+        </div>
+        
+
+        <!-- Bootstrap Tabs -->
+        <ul class="nav nav-tabs" id="podTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="describe-tab" data-bs-toggle="tab" href="#describe">Describe</a>
+            </li> 
+            <li class="nav-item">
+                <a class="nav-link" id="events-tab" data-bs-toggle="tab" href="#events">Events</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="tab" href="#yaml">YAML</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="describe">
+                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                    <pre>
+<b>Name:</b> {{ ns_info.describe.name }}
+<b>Status:</b> {{ ns_info.describe.status }}
+<b>Labels:</b>{% for k, v in ns_info.describe.labels %}
+    {{ k }}: {{ v }}{% if not loop.last %}, {% endif %}{% endfor %}
+<b>Annotations:</b>{% if ns_info.describe.annotations %}{% for k, v in ns_info.describe.annotations %}
+    {{ k }}: {{ v }}{% if not loop.last %}, {% endif %}{% endfor %}
+    {% else %}None{% endif %}
+<b>Resource Quota:</b>{% if ns_info.describe.resource_quota %}
+    {{ ns_info.describe.resource_quota }}{% else %}
+    None{% endif %}
+<b>Limit Range:</b>{% if ns_info.describe.spec.limit_range %}
+    {{ ns_info.describe.spec.limit_range }}{% else %}
+    None{% endif %}
+                    </pre>
+                </div>
+              </div>
+            <div class="tab-pane fade" id="events">
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
+                    <pre> &lt; None &gt; </pre>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="yaml">
+                <!-- <h4>Pod YAML</h4> -->
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                    <!-- Copy Button inside the div -->
+                    <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
+                        Copy YAML
+                    </button>
+                    <pre id="yamlContent">{{ ns_info.yaml }}</pre>
+                </div>
+            </div>
+            
+        </div>
+
+        <a href="/{{current_cluster}}/namespace?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Namespaces</a>
+    </div>
+    
+    {% load static%}
+    <script src="{% static 'js/copyYAML.js' %}"></script>
+{% endblock %}

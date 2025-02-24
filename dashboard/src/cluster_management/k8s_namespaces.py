@@ -2,6 +2,7 @@ from kubernetes import client, config
 from django.shortcuts import render
 from datetime import datetime, timezone
 from ..utils import calculateAge
+import yaml
 
 def get_namespace(path, context):
     try:
@@ -14,8 +15,6 @@ def get_namespace(path, context):
         return list_ns
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch ResourceQuota details: {e.reason}"}
-
-    
 
 
 def namespaces_data(path, context):
@@ -38,3 +37,32 @@ def namespaces_data(path, context):
         })
 
     return namespace_data
+
+def get_namespace_description(path=None, context=None, namespace=None):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+
+    try:
+        # Fetch namespace details
+        namespace = v1.read_namespace(name=namespace)
+
+        # Prepare namespace information
+        namespace_info = {
+            "name": namespace.metadata.name,
+            "status": namespace.status.phase if namespace.status else "Unknown",
+            "labels": list(namespace.metadata.labels.items()) if namespace.metadata.labels else [],
+            "annotations": list(namespace.metadata.annotations.items()) if namespace.metadata.annotations else [],
+            "resource_quota": namespace.status.resource_quota if hasattr(namespace.status, 'resource_quota') else "None",
+            "limit_range": namespace.status.limit_range if hasattr(namespace.status, 'limit_range') else "None",
+        }
+
+        return namespace_info
+
+    except client.exceptions.ApiException as e:
+        return {"error": f"Failed to fetch namespace details: {e.reason}"}
+    
+def get_namespace_yaml(path, context, namespace_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    namespace = v1.read_namespace(name=namespace_name)
+    return yaml.dump(namespace.to_dict(), default_flow_style=False)

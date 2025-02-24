@@ -449,6 +449,26 @@ def namespace(request, cluster_name):
         'namespaces_count': namespaces_count
     })
 
+def ns_info(request, cluster_name, namespace):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    ns_info = {
+        "describe": k8s_namespaces.get_namespace_description(path, current_cluster.cluster_name, namespace),
+        "yaml": k8s_namespaces.get_namespace_yaml(path, current_cluster.cluster_name, namespace),
+    }
+
+    return render(request, 'dashboard/cluster_management/ns_info.html', {
+        "ns_info": ns_info,
+        "cluster_id": cluster_id,
+        "namespace": namespace,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
+
 def configmaps(request,cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)

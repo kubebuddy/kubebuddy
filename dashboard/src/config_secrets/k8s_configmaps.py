@@ -82,4 +82,4 @@ def get_configmap_yaml(path, context, namespace, configmap_name):
     if target_configmap is None:
         return {"error": f"ConfigMap {configmap_name} not found in namespace {namespace}"}
 
-    return yaml.dump(target_configmap.to_dict(), default_flow_style=False)
+    return yaml.dump(target_configmap.to_dict(), default_style='|', width=float("inf"))

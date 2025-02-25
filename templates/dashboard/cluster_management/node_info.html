@@ -1,0 +1,111 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Node{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/infrastructure_components/unlabeled/node-128.png?raw=true{% endblock %}
+
+{% block content %}
+
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-start">
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/infrastructure_components/unlabeled/node-128.png?raw=true" style="height: 5vh;" alt="node">
+            <h2 class="mb-4 ps-3 text-primary">Node: {{ node_name }}</h2>
+        </div>
+        
+
+        <!-- Bootstrap Tabs -->
+        <ul class="nav nav-tabs" id="podTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="describe-tab" data-bs-toggle="tab" href="#describe">Describe</a>
+            </li> 
+            <li class="nav-item">
+                <a class="nav-link" id="events-tab" data-bs-toggle="tab" href="#events">Events</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="tab" href="#yaml">YAML</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="describe">
+                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                    <pre>
+<b>Name:</b> {{ node_info.describe.name }}
+<b>Roles:</b> {{ node_info.describe.roles }}
+<b>Labels:</b>{% for label, value in node_info.describe.labels %}
+    {{ label }}: {{ value }}{% if not loop.last %}, {% endif %}{% empty %}
+    None{% endfor %}
+
+<b>Annotations:</b>{% if node_info.describe.annotations %}{% for annotation, value in node_info.describe.annotations %}
+    {{ annotation }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
+    None{% endif %}
+
+<b>Creation Timestamp:</b> {{ node_info.describe.creation_timestamp }}
+
+<b>Taints:</b>{% if node_info.describe.taints %}{% for taint in node_info.describe.taints %}
+    {{ taint }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
+    None{% endif %}
+
+<b>Unschedulable:</b> {{ node_info.describe.unschedulable }}
+
+<b>Addresses:</b>{% for type, address in node_info.describe.addresses.items %}
+    {{ type }}: {{ address }}{% if not loop.last %}, {% endif %}{% empty %}
+    None {% endfor %}
+
+<b>Capacity:</b>{% for key, value in node_info.describe.capacity.items %}
+    {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% empty %}
+    None{% endfor %}
+
+<b>Allocatable:</b>{% for key, value in node_info.describe.allocatable.items %}
+    {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% empty %}
+    None{% endfor %}
+
+<b>System Info:</b>
+    <b>Machine ID:</b> {{ node_info.describe.system_info.machine_id }}
+    <b>System UUID:</b> {{ node_info.describe.system_info.system_uuid }}
+    <b>Boot ID:</b> {{ node_info.describe.system_info.boot_id }}
+    <b>Kernel Version:</b> {{ node_info.describe.system_info.kernel_version }}
+    <b>OS Image:</b> {{ node_info.describe.system_info.os_image }}
+    <b>Operating System:</b> {{ node_info.describe.system_info.operating_system }}
+    <b>Architecture:</b> {{ node_info.describe.system_info.architecture }}
+    <b>Container Runtime Version:</b> {{ node_info.describe.system_info.container_runtime_version }}
+    <b>Kubelet Version:</b> {{ node_info.describe.system_info.kubelet_version }}
+    <b>Kube Proxy Version:</b> {{ node_info.describe.system_info.kube_proxy_version }}
+
+<b>Allocated Resources:</b>
+    <b>CPU Requests:</b> {{ node_info.describe.allocated_resources.cpu_requests }}
+    <b>Memory Requests:</b> {{ node_info.describe.allocated_resources.memory_requests }}
+    <b>Ephemeral Storage Requests:</b> {{ node_info.describe.allocated_resources.ephemeral_storage_requests }}
+    <b>CPU Limits:</b> {{ node_info.describe.allocated_resources.cpu_limits }}
+    <b>Memory Limits:</b> {{ node_info.describe.allocated_resources.memory_limits }}
+    <b>Ephemeral Storage Limits:</b> {{ node_info.describe.allocated_resources.ephemeral_storage_limits }}
+
+                    </pre>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="events">
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
+                    <pre> &lt; None &gt; </pre>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="yaml">
+                <!-- <h4>Pod YAML</h4> -->
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                    <!-- Copy Button inside the div -->
+                    <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
+                        Copy YAML
+                    </button>
+                    <pre id="yamlContent">{{ node_info.yaml }}</pre>
+                </div>
+            </div>
+            
+        </div>
+
+        <a href="/{{current_cluster}}/nodes?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Nodes</a>
+    </div>
+    
+    {% load static%}
+    <script src="{% static 'js/copyYAML.js' %}"></script>
+{% endblock %}

@@ -2,7 +2,7 @@ from django.urls import path
 from dashboard.views import dashboard, pods, nodes, replicasets, deployments, pod_info, \
                                 events, rs_info, deploy_info, \
                                 configmaps, secrets, services, endpoints, \
-                                statefulsets, daemonset, jobs, cronjobs, \
+                                statefulsets, daemonset, jobs, cronjobs, node_info, \
                                 namespace, limitrange, resourcequotas, persistentvolume, ns_info,\
                                 persistentvolumeclaim, storageclass, sts_info, daemonset_info, \
                                 role, rolebinding, clusterrole, clusterrolebinding, serviceAccount, \
@@ -59,6 +59,7 @@ urlpatterns = [
     path('<str:cluster_name>/limitrange', limitrange, name="limitrange"),
     path('<str:cluster_name>/resourcequotas', resourcequotas, name="resourcequotas"),
 
+    path('<str:cluster_name>/nodes/<str:node_name>/', node_info, name='node_info'),
     path('<str:cluster_name>/namespace/<str:namespace>/', ns_info, name='ns_info'),
     path('<str:cluster_name>/limitrange/<str:namespace>/<str:limitrange_name>/', limitrange_info, name='limitrange_info'),
     path('<str:cluster_name>/resourcequotas/<str:namespace>/<str:resourcequota_name>/', resourcequota_info, name='resourcequota_info'),

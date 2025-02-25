@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
 from ..utils import calculateAge
+import yaml
 
 def getnodes():
     config.load_kube_config()
@@ -81,3 +82,57 @@ def get_nodes_info(path: str, context: str):
         node_data.append(node_info)
     
     return node_data
+
+def get_node_description(path=None, context=None, node_name=None):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+
+    try:
+        # Fetch node details
+        node = v1.read_node(name=node_name)
+
+        # Prepare node information
+        node_info = {
+            "name": node.metadata.name,
+            "roles": node.metadata.labels.get("kubernetes.io/role", "Unknown"),
+            "labels": list(node.metadata.labels.items()) if node.metadata.labels else [],
+            "annotations": list(node.metadata.annotations.items()) if node.metadata.annotations else [],
+            "creation_timestamp": node.metadata.creation_timestamp,
+            "taints": node.spec.taints,
+            "unschedulable": node.spec.unschedulable,
+            "addresses": {address.type: address.address for address in node.status.addresses} if node.status.addresses else {},
+            "capacity": {key: str(value) for key, value in node.status.capacity.items()} if node.status.capacity else {},
+            "allocatable": {key: str(value) for key, value in node.status.allocatable.items()} if node.status.allocatable else {},
+            "system_info": {
+                "machine_id": node.status.node_info.machine_id,
+                "system_uuid": node.status.node_info.system_uuid,
+                "boot_id": node.status.node_info.boot_id,
+                "kernel_version": node.status.node_info.kernel_version,
+                "os_image": node.status.node_info.os_image,
+                "operating_system": node.status.node_info.operating_system,
+                "architecture": node.status.node_info.architecture,
+                "container_runtime_version": node.status.node_info.container_runtime_version,
+                "kubelet_version": node.status.node_info.kubelet_version,
+                "kube_proxy_version": node.status.node_info.kube_proxy_version,
+            },
+            "allocated_resources": {
+                "cpu_requests": node.status.allocatable.get("cpu", "0"),
+                "memory_requests": node.status.allocatable.get("memory", "0"),
+                "ephemeral_storage_requests": node.status.allocatable.get("ephemeral-storage", "0"),
+                "cpu_limits": node.status.capacity.get("cpu", "0"),
+                "memory_limits": node.status.capacity.get("memory", "0"),
+                "ephemeral_storage_limits": node.status.capacity.get("ephemeral-storage", "0"),
+            }
+        }
+
+        return node_info
+
+    except client.exceptions.ApiException as e:
+        return {"error": f"Failed to fetch node details: {e.reason}"}
+
+
+def get_node_yaml(path, context, node_name):
+    config.load_kube_config(path, context)
+    v1 = client.CoreV1Api()
+    node = v1.read_node(name=node_name)
+    return yaml.dump(node.to_dict(), default_flow_style=False)

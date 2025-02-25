@@ -2,7 +2,7 @@
 
 {% block title %}Nodes{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pod-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/infrastructure_components/unlabeled/node-128.png?raw=true{% endblock %}
 
 {% block content %}
 
@@ -89,7 +89,11 @@
       <tbody>
       {% for node in nodes %}
           <tr>
-          <td>{{ node.name }}</td>
+          <td>
+            <a href="/{{current_cluster}}/nodes/{{node.name}}?cluster_id={{cluster_id}}">
+                {{ node.name }}
+            </a>
+          </td>
           <td>{{ node.status }}</td>
           <td>{{ node.roles }}</td>
           <td>{{ node.age }}</td>

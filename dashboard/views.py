@@ -625,6 +625,26 @@ def nodes(request, cluster_name):
         'total_nodes': total_nodes
     })
 
+def node_info(request, cluster_name, node_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    node_info = {
+        "describe": k8s_nodes.get_node_description(path, current_cluster.cluster_name, node_name),
+        # "events": k8s_endpoints.get_endpoint_events(path, current_cluster.cluster_name, node_name),
+        "yaml": k8s_nodes.get_node_yaml(path, current_cluster.cluster_name, node_name),
+    }
+    return render(request, 'dashboard/cluster_management/node_info.html', {
+        "node_info": node_info,
+        "cluster_id": cluster_id,
+        "node_name": node_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
+
 def limitrange(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)

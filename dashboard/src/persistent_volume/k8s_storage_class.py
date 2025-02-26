@@ -13,13 +13,18 @@ def list_storage_classes(path: str, context: str):
     storage_data = []
     for sc in storage_classes:
         age = calculateAge(datetime.now(timezone.utc) - sc.metadata.creation_timestamp)
+        if sc.metadata.annotations.get("storageclass.kubernetes.io/is-default-class") and sc.metadata.annotations.get("storageclass.kubernetes.io/is-default-class") == "true":
+            is_default = "Yes"
+        else:
+            is_default = "-"
         storage_data.append({
             "name": sc.metadata.name,
             "provisioner": sc.provisioner,
             "reclaimPolicy": sc.reclaim_policy,
             "volumeBindingMode": sc.volume_binding_mode,
             "allowVolumeExpansion": sc.allow_volume_expansion,
-            "age": age
+            "age": age,
+            "isDefault": is_default
         })
     
     return storage_data, len(storage_data)

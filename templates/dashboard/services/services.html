@@ -66,6 +66,10 @@
               <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
               <label class="form-check-label" for="Age"> Age</label>
           </li>
+            <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Selector" id="Selector" checked> 
+              <label class="form-check-label" for="Selector"> Selector</label>
+          </li>
             
         </ul>
         
@@ -83,6 +87,7 @@
           <th id="colExternalIP">EXTERNAL-IP</th>
           <th id="colPorts">PORTS</th>
           <th id="colAge">AGE</th>
+          <th id="colSelector">SELECTOR</th>
         </tr>
       </thead>
 
@@ -100,6 +105,7 @@
             <td>{{ service.external_ip }}</td>
             <td>{{ service.ports }}</td>
             <td>{{ service.age }}</td>
+            <td>{{ service.selector }}</td>
         </tr>
         {% endfor %}
       </tbody>

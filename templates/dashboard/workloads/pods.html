@@ -78,7 +78,7 @@
     </div>
   
     <!-- Table -->
-    <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
+    <table class="table" style="border-radius: 1rem; overflow: hidden;">
       <thead class="table-dark">
         <tr>
           <th id="colNamespace">NAMESPACE</th>
@@ -109,7 +109,7 @@
           <td>{{ pod.ip }}</td>
           <td>{{ pod.restarts }}</td>
           <td>{{ pod.age }}</td>
-          <td>{{ pod.status }}</td>
+          <td class="{% if pod.status == "Running" %} bg-success {% elif pod.status == "Pending" %} bg-warning {% elif pod.status == "Succeeded" %} bg-info {% else %} bg-danger {% endif %}">{{ pod.status }}</td>
         </tr>
       {% endfor %}
       </tbody>

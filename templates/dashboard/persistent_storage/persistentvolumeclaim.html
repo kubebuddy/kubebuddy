@@ -66,8 +66,8 @@
                 <label class="form-check-label" for="storage class"> Storage Class</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="volume attribute class" id="volume attribute class" checked> 
-                <label class="form-check-label" for="volume attribute class"> Volume Attribute Class</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="usedby" id="usedby" checked> 
+                <label class="form-check-label" for="usedby"> Used By</label>
             </li>
             <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="volume mode" id="volume mode" checked> 
@@ -92,7 +92,7 @@
           <th id="colCapacity">CAPACITY</th>
           <th id="colAccessMode">ACCESS MODE</th>
           <th id="colStorageClass">STORAGE CLASS</th>
-          <th id="colVolumeAttributeClass">VOLUME ATTRIBUTE CLASS</th>
+          <th id="colUsedBy">USED BY</th>
           <th id="colVolumeMode">VOLUME MODE</th>
           <th id="colAge">AGE</th>
         </tr>
@@ -114,9 +114,9 @@
             </a>
           </td>
           <td>{{ p.capacity }}</td>
-          <td>{{ p.access_mode }}</td>
+          <td>{{ p.access_modes }}</td>
           <td>{{ p.storage_class }}</td>
-          <td>{{ p.volume_attribute_class }}</td>
+          <td>{{ p.used_by }}</td>
           <td>{{ p.volume_mode }}</td>
           <td>{{ p.age }}</td>
         </tr>

@@ -54,12 +54,16 @@ def getStatefulsetList(path, context, namespace="all"):
             ready = str(available_replicas) + "/" + str(replicas)
             difference = (datetime.now(timezone.utc) - statefulset.metadata.creation_timestamp)
             age = calculateAge(difference)
-            
+            images = []
+            for containers in statefulset.spec.template.spec.containers:
+                images.append(containers.image)
+
             statefulset_info_list.append({
                 'namespace': namespace,
                 'name': name,
                 'ready': ready,
-                'age': age
+                'age': age,
+                'images': images
             })
         
         return statefulset_info_list
@@ -80,7 +84,6 @@ def get_statefulset_description(path=None, context=None, namespace=None, sts_nam
     try:
         # Fetch StatefulSet details
         sts = v1.read_namespaced_stateful_set(name=sts_name, namespace=namespace)
-
         # Prepare StatefulSet information
         sts_info = {
             "name": sts.metadata.name,
@@ -99,7 +102,7 @@ def get_statefulset_description(path=None, context=None, namespace=None, sts_nam
             },
             "pods_status": {
                 "running": sts.status.ready_replicas if hasattr(sts.status, 'ready_replicas') else 0,
-                "waiting": sts.status.replicas - sts.status.ready_replicas if hasattr(sts.status, 'ready_replicas') else sts.status.replicas,
+                "waiting": sts.status.replicas - (sts.status.ready_replicas if sts.status.ready_replicas is not None else 0),
                 "succeeded": 0,  # StatefulSets don't track succeeded pods directly, so it's set to 0 by default
                 "failed": 0,     # Similarly for failed pods
             },

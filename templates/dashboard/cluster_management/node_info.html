@@ -37,31 +37,23 @@
 <b>Labels:</b>{% for label, value in node_info.describe.labels %}
     {{ label }}: {{ value }}{% if not loop.last %}, {% endif %}{% empty %}
     None{% endfor %}
-
 <b>Annotations:</b>{% if node_info.describe.annotations %}{% for annotation, value in node_info.describe.annotations %}
     {{ annotation }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
     None{% endif %}
-
 <b>Creation Timestamp:</b> {{ node_info.describe.creation_timestamp }}
-
 <b>Taints:</b>{% if node_info.describe.taints %}{% for taint in node_info.describe.taints %}
     {{ taint }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
     None{% endif %}
-
 <b>Unschedulable:</b> {{ node_info.describe.unschedulable }}
-
 <b>Addresses:</b>{% for type, address in node_info.describe.addresses.items %}
     {{ type }}: {{ address }}{% if not loop.last %}, {% endif %}{% empty %}
     None {% endfor %}
-
 <b>Capacity:</b>{% for key, value in node_info.describe.capacity.items %}
     {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% empty %}
     None{% endfor %}
-
 <b>Allocatable:</b>{% for key, value in node_info.describe.allocatable.items %}
     {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% empty %}
     None{% endfor %}
-
 <b>System Info:</b>
     <b>Machine ID:</b> {{ node_info.describe.system_info.machine_id }}
     <b>System UUID:</b> {{ node_info.describe.system_info.system_uuid }}
@@ -73,7 +65,6 @@
     <b>Container Runtime Version:</b> {{ node_info.describe.system_info.container_runtime_version }}
     <b>Kubelet Version:</b> {{ node_info.describe.system_info.kubelet_version }}
     <b>Kube Proxy Version:</b> {{ node_info.describe.system_info.kube_proxy_version }}
-
 <b>Allocated Resources:</b>
     <b>CPU Requests:</b> {{ node_info.describe.allocated_resources.cpu_requests }}
     <b>Memory Requests:</b> {{ node_info.describe.allocated_resources.memory_requests }}

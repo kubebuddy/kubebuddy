@@ -40,8 +40,8 @@
                 <label class="form-check-label" for="VolumeBindingMode"> Volume Binding Mode</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="allowVolumeExpansion" id="allowVolumeExpansion" checked> 
-                <label class="form-check-label" for="AllowVolumeExpansion"> Allow Volume Expansion</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="isDefault" id="isDefault" checked> 
+                <label class="form-check-label" for="isDefault"> Is Default</label>
             </li>
             <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
@@ -59,7 +59,7 @@
           <th id="colProvisoner">PROVISIONER</th>
           <th id="colReclaimPolicy">RECLAIM POLICY</th>
           <th id="colVolumeBindingMode">VOLUME BINDING MODE</th>
-          <th id="colAllowVolumeExpansion">ALLOW VOLUME EXPANSION</th>
+          <th id="colIsDefault">IS DEFAULT</th>
           <th id="colAge">AGE</th>
         </tr>
       </thead>
@@ -71,7 +71,7 @@
           <td>{{ c.provisioner }}</td>
           <td>{{ c.reclaimPolicy }}</td>
           <td>{{ c.volumeBindingMode }}</td>
-          <td>{{ c.allowVolumeExpansion }}</td>
+          <td>{{ c.isDefault }}</td>
           <td>{{ c.age }}</td>
         </tr>
       {% endfor %}

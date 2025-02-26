@@ -52,12 +52,8 @@
                 <label class="form-check-label" for="storageclass"> Storage Class</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="volumeattributeclass" id="volumeattributeclass" checked> 
-                <label class="form-check-label" for="volumeattributeclass"> Volume Attribute Class</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="volumesystem" id="volumesystem" checked> 
-                <label class="form-check-label" for="volumesystem"> Volume System</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="volumemode" id="volumemode" checked> 
+                <label class="form-check-label" for="volumemode"> Volume Mode</label>
             </li>
             <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
@@ -78,8 +74,7 @@
           <th id="colStatus">STATUS</th>
           <th id="colClaim">CLAIM</th>
           <th id="colStorageClass">STORAGE CLASS</th>
-          <th id="colVolumeAttributeClass">VOLUME ATTRIBUTE CLASS</th>
-          <th id="colVolumeSystem">VOLUME SYSTEM</th>
+          <th id="colMode">VOLUME MODE</th>
           <th id="colAge">AGE</th>
         </tr>
       </thead>
@@ -106,8 +101,7 @@
             {% endif %}
           </td>
           <td>{{ pv.storage_class }}</td>
-          <td>{{ pv.volume_attribute_class }}</td>
-          <td>{{ pv.volume_system }}</td>
+          <td>{{ pv.volume_mode }}</td>
           <td>{{ pv.age }}</td>
         </tr>
       {% endfor %}

@@ -12,6 +12,12 @@ def list_pvc(path: str, context: str):
     
     pvc_list = []
     for pvc in pvcs:
+        used_by = [] # list of pods using this pvc
+        pods = v1.list_namespaced_pod(namespace=pvc.metadata.namespace)
+        for pod in pods.items:
+            for volume in pod.spec.volumes or []:
+                if volume.persistent_volume_claim and volume.persistent_volume_claim.claim_name == pvc.metadata.name:
+                    used_by.append(pod.metadata.name) # list of pods
         pvc_info = {
             "namespace": pvc.metadata.namespace,
             "name": pvc.metadata.name,
@@ -27,8 +33,8 @@ def list_pvc(path: str, context: str):
                 for mode in (pvc.spec.access_modes if pvc.spec.access_modes else "-")
             ),
             "storage_class": pvc.spec.storage_class_name if pvc.spec.storage_class_name else "-",
-            "volume_attribute_class": pvc.spec.data_source.name if pvc.spec.data_source else "-",
             "volume_mode": pvc.spec.volume_mode if pvc.spec.volume_mode else "-",
+            "used_by": used_by,
             "age": calculateAge(datetime.now(timezone.utc) - pvc.metadata.creation_timestamp) if pvc.metadata.creation_timestamp else "-"
         }
         pvc_list.append(pvc_info)

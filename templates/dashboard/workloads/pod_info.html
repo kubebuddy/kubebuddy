@@ -47,7 +47,6 @@
     {{ key }}: {{ value }}{% if not loop.last %}{% endif %}{% endfor %}
 <b>Annotations</b>: {% for key, value in pod_info.describe.annotations %}
     {{ key }}: {{ value }}{% if not loop.last %} {% endif %} {% endfor %}
-
 <b>Containers</b>:{% for container in pod_info.describe.containers %}
 - <strong>Name:</strong> {{ container.name }}
   <strong>Image:</strong> {{ container.image }}
@@ -56,16 +55,13 @@
   <strong>Restart Count:</strong> {{ container.restart_count }}
   <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
   <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
-
 <b>Volumes</b>:{% for volume in pod_info.describe.volumes %}
 - <strong>Name:</strong> {{ volume.name }}
   <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %}{% endfor %}
-
 <b>Conditions</b>:{% for condition in pod_info.describe.conditions %}
 - <strong>Type:</strong> {{ condition.type }}
     <strong>Status:</strong> {{ condition.status }}
     <strong>Reason:</strong> {{ condition.reason }}{% endfor %}
-
                     </pre>
                   </div>                                    
             </div>

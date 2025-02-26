@@ -17,6 +17,10 @@ def getDeploymentsInfo(path, context, namespace="all"):
         ready_replicas = deployment.status.ready_replicas if deployment.status.ready_replicas is not None else 0
         replicas = deployment.spec.replicas
         ready = str(ready_replicas) + "/" + str(replicas)
+        images = []
+
+        for container in deployment.spec.template.spec.containers:
+            images.append(container.image)
         
         # Remove timezone info from creation timestamp
         creation_timestamp = deployment.metadata.creation_timestamp
@@ -26,7 +30,8 @@ def getDeploymentsInfo(path, context, namespace="all"):
             'namespace': namespace,
             'name': name,
             'ready': ready,
-            'age': age
+            'age': age,
+            'images': images
         })
 
     return deployment_info_list

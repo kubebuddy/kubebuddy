@@ -29,11 +29,13 @@ def namespaces_data(path, context):
         name = ns.metadata.name
         status = ns.status.phase
         age = calculateAge(datetime.now(timezone.utc) - ns.metadata.creation_timestamp)
+        labels = ns.metadata.labels
 
         namespace_data.append({
             "name": name,
             "status": status,
-            "age": age
+            "age": age,
+            "labels": labels
         })
 
     return namespace_data

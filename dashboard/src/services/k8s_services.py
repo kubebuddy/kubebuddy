@@ -26,6 +26,7 @@ def list_kubernetes_services(path, context):
                                 if svc.status.load_balancer.ingress) or "-"
         ports = ", ".join(f"{p.port}/{p.protocol}" for p in svc.spec.ports)
         age = calculateAge(datetime.now(timezone.utc) - svc.metadata.creation_timestamp)
+        selector = svc.spec.selector
 
         service_data.append({
             "namespace": namespace,
@@ -34,7 +35,8 @@ def list_kubernetes_services(path, context):
             "cluster_ip": cluster_ip,
             "external_ip": external_ip,
             "ports": ports,
-            "age": age
+            "age": age,
+            "selector": selector
         })
 
     return service_data

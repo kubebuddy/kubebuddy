@@ -21,11 +21,12 @@ def get_configmaps(path, context):
         age = calculateAge(datetime.now(timezone.utc) - creation_time)
 
         # Get data keys only (not full values)
-        # data_keys = ", ".join(cm.data.keys()) if cm.data else "No Data"
+        data_keys = cm.data.keys() if cm.data else []
 
         configmap_list.append({
         "name": name,
         "namespace": namespace,
+        "data": len(data_keys),
         "age": age,
         })
 

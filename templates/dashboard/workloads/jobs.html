@@ -96,7 +96,7 @@
                 {{ job.name }}
             </a>
           </td>
-          <td>{{ job.status }}</td>
+          <td  class="{% if job.status == "Completed" %} bg-success {% elif job.status == "Running" %} bg-warning {% else %} bg-danger {% endif %}">{{ job.status }}</td>
           <td>{{ job.completions }}</td>
           <td>{{ job.duration }}</td>
           <td>{{ job.age }}</td>

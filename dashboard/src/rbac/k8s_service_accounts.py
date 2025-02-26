@@ -13,7 +13,7 @@ def get_service_accounts(path, context):
         namespace_name = namespace.metadata.name
         service_accounts = v1.list_namespaced_service_account(namespace=namespace_name)
         for sa in service_accounts.items:
-            secrets = [secret.name for secret in sa.secrets] if sa.secrets else []
+            secrets = len([secret.name for secret in sa.secrets]) if sa.secrets else 0
 
             age = calculateAge(datetime.now(timezone.utc) - sa.metadata.creation_timestamp)
 

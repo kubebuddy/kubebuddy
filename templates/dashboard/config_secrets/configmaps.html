@@ -46,6 +46,10 @@
                 <label class="form-check-label" for="Name"> Name</label>
             </li>
             <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Data" id="Data" checked> 
+                <label class="form-check-label" for="Data"> Data</label>
+            </li>
+            <li>
               <input class="form-check-input column-checkbox" type="checkbox" value="Age" id="Age" checked> 
               <label class="form-check-label" for="Age"> Age</label>
           </li>
@@ -61,6 +65,7 @@
         <tr>
           <th id="colNamespace">NAMESPACE</th>
           <th id="colName">NAME</th>
+          <th id="colData">Data</th>
           <th id="colAge">AGE</th>
         </tr>
       </thead>
@@ -74,8 +79,8 @@
                 {{ cm.name }}
             </a>
         </td>
-          <td>{{ cm.age }}</td>
-          
+        <td>{{cm.data}}</td>
+        <td>{{ cm.age }}</td>  
         </tr>
       {% endfor %}
       </tbody>

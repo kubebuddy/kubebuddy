@@ -65,6 +65,10 @@
                 <input class="form-check-input column-checkbox" type="checkbox" value="ContainerRuntime" id="ContainerRuntime" checked> 
                 <label class="form-check-label" for="ContainerRuntime">Container Runtime</label>
             </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Taints" id="Taints" checked> 
+                <label class="form-check-label" for="Taints">Taints</label>
+            </li>
         </ul>
         
         </div>
@@ -84,6 +88,7 @@
           <th id="colOSImage">OS-IMAGE</th>
           <th id="colKernelVersion">KERNEL-VERSION</th>
           <th id="colContainerRuntime">CONTAINER-RUNTIME</th>
+          <th id="colTaints">TAINTS</th>
         </tr>
       </thead>
       <tbody>
@@ -103,6 +108,7 @@
           <td>{{ node.os_image }}</td>
           <td>{{ node.kernel_version }}</td>
           <td>{{ node.container_runtime }}</td>
+          <td>{{ node.taints }}</td>
         </tr>
       {% endfor %}
       </tbody>

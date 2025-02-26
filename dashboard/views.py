@@ -146,7 +146,7 @@ def pod_info(request, cluster_name, namespace, pod_name):
     pod_info = {
         "describe": k8s_pods.get_pod_description(path, current_cluster.cluster_name, namespace, pod_name),
         "logs": k8s_pods.get_pod_logs(path, current_cluster.cluster_name, namespace, pod_name),
-        "events": k8s_pods.get_pod_events(path, current_cluster.cluster_name, namespace, pod_name),
+        "events": k8s_pods.get_pod_events(path, current_cluster.cluster_name, namespace, pod_name) or "< None >",
         "yaml": k8s_pods.get_pod_yaml(path, current_cluster.cluster_name, namespace, pod_name)
     }
 

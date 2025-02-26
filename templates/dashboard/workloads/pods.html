@@ -1,5 +1,7 @@
 {% extends 'dashboard/base.html' %}
 
+{% load static %}
+
 {% block title %}Pods{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pod-128.png?raw=true{% endblock %}
@@ -7,15 +9,37 @@
 {% block content %}
 
 <div class="container">
-  <div class="row text-center">
+  <!-- <div class="row text-center">
     <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: {{pc}}</i></b></div></div>
     <div class="col-md-2"><div class="stats-card bg-success"><b><i>Running: {{status_count.Running}}</i></b></div></div>
     <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Failed: {{status_count.Failed}}</i></b></div></div>
     <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Pending: {{status_count.Pending}}</i></b></div></div>
     <div class="col-md-3"><div class="stats-card bg-info"><b><i>Succeeded: {{status_count.Succeeded}}</i></b></div></div>
+  </div> -->
+  <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
+    <div class="row mb-0">
+      <div class="col-md-3 align-items-center justify-content-center mx-auto">
+        <div class="grid-box flex-fill stats-card bg-primary "><b><i>Total Pods: {{pc}}</i></b></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+        <div class="grid-box stats-card bg-success text-center p-3 w-100 m-2 "><b><i>Running: {{status_count.Running}}</i></b></div>
+        <div class="grid-box stats-card bg-warning text-center p-3 w-100 m-2"><b><i>Pending: {{status_count.Pending}}</i></b></div>
+      </div>
+      <div class="col-md-6 d-flex align-items-center justify-content-center">
+        <div class="grid-box d-flex align-items-center justify-content-center p-1 w-100" style="min-height: 200px;">
+            <canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas>
+        </div>
+    </div>
+      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+        <div class="grid-box stats-card bg-danger text-center p-3 w-100 m-2"><b><i>Failed: {{status_count.Failed}}</i></b></div>
+        <div class="grid-box stats-card bg-info text-center p-3 w-100 m-2"><b><i>Succeeded: {{status_count.Succeeded}}</i></b></div>
+      </div>
+    </div>
   </div>
   
-  <div class="container">
+  <div class="container p-0 m-0">
     <!-- Dropdowns container -->
     <div class="mb-3 d-flex justify-content-between">
       <!-- New dropdown on the left -->
@@ -109,15 +133,16 @@
           <td>{{ pod.ip }}</td>
           <td>{{ pod.restarts }}</td>
           <td>{{ pod.age }}</td>
-          <td class="{% if pod.status == "Running" %} bg-success {% elif pod.status == "Pending" %} bg-warning {% elif pod.status == "Succeeded" %} bg-info {% else %} bg-danger {% endif %}">{{ pod.status }}</td>
+          <td style="{% if pod.status == "Running" %} background-color: #b3e6b3; {% elif pod.status == "Pending" %} background-color: #fff3cd; {% elif pod.status == "Succeeded" %} background-color: #bee3f8; {% endif %}">{{ pod.status }}</td>
         </tr>
       {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
-
+<script src="{% static 'js/namespaceFilter.js' %}"></script>
 <script>
+/*
 function namespaceHandler(event) {
   let selectedNamespace = event.target.innerText.trim();
     let tableRows = document.querySelectorAll("tbody tr");
@@ -152,6 +177,38 @@ function namespaceHandler(event) {
     // Update dropdown text to reflect the selected namespace
     document.getElementById("newDropdown").innerText = selectedNamespace;
 }
+*/
+// gauge chart
+const ctx = document.getElementById('gaugeChart').getContext('2d');
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels:['Running', 'Pending','Failed','Succeeded'],
+        datasets: [{
+          label: 'Count',
+            data: ["{{status_count.Running}}","{{status_count.Pending}}","{{status_count.Failed}}","{{status_count.Succeeded}}"], // First part is the filled, second is remaining, third is hidden
+            backgroundColor: ['#198754','#ffc107','#dc3545','#0dcaf0', 'transparent'], // Green for filled, gray for remaining, transparent for hiding
+        }]
+    },
+    options: {
+        rotation: -90,
+        circumference: 180,
+        cutout: '70%',
+        plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              position: 'bottom',
+              text: 'Pod Status Summary',
+              font: {
+                  size: 20,
+                  weight: 'bold'
+              },
+          }
+        }
+    }
+});
 </script>
 
 {% endblock %}

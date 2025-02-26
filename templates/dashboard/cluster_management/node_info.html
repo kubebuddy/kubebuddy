@@ -33,7 +33,7 @@
                 <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
                     <pre>
 <b>Name:</b> {{ node_info.describe.name }}
-<b>Roles:</b> {{ node_info.describe.roles }}
+<b>Roles:</b> {{node_info.describe.roles|join:", "}}
 <b>Labels:</b>{% for label, value in node_info.describe.labels %}
     {{ label }}: {{ value }}{% if not loop.last %}, {% endif %}{% empty %}
     None{% endfor %}

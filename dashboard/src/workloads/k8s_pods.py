@@ -42,6 +42,8 @@ def getPodsStatus(path, context, namespace="all"):
                     break
             if all_container_running:
                 status_counts["Running"]+=1
+        else:
+            status_counts["Failed"]+=1
 
     return status_counts
 
@@ -60,6 +62,7 @@ def getPodStatus(pod):
                 return "Failed"
         if all_container_running:
             return "Running"
+    return "Failed"
 
 def get_pod_info(config_path, cluster_name):
 
@@ -144,7 +147,12 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
 def get_pod_logs(path, context, namespace, pod_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
-    return v1.read_namespaced_pod_log(name=pod_name, namespace=namespace)
+    try:
+        logs = v1.read_namespaced_pod_log(name=pod_name, namespace=namespace)
+    except Exception as e:
+        if e.status == 400:
+            logs = None
+    return logs
 
 def get_pod_events(path, context, namespace, pod_name):
     config.load_kube_config(path, context)

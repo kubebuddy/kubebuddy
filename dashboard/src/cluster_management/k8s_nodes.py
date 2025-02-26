@@ -43,6 +43,7 @@ def get_nodes_info(path: str, context: str):
     node_data = []
     
     for node in nodes:
+        print(node)
         if node.status.conditions:
             # Check if any condition type is "Ready" and its status is "True"
             is_ready = any(condition.type == "Ready" and condition.status == "True" for condition in node.status.conditions)
@@ -56,11 +57,10 @@ def get_nodes_info(path: str, context: str):
             status = "Not Ready"
 
         if node.status.addresses:
-            internal_ip = next((addr.address for addr in node.status.addresses if addr.type == "InternalIP"), "Unknown")
-            external_ip = next((addr.address for addr in node.status.addresses if addr.type == "ExternalIP"), "Unknown")
-        else:
-            internal_ip = "-"
-            external_ip = "-"
+            internal_ip = next((addr.address for addr in node.status.addresses if addr.type == "InternalIP"), "None")
+        if node.status.addresses:
+            external_ip = next((addr.address for addr in node.status.addresses if addr.type == "ExternalIP"), "None")
+        
 
         if node.metadata.labels:
             roles = node.metadata.labels.get("kubernetes.io/role", "Unknown")
@@ -91,11 +91,11 @@ def get_node_description(path=None, context=None, node_name=None):
     try:
         # Fetch node details
         node = v1.read_node(name=node_name)
-
+        roles = [key.replace("node-role.kubernetes.io/", "") for key in node.metadata.labels if key.startswith("node-role.kubernetes.io/")]
         # Prepare node information
         node_info = {
             "name": node.metadata.name,
-            "roles": node.metadata.labels.get("kubernetes.io/role", "Unknown"),
+            "roles": roles,
             "labels": list(node.metadata.labels.items()) if node.metadata.labels else [],
             "annotations": list(node.metadata.annotations.items()) if node.metadata.annotations else [],
             "creation_timestamp": node.metadata.creation_timestamp,

@@ -1051,14 +1051,14 @@ def pod_metrics(request, cluster_name):
     # get namespaces
     namespaces = k8s_namespaces.get_namespace(path, cluster_name)
 
-    # metrics, count = k8s_pod_metrics.get_pod_metrics()
+    metrics, count = k8s_pod_metrics.get_pod_metrics(path, cluster_name)
 
     return render(request, 'dashboard/metrics/pod_metrics.html', {
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
         'registered_clusters': registered_clusters,
-        # 'serviceAccount': serviceAccount,
-        # 'total_serviceAccount': total_serviceAccount,
+        'metrics': metrics,
+        'pod_count': count,
         'namespaces': namespaces
     })
 

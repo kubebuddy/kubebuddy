@@ -34,12 +34,18 @@
       <span class="fs-5 fw-semibold">KubeBuddy</span>
     </a>
   
-    <!-- Right Section (Button + Dropdown) -->
-    <div class="d-flex ms-auto align-items-center gap-2">
-      <button id="reload-btn" class="btn btn-primary">
-        <i class="bi bi-arrow-clockwise"></i>
-      </button>
-  
+      <!-- Right Section (Button + Dropdown) -->
+      <div class="d-flex ms-auto align-items-center gap-2">
+        <button id="reload-btn" class="btn btn-primary">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        
+        <!-- Dark Mode Toggle -->
+        <button id="darkModeToggle" class="btn btn-secondary">
+          <i class="bi bi-moon"></i> <!-- Icon for dark mode -->
+        </button>
+      
+
       <div class="dropdown">
         <button class="btn btn-link dropdown-toggle d-flex align-items-center" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="true">
           <i class="bi bi-person-circle fs-4"></i> <!-- User Icon -->
@@ -65,11 +71,11 @@
       <!-- cluster dropdown -->
       <div class="card-body d-flex flex-column">
         <div class="container my-4">
-            <div class="dropdown ">
-                <input type="text" id="search-bar" class="form-control fw-bold" style="background-color:#0d6efd; color:white; cursor:pointer;" placeholder="Search for clusters..." onkeyup="searchClusters()">
-                <i class="bi bi-caret-down-fill position-absolute" 
-                  style="right: 15px; top: 50%; transform: translateY(-50%); color: white; pointer-events: none;"></i>
-                <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
+          <div class="dropdown ">
+            <input type="text" id="search-bar" class="form-control fw-bold" style="background-color:#0d6efd; color:white; cursor:pointer;" placeholder="Search for clusters..." onkeyup="searchClusters()">
+              <i class="bi bi-caret-down-fill position-absolute"
+                style="right: 15px; top: 50%; transform: translateY(-50%); color: white; pointer-events: none;"></i>
+              <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
                     {% for cluster in registered_clusters %}
                     <a href="
                     {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
@@ -261,7 +267,7 @@
   
   <script>
     // reload
-      function reloadPage() {
+    function reloadPage() {
       // Disable the button and show the spinner when clicked
       var reloadButton = document.getElementById("reload-btn");
       reloadButton.innerHTML = 'Refreshing... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
@@ -271,6 +277,48 @@
             location.reload();
         }, 100);  // 1-second delay before reloading
     }
+
+    document.addEventListener("DOMContentLoaded", function () {
+    const toggleButton = document.getElementById("darkModeToggle");
+    const body = document.body;
+    const sidebar = document.getElementById("sidebar");
+
+    // Check localStorage for theme preference
+    if (localStorage.getItem("theme") === "dark") {
+        enableDarkMode();
+    }
+
+    // Toggle dark mode on button click
+    toggleButton.addEventListener("click", function () {
+        if (body.classList.contains("dark-mode")) {
+            disableDarkMode();
+        } else {
+            enableDarkMode();
+        }
+    });
+
+    function enableDarkMode() {
+        body.classList.add("dark-mode");
+        sidebar.classList.add("bg-dark", "text-white");
+        document.querySelector(".navbar").classList.add("navbar-dark", "bg-dark");
+        toggleButton.innerHTML = '<i class="bi bi-sun"></i>'; // Change icon to sun
+        document.querySelectorAll("table").forEach(table => {
+            table.classList.add("table-dark");
+        });
+        localStorage.setItem("theme", "dark");
+    }
+
+    function disableDarkMode() {
+        body.classList.remove("dark-mode");
+        sidebar.classList.remove("bg-dark", "text-white");
+        document.querySelector(".navbar").classList.remove("navbar-dark", "bg-dark");
+        toggleButton.innerHTML = '<i class="bi bi-moon"></i>'; // Change icon to moon
+        document.querySelectorAll("table").forEach(table => {
+            table.classList.remove("table-dark");
+        });
+        localStorage.setItem("theme", "light");
+      }
+    });
 
 
 
@@ -336,8 +384,8 @@
             list.classList.remove("show"); // Hide dropdown if input is empty
         }
 
-
-        for (var i = 0; i < items.length; i++) {
+  
+      for (var i = 0; i < items.length; i++) {
             item = items[i];
             textValue = item.textContent || item.innerText;
             if (textValue.toLowerCase().indexOf(filter) > -1) {

@@ -1,0 +1,81 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Node Metrics{% endblock %}
+
+{% block favicon %}https://cdn-icons-png.flaticon.com/512/18510/18510277.png{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row text-center">
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Nodes:</i></b></div></div>
+  </div>
+  
+  <div class="container">
+    <!-- Dropdown with checkboxes to select columns -->
+    <div class="mb-3 d-flex justify-content-between">
+      
+        <div class="dropdown">
+          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Columns to Display
+          </button>
+          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+                <label class="form-check-label" for="All"> All</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
+                <label class="form-check-label" for="Name"> Name</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="cpu_cores" id="cpu_cores" checked> 
+                <label class="form-check-label" for="cpu_cores"> CPU (cores)</label>
+            </li>
+            <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="cpu_percent" id="cpu_percent" checked> 
+              <label class="form-check-label" for="cpu_percent"> CPU %</label>
+            </li>
+            <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Memory_bytes" id="Memory_bytes" checked> 
+              <label class="form-check-label" for="Memory_bytes"> Memory (bytes)</label>
+            </li>
+            <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Memory_percent" id="Memory_percent" checked> 
+              <label class="form-check-label" for="Memory_percent"> Memory %</label>
+            </li>
+
+        </ul>
+        </div>
+    </div>
+  
+    <!-- Table -->
+    <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
+      <thead class="table-dark">
+        <tr>
+          <th id="colName">NAME</th>
+          <th id="colcpu_cores">CPU (cores)</th>
+          <th id="colcpu_percent">CPU %</th>
+          <th id="colMemory_bytes">Memory (bytes)</th>
+          <th id="colMemory_percent">Memory %</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for met in metrics %}
+        <tr>
+          <td>{{ met.namespace }}</td>
+          <td>{{ met.name }}</td>
+          <td>{{ met.cpu_cores }}</td>
+          <td>{{ met.cpu_percent }} </td>
+          <td>{{ met.memory_bytes }}</td>
+          <td>{{ met.memory_percent }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      </table>
+  </div>
+  <script src="{% static 'js/namespaceFilter.js' %}"></script>
+
+{% endblock %}

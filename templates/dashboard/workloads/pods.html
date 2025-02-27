@@ -133,7 +133,8 @@
           <td>{{ pod.ip }}</td>
           <td>{{ pod.restarts }}</td>
           <td>{{ pod.age }}</td>
-          <td style="{% if pod.status == "Running" %} background-color: #b3e6b3; {% elif pod.status == "Pending" %} background-color: #fff3cd; {% elif pod.status == "Succeeded" %} background-color: #bee3f8; {% endif %}">{{ pod.status }}</td>
+          <!-- <td style="{% if pod.status == "Running" %} background-color: #b3e6b3; {% elif pod.status == "Pending" %} background-color: #fff3cd; {% elif pod.status == "Succeeded" %} background-color: #bee3f8; {% endif %}">{{ pod.status }}</td> -->
+          <td><span class="{% if pod.status == "Running" %}running-pod{% elif pod.status == "Pending" %} pending-pod {% elif pod.status == "Succeeded" %} succeeded-pod {% endif %}">{{ pod.status }}</span></td>
         </tr>
       {% endfor %}
       </tbody>
@@ -142,42 +143,6 @@
 </div>
 <script src="{% static 'js/namespaceFilter.js' %}"></script>
 <script>
-/*
-function namespaceHandler(event) {
-  let selectedNamespace = event.target.innerText.trim();
-    let tableRows = document.querySelectorAll("tbody tr");
-    pod_count = {
-      "Total": 0,
-      "Running": 0,
-      "Failed": 0,
-      "Pending": 0
-    }
-    tableRows.forEach(row => {
-        let namespaceCell = row.querySelector("td:first-child");
-        let statusCell = row.querySelector("td:last-child");
-        if (namespaceCell && statusCell) {
-            let namespace = namespaceCell.innerText.trim();
-            let status = statusCell.innerText.trim();
-            if (selectedNamespace === "All Namespaces" || namespace === selectedNamespace) {
-                row.style.display = "table-row";
-                pod_count["Total"]++;
-                if (pod_count.hasOwnProperty(status)) {
-                    pod_count[status]++;
-                }
-            } else {
-                row.style.display = "none";
-            }
-        }
-    });
-    // Update pod count display
-    document.querySelector(".stats-card.bg-primary b i").innerText = `Total Pods: ${pod_count["Total"]}`;
-    document.querySelector(".stats-card.bg-success b i").innerText = `Running: ${pod_count["Running"] || 0}`;
-    document.querySelector(".stats-card.bg-danger b i").innerText = `Failed: ${pod_count["Failed"] || 0}`;
-    document.querySelector(".stats-card.bg-warning b i").innerText = `Pending: ${pod_count["Pending"] || 0}`;
-    // Update dropdown text to reflect the selected namespace
-    document.getElementById("newDropdown").innerText = selectedNamespace;
-}
-*/
 // gauge chart
 const ctx = document.getElementById('gaugeChart').getContext('2d');
 
@@ -207,7 +172,26 @@ new Chart(ctx, {
               },
           }
         }
-    }
+    },
+    plugins: [{
+      beforeDraw: function(chart) {
+          let width = chart.width,
+          height = chart.height,
+          ctx = chart.ctx;
+
+          ctx.restore();
+          let fontSize = (height / 120).toFixed(2);
+          ctx.font = fontSize + "em sans-serif";
+          ctx.textBaseline = "middle";
+
+          let text = "KB";
+          let textX = Math.round((width - ctx.measureText(text).width) / 2);
+          let textY = height / 1.8;
+
+          ctx.fillText(text, textX, textY);
+          ctx.save();
+      }
+  }]
 });
 </script>
 

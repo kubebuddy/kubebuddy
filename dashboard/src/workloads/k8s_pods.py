@@ -73,12 +73,14 @@ def get_pod_info(config_path, cluster_name):
 
     pod_info_list = []
     for pod in pods.items:
-
         status = getPodStatus(pod)
+        container_statuses = pod.status.container_statuses or []
+        ready_count = sum(1 for status in container_statuses if status.ready)
+        total_count = len(container_statuses)
         pod_info_list.append({
             "namespace": pod.metadata.namespace,
             "name": pod.metadata.name,
-            "containers": f"{len(pod.spec.containers)}/{len(pod.spec.containers)}",
+            "containers": f"{ready_count}/{total_count}",
             "node": pod.spec.node_name,
             "ip": pod.status.pod_ip or "N/A",
             "restarts": sum(container.restart_count for container in pod.status.container_statuses or []),
@@ -99,11 +101,12 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
         pod_info = {
             "name": pod.metadata.name,
             "namespace": pod.metadata.namespace,
+            "priority": pod.spec.priority,
             "status": pod.status.phase,
             "node_name": pod.spec.node_name,
             "pod_ip": pod.status.pod_ip,
             "host_ip": pod.status.host_ip,
-            "start_time": pod.status.start_time.isoformat() if pod.status.start_time else None,
+            "start_time": pod.status.start_time.strftime('%a, %d %b %Y %H:%M:%S %z') if pod.status.start_time else None,
             "labels": list(pod.metadata.labels.items()),  # Convert to list of tuples
             "annotations": list(pod.metadata.annotations.items()) if pod.metadata.annotations else [],
             "service_account": pod.spec.service_account_name,

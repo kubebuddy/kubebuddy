@@ -384,6 +384,37 @@ main {
 
 /* -------------------------- Pods CSS -------------------------- */
 
+.running-pod {
+ background-color: #b3e6b3 !important;
+ padding: 0.3rem;
+ border-radius: 0.4rem;
+}
+.dark-mode .running-pod {
+ background-color: #198754 !important;
+ padding: 0.3rem;
+ border-radius: 0.4rem;
+}
+.pending-pod {
+ background-color: #ebcd6c !important;
+ padding: 0.3rem;
+ border-radius: 0.4rem;
+}
+.dark-mode .pending-pod {
+ background-color: #ffc107 !important;
+ padding: 0.3rem;
+ border-radius: 0.4rem;
+}
+.succeeded-pod {
+ background-color: #bee3f8 !important;
+ padding: 0.3rem;
+ border-radius: 0.4rem;
+}
+.dark-mode .succeeded-pod {
+ background-color: #0dcaf0 !important;
+ padding: 0.3rem;
+ border-radius: 0.4rem;
+}
+
 .table th, .table td {
   text-align: center;
   vertical-align: middle;

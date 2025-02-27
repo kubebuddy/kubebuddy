@@ -10,7 +10,7 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 resourcequota_info, cronjob_info, configmap_info, pvc_info, \
                                 secret_info, role_info, pv_info, storageclass_info, role_binding_info, \
                                 clusterrole_info, cluster_role_binding_info, serviceAccountInfo, \
-                                pod_metrics, node_metrics
+                                pod_metrics, node_metrics, pdb, pdb_info, np
 
 
 urlpatterns = [
@@ -59,11 +59,13 @@ urlpatterns = [
     path('<str:cluster_name>/namespace', namespace, name="namespace"),
     path('<str:cluster_name>/limitrange', limitrange, name="limitrange"),
     path('<str:cluster_name>/resourcequotas', resourcequotas, name="resourcequotas"),
+    path('<str:cluster_name>/pdb', pdb, name="pdb"),
 
     path('<str:cluster_name>/nodes/<str:node_name>/', node_info, name='node_info'),
     path('<str:cluster_name>/namespace/<str:namespace>/', ns_info, name='ns_info'),
     path('<str:cluster_name>/limitrange/<str:namespace>/<str:limitrange_name>/', limitrange_info, name='limitrange_info'),
     path('<str:cluster_name>/resourcequotas/<str:namespace>/<str:resourcequota_name>/', resourcequota_info, name='resourcequota_info'),
+    path('<str:cluster_name>/pdb/<str:namespace>/<str:pdb_name>/', pdb_info, name='pdb_info'),
 
     # Persistent Storage
     path('<str:cluster_name>/pv', persistentvolume, name="persistentvolume"),
@@ -75,6 +77,10 @@ urlpatterns = [
 
     path('<str:cluster_name>/sc/<str:sc_name>/', storageclass_info, name='sc_info'),
     
+    # Networking
+    path('<str:cluster_name>/np', np, name="np"),
+
+
     # RBAC
     path('<str:cluster_name>/role', role, name="role"),
     path('<str:cluster_name>/rolebinding', rolebinding, name="rolebinding"),

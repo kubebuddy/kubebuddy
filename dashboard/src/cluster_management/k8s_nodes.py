@@ -43,7 +43,6 @@ def get_nodes_info(path: str, context: str):
     node_data = []
     
     for node in nodes:
-        print(node)
         if node.status.conditions:
             # Check if any condition type is "Ready" and its status is "True"
             is_ready = any(condition.type == "Ready" and condition.status == "True" for condition in node.status.conditions)

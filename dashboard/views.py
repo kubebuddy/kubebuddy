@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from .src.cluster_management import k8s_namespaces, k8s_nodes, k8s_limit_range, k8s_resource_quota
+from .src.cluster_management import k8s_namespaces, k8s_nodes, k8s_limit_range, k8s_resource_quota, k8s_pdb
 
 from .src.services import k8s_endpoints, k8s_services
 
@@ -730,6 +730,44 @@ def resourcequota_info(request, cluster_name, namespace, resourcequota_name):
         'registered_clusters': registered_clusters,
     })
 
+def pdb(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+    registered_clusters = clusters_DB.get_registered_clusters()
+    # get namespaces
+    namespaces = k8s_namespaces.get_namespace(path, cluster_name)
+
+    pdbs, pdbs_count = k8s_pdb.get_pdb(path, cluster_name)
+
+    return render(request, 'dashboard/cluster_management/pdb.html', {
+        "cluster_id": cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'pdbs': pdbs,
+        "namespaces": namespaces,
+        "pdbs_count": pdbs_count
+    })
+
+def pdb_info(request, cluster_name, namespace, pdb_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id=cluster_id)
+    path = current_cluster.kube_config.path
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    pdb_info = {
+        "describe": k8s_pdb.get_pdb_description(path, cluster_name, namespace, pdb_name),
+        "events": k8s_pdb.get_pdb_events(path, cluster_name, namespace, pdb_name),
+        "yaml": k8s_pdb.get_pdb_yaml(path, cluster_name, namespace, pdb_name),
+    }
+
+    return render(request, 'dashboard/cluster_management/pdb_info.html', {
+        "pdb_info": pdb_info,
+        "cluster_id": cluster_id,
+        "pdb_name": pdb_name,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+    })
 
 def persistentvolume(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
@@ -847,6 +885,17 @@ def storageclass_info(request, cluster_name, sc_name):
         'registered_clusters': registered_clusters,
         'sc_info': sc_info,
     })
+
+# Networking
+
+def np(request, cluster_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+    # get namespaces
+    namespaces = k8s_namespaces.get_namespace(path, cluster_name)
 
 def role(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')

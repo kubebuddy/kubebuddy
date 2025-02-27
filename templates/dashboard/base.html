@@ -424,19 +424,22 @@
     let currentUrl = window.location.pathname; // Get current path without query param
 
     sidebarLinks.forEach(link => {
-        if (link.getAttribute("href").split('?')[0] === currentUrl) {
-          if (link.classList.contains("dark-mode")){
-            link.style.backgroundColor = "#007acc";
-            link.style.color = "#ffffff";
-          } else{
-            link.style.backgroundColor = "#8ddbff";
-          }
-          link.style.borderRadius = "5px";
-          link.style.padding = "5px 10px";
-          link.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
+        let linkHref = link.getAttribute("href").split('?')[0];
+        if (linkHref === currentUrl) {
+            if (document.body.classList.contains("dark-mode")) {
+                link.style.backgroundColor = "#007acc";
+                link.style.color = "#ffffff";
+                console.log("Dark mode applied");
+            } else {
+                link.style.backgroundColor = "#8ddbff";
+            }
+            link.style.borderRadius = "5px";
+            link.style.padding = "5px 10px";
+            link.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
       });
     });
+    
     document.addEventListener("DOMContentLoaded", function () {
     let sidebarLinks = document.querySelectorAll("#cluster-list a li");
     let currentCluster = window.location.pathname.split("/")[1]

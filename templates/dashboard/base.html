@@ -41,9 +41,12 @@
         </button>
         
         <!-- Dark Mode Toggle -->
-        <button id="darkModeToggle" class="btn btn-secondary">
-          <i class="bi bi-moon"></i> <!-- Icon for dark mode -->
-        </button>
+
+        <div class="ms-auto">
+          <button id="darkModeToggle" class="btn btn-outline-secondary">
+              <i class="bi bi-moon-stars"></i>
+          </button>
+        </div>
       
 
       <div class="dropdown">
@@ -103,10 +106,10 @@
           <div class="collapse show" id="workload-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               <li><a href="/{{current_cluster}}/pods?cluster_id={{cluster_id}}" class="link-dark rounded">Pods</a></li>
-              <li><a href="/{{current_cluster}}/replicasets?cluster_id={{cluster_id}}" class="link-dark rounded">ReplicaSet</a></li>
+              <li><a href="/{{current_cluster}}/replicasets?cluster_id={{cluster_id}}" class="link-dark rounded">ReplicaSets</a></li>
               <li><a href="/{{current_cluster}}/deployments?cluster_id={{cluster_id}}" class="link-dark rounded">Deployments</a></li>
               <li><a href="/{{current_cluster}}/statefulsets?cluster_id={{cluster_id}}" class="link-dark rounded">StatefulSets</a></li>
-              <li><a href="/{{current_cluster}}/daemonset?cluster_id={{cluster_id}}" class="link-dark rounded">DaemonSet</a></li>
+              <li><a href="/{{current_cluster}}/daemonset?cluster_id={{cluster_id}}" class="link-dark rounded">DaemonSets</a></li>
               <li><a href="/{{current_cluster}}/jobs?cluster_id={{cluster_id}}" class="link-dark rounded">Jobs</a></li>
               <li><a href="/{{current_cluster}}/cronjobs?cluster_id={{cluster_id}}" class="link-dark rounded">CronJob</a></li>
             </ul>
@@ -246,14 +249,21 @@
     <div class="chatbot-container">
       <button class="chatbot-button" onclick="toggleChat()"><i class="bi bi-robot"></i></button>
       <div class="chatbot-window" id="chatbotWindow" style="display: none;">
-          <div class="chat-header">Buddy AI 🤘🏻✨</div>
+          <div class="chat-header">
+              Buddy AI 🤘🏻✨
+              <div class="chat-header-buttons">
+                <button class="clear-chat-btn" onclick="clearChatHistory()"><i class="bi bi-trash"></i></button>  
+                <button class="close-chat-btn" onclick="toggleChat()"><i class="bi bi-x-lg"></i></button>
+              </div>
+          </div>
           <div class="chat-body" id="chatBody"></div>
           <div class="chat-input">
-              <input type="text" id="chatInput" placeholder="Type a message...">
+              <input type="text" id="chatInput" placeholder="Type a query...">
               <button onclick="sendMessage()">Send</button>
           </div>
       </div>
   </div>
+  
     
 
   </main>
@@ -312,7 +322,7 @@
         body.classList.remove("dark-mode");
         sidebar.classList.remove("bg-dark", "text-white");
         document.querySelector(".navbar").classList.remove("navbar-dark", "bg-dark");
-        toggleButton.innerHTML = '<i class="bi bi-moon"></i>'; // Change icon to moon
+        toggleButton.innerHTML = '<i class="bi bi-moon-stars"></i>'; // Change icon to moon
         document.querySelectorAll("table").forEach(table => {
             table.classList.remove("table-dark");
         });
@@ -320,12 +330,6 @@
       }
     });
 
-
-
-    function toggleChat() {
-        var chatWindow = document.getElementById("chatbotWindow");
-        chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
-    }
 
     // Reload button event listener
     document.getElementById("reload-btn").addEventListener("click", reloadPage);

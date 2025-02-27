@@ -1,237 +1,321 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KubeBuddy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/11231/11231852.png">
+    <style>
+        /* Custom styles for dark mode */
+        [data-bs-theme="dark"] .sidebar {
+            background-color: #121212 !important;
+            border-color: #495057 !important;
+        }
+        
+        [data-bs-theme="dark"] .link-dark {
+            color: #f8f9fa !important;
+        }
+        
+        [data-bs-theme="dark"] .card {
+            background-color: #121212;
+            border-color: #495057;
+        }
+        
+        [data-bs-theme="dark"] .text-black {
+            color: #f8f9fa !important;
+        }
+        
+        /* Animation for theme transition */
+        html.transition,
+        html.transition *,
+        html.transition *:before,
+        html.transition *:after {
+            transition: all 0.3s ease-in-out !important;
+        }
+    </style>
 </head>
 <body>
     <div class="d-flex">
         <!-- side bar -->
-    <div class="sidebar p-3 flex-shrink-0 bg-white border-end" style="width: 20rem; height:100vh">
-        <a href="/KubeBuddy" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
-            <img src="https://cdn-icons-png.flaticon.com/512/11231/11231852.png" width="30" height="30" alt="KubeBuddy Logo">
-            <span class="fs-5 p-2 fw-semibold">KubeBuddy</span>
+        <div class="sidebar p-3 flex-shrink-0 bg-white border-end" style="width: 20rem; height:100vh">
+            <div class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+                <a href="/KubeBuddy" class="d-flex align-items-center link-dark text-decoration-none">
+                    <img src="https://cdn-icons-png.flaticon.com/512/11231/11231852.png" width="30" height="30" alt="KubeBuddy Logo">
+                    <span class="fs-5 p-2 fw-semibold">KubeBuddy</span>
+                </a>
+                <div class="ms-auto">
+                    <button id="theme-toggle" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <div class="container my-4">
+                    <div class="dropdown">
+                        <input type="text" id="search-bar" class="form-control" placeholder="Search for clusters..." onkeyup="searchClusters()">
+                        <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
+                            {% for cluster in registered_clusters %}
+                            <a href="
+                            {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
+                            /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
+                            {% else %}
+                            {% url 'cluster_error' %}
+                            {% endif %}
+                            " class="text-decoration-none">
+                            <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
+                            </a>
+                            {% empty %}
+                                <li class="list-group-item">No clusters found.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- main page  -->
+        <div class="container mt-4">
+            <div class="pb-1 border-bottom d-flex justify-content-between">
+                <a type="button" class="btn btn-primary w-auto mt-auto mb-3" href="{% url 'integrate' %}">
+                    Add Cluster
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+                <button id="reload-btn" class="btn btn-primary w-auto mt-auto mb-3">
+                    Refresh
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
             <br><br>
-          </a>
-        <div class="card-body d-flex flex-column">
-            <div class="container my-4">
-                <div class="dropdown">
-                    <input type="text" id="search-bar" class="form-control" placeholder="Search for clusters..." onkeyup="searchClusters()">
-                    <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
-                        {% for cluster in registered_clusters %}
+            <div class="row">
+                <!-- Cluster Cards -->
+                <div class="col-md-4 mb-4 ">
+                    <a href="{% url 'integrate' %}">
+                    <div class="card h-100 shadow-sm d-flex justify-content-center align-items-center" style="min-height:35vh;">
+                        <h1><i class="bi bi-plus-square"></i></h1>
+                    </div>
+                    </a>
+                </div>
+                {% for cluster in registered_clusters %}
+                <div class="col-md-4 mb-4 ">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header d-flex justify-content-between 
+                            {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
+                                bg-success text-white
+                            {% else %}
+                                bg-danger text-white
+                            {% endif %}">
+                        <span id="cluster_tag" class="w-100" contenteditable>{{ cluster.cluster_name }}</span>
+                        </div>
                         <a href="
                         {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
                         /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
                         {% else %}
                         {% url 'cluster_error' %}
                         {% endif %}
-                        " class="text-decoration-none">
-                        <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
-                        </a>
-                        {% empty %}
-                            <li class="list-group-item">No clusters found.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- main page  -->
-    <div class="container mt-4">
-        <div class="pb-1 border-bottom d-flex justify-content-between">
-            <a type="button" class="btn btn-primary w-auto mt-auto mb-3" href="{% url 'integrate' %}">
-                Add Cluster
-                <i class="bi bi-plus-lg"></i>
-            </a>
-            <button id="reload-btn" class="btn btn-primary w-auto mt-auto mb-3">
-                Refresh
-                <i class="bi bi-arrow-clockwise"></i>
-            </button>
-        </div>
-        <br><br>
-        <div class="row">
-            <!-- Cluster Cards -->
-            <div class="col-md-4 mb-4 ">
-                <a href="{% url 'integrate' %}">
-                <div class="card h-100 shadow-sm d-flex justify-content-center align-items-center" style="min-height:35vh;">
-                    <h1><i class="bi bi-plus-square"></i></h1>
-                </div>
-                </a>
-            </div>
-            {% for cluster in registered_clusters %}
-            <div class="col-md-4 mb-4 ">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-header d-flex justify-content-between 
-                        {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
-                            bg-success text-white
-                        {% else %}
-                            bg-danger text-white
-                        {% endif %}">
-                    <span id="cluster_tag" class="w-100" contenteditable>{{ cluster.cluster_name }}</span>
-                    </div>
-                    <a href="
-                    {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
-                    /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
-                    {% else %}
-                    {% url 'cluster_error' %}
-                    {% endif %}
-                    " 
-                    class="text-decoration-none" style="text-decoration: none;">
-                    <div class="card-body d-flex flex-column">
-                        <p class="card-text text-black lh-sm">
-                            <strong>Name:</strong>
-                            {% if cluster.cluster_name %}
-                                {{ cluster.cluster_name }}
-                            {% else %}
-                                <span>Error</span>
-                            {% endif %}
-                        </p>
-                        <p class="card-text text-black lh-sm">
-                            <strong>Nodes:</strong>
-                            {% if cluster.number_of_nodes %}
-                                {{ cluster.number_of_nodes }}
-                            {% else %}
-                                None
-                            {% endif %}
-                        </p>
-                        <p class="card-text text-black lh-sm">
-                            <strong>Control Plane : </strong>
-                            {% if cluster.control_plane_status == "Running" %}
-                               <span class="text-success">Running</span>
-                            {% elif cluster.control_plane_status == "Unhealthy" %}
-                                <span class="text-danger">Unhealthy</span>
-                                <i class="bi bi-exclamation-triangle-fill text-danger"
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="top"
-                                title="Problematic Pods: {% for pod in cluster.failed_control_pods %}{{ pod }} not working {% if not forloop.last %}, {% endif %}{% endfor %}">
-                                </i>
-                            {% else %}
-                                <span class="text-danger">Unavailable</span>
-                                <i class="bi bi-exclamation-triangle-fill text-danger"
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="top"
-                                title="Could not connect to cluster {{cluster.cluster_name}}">
-                                </i>
-                            {% endif %}
-                        </p>
-                        <p class="card-text text-black lh-sm">
-                            <strong>CoreDNS : </strong>
-                            {% if cluster.core_dns_status == "Running" %}
-                                <span class="text-success">Running</span>
-                            {% elif cluster.core_dns_status == "Unhealthy" %}
-                                <span class="text-danger">Unhealthy</span>
-                                <i class="bi bi-exclamation-triangle-fill text-danger"
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="top"
-                                title="Problematic Pods: {% for pod in cluster.failed_dns_pods %}{{ pod }} not working {% if not forloop.last %}, {% endif %}{% endfor %}">
-                                </i>
-                            {% else %}
-                                <span class="text-danger">Unavailable</span>
-                                <i class="bi bi-exclamation-triangle-fill text-danger"
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="top"
-                                title="Could not connect to cluster {{cluster.cluster_name}}">
-                                </i>
-                            {% endif %}
-                        </p>
-                        <p class="card-text text-black lh-sm">
-                            <strong>Kube config:</strong>
-                            {% if cluster.kube_config.path %}
-                                {{ cluster.kube_config.path }}
-                            {% else %}
-                                <span class="text-wanring">Path not available</span>
-                            {% endif %}
-                        </p>
-                        <div class="mt-auto d-flex justify-content-end">
-                            <button class="btn btn-danger btn-sm " onclick="deleteCluster(event,'{{ cluster.id }}')"><i class="bi bi-trash"></i></button>
+                        " 
+                        class="text-decoration-none" style="text-decoration: none;">
+                        <div class="card-body d-flex flex-column">
+                            <p class="card-text text-black lh-sm">
+                                <strong>Name:</strong>
+                                {% if cluster.cluster_name %}
+                                    {{ cluster.cluster_name }}
+                                {% else %}
+                                    <span>Error</span>
+                                {% endif %}
+                            </p>
+                            <p class="card-text text-black lh-sm">
+                                <strong>Nodes:</strong>
+                                {% if cluster.number_of_nodes %}
+                                    {{ cluster.number_of_nodes }}
+                                {% else %}
+                                    None
+                                {% endif %}
+                            </p>
+                            <p class="card-text text-black lh-sm">
+                                <strong>Control Plane : </strong>
+                                {% if cluster.control_plane_status == "Running" %}
+                                   <span class="text-success">Running</span>
+                                {% elif cluster.control_plane_status == "Unhealthy" %}
+                                    <span class="text-danger">Unhealthy</span>
+                                    <i class="bi bi-exclamation-triangle-fill text-danger"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    title="Problematic Pods: {% for pod in cluster.failed_control_pods %}{{ pod }} not working {% if not forloop.last %}, {% endif %}{% endfor %}">
+                                    </i>
+                                {% else %}
+                                    <span class="text-danger">Unavailable</span>
+                                    <i class="bi bi-exclamation-triangle-fill text-danger"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    title="Could not connect to cluster {{cluster.cluster_name}}">
+                                    </i>
+                                {% endif %}
+                            </p>
+                            <p class="card-text text-black lh-sm">
+                                <strong>CoreDNS : </strong>
+                                {% if cluster.core_dns_status == "Running" %}
+                                    <span class="text-success">Running</span>
+                                {% elif cluster.core_dns_status == "Unhealthy" %}
+                                    <span class="text-danger">Unhealthy</span>
+                                    <i class="bi bi-exclamation-triangle-fill text-danger"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    title="Problematic Pods: {% for pod in cluster.failed_dns_pods %}{{ pod }} not working {% if not forloop.last %}, {% endif %}{% endfor %}">
+                                    </i>
+                                {% else %}
+                                    <span class="text-danger">Unavailable</span>
+                                    <i class="bi bi-exclamation-triangle-fill text-danger"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    title="Could not connect to cluster {{cluster.cluster_name}}">
+                                    </i>
+                                {% endif %}
+                            </p>
+                            <p class="card-text text-black lh-sm">
+                                <strong>Kube config:</strong>
+                                {% if cluster.kube_config.path %}
+                                    {{ cluster.kube_config.path }}
+                                {% else %}
+                                    <span class="text-wanring">Path not available</span>
+                                {% endif %}
+                            </p>
+                            <div class="mt-auto d-flex justify-content-end">
+                                <button class="btn btn-danger btn-sm " onclick="deleteCluster(event,'{{ cluster.id }}')"><i class="bi bi-trash"></i></button>
+                            </div>
                         </div>
+                        </a>
                     </div>
-                    </a>
                 </div>
+                {% if forloop.counter|divisibleby:3 and not forloop.last %}
+                </div><div class="row">
+                {% endif %}
+                {% endfor %}
             </div>
-            {% if forloop.counter|divisibleby:3 and not forloop.last %}
-            </div><div class="row">
-            {% endif %}
-            {% endfor %}
         </div>
     </div>
-    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/cluster_actions.js' %}"></script>
     <script>
-        // tooltip
-    document.addEventListener("DOMContentLoaded", function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+        // Theme toggle functionality
+        document.addEventListener("DOMContentLoaded", function() {
+            // Check for saved theme preference or use preferred color scheme
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            
+            // Set initial theme based on saved preference or system preference
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-bs-theme', savedTheme);
+                updateThemeIcon(savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                updateThemeIcon('dark');
+            }
+            
+            // Theme toggle button click handler
+            themeToggleBtn.addEventListener('click', function() {
+                // Add transition class
+                document.documentElement.classList.add('transition');
+                
+                // Toggle theme
+                const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                // Set the new theme
+                document.documentElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Update icon
+                updateThemeIcon(newTheme);
+                
+                // Remove transition class after animation completes
+                setTimeout(() => {
+                    document.documentElement.classList.remove('transition');
+                }, 300);
+            });
+            
+            // Function to update theme icon
+            function updateThemeIcon(theme) {
+                const iconElement = themeToggleBtn.querySelector('i');
+                if (theme === 'dark') {
+                    iconElement.className = 'bi bi-sun';
+                    themeToggleBtn.setAttribute('title', 'Switch to light mode');
+                } else {
+                    iconElement.className = 'bi bi-moon-stars';
+                    themeToggleBtn.setAttribute('title', 'Switch to dark mode');
+                }
+            }
         });
-    });
+        
+        // tooltip
+        document.addEventListener("DOMContentLoaded", function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
 
-    // reload
-    function reloadPage() {
-        // Disable the button and show the spinner when clicked
-        var reloadButton = document.getElementById("reload-btn");
-        reloadButton.innerHTML = 'Refreshing... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-        reloadButton.disabled = true;
+        // reload
+        function reloadPage() {
+            // Disable the button and show the spinner when clicked
+            var reloadButton = document.getElementById("reload-btn");
+            reloadButton.innerHTML = 'Refreshing... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            reloadButton.disabled = true;
 
-        // Reload the page after a short delay to show the spinner
-        setTimeout(() => {
-            location.reload();
-        }, 100);  // 1-second delay before reloading
-    }
-
-    // Reload button event listener
-    document.getElementById("reload-btn").addEventListener("click", reloadPage);
-
-    // search functionality
-    function searchClusters() {
-        var input, filter, list, items, item, textValue;
-        input = document.getElementById('search-bar');
-        filter = input.value.toLowerCase();
-        list = document.getElementById('cluster-list');
-        items = list.getElementsByClassName('cluster-item');
-
-        if (filter.length > 0 || document.activeElement === input) {
-            list.classList.add("show"); // Show dropdown
-        } else {
-            list.classList.remove("show"); // Hide dropdown if input is empty
+            // Reload the page after a short delay to show the spinner
+            setTimeout(() => {
+                location.reload();
+            }, 100);  // 100ms delay before reloading
         }
 
+        // Reload button event listener
+        document.getElementById("reload-btn").addEventListener("click", reloadPage);
 
-        for (var i = 0; i < items.length; i++) {
-            item = items[i];
-            textValue = item.textContent || item.innerText;
-            if (textValue.toLowerCase().indexOf(filter) > -1) {
-                item.style.display = "";
+        // search functionality
+        function searchClusters() {
+            var input, filter, list, items, item, textValue;
+            input = document.getElementById('search-bar');
+            filter = input.value.toLowerCase();
+            list = document.getElementById('cluster-list');
+            items = list.getElementsByClassName('cluster-item');
+
+            if (filter.length > 0 || document.activeElement === input) {
+                list.classList.add("show"); // Show dropdown
             } else {
-                item.style.display = "none";
+                list.classList.remove("show"); // Hide dropdown if input is empty
+            }
+
+            for (var i = 0; i < items.length; i++) {
+                item = items[i];
+                textValue = item.textContent || item.innerText;
+                if (textValue.toLowerCase().indexOf(filter) > -1) {
+                    item.style.display = "";
+                } else {
+                    item.style.display = "none";
+                }
             }
         }
-    }
 
-    document.getElementById('search-bar').addEventListener("focus", function() {
-    var list = document.getElementById('cluster-list');
-    list.classList.add("show");
-    });
+        document.getElementById('search-bar').addEventListener("focus", function() {
+            var list = document.getElementById('cluster-list');
+            list.classList.add("show");
+        });
 
-    function showDropdown() {
-        document.getElementById('cluster-list').style.display = "block";
-    }
-
-    // Hide dropdown when clicking outside
-    document.addEventListener("click", function(event) {
-        var dropdown = document.getElementById('cluster-list');
-        var input = document.getElementById('search-bar');
-        if (!dropdown.contains(event.target) && event.target !== input) {
-            dropdown.classList.remove("show");
+        function showDropdown() {
+            document.getElementById('cluster-list').style.display = "block";
         }
-    });
 
-    // editable text
+        // Hide dropdown when clicking outside
+        document.addEventListener("click", function(event) {
+            var dropdown = document.getElementById('cluster-list');
+            var input = document.getElementById('search-bar');
+            if (!dropdown.contains(event.target) && event.target !== input) {
+                dropdown.classList.remove("show");
+            }
+        });
     </script>
 </body>
 </html>

@@ -9,7 +9,7 @@
 
 <div class="container">
   <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: {{pod_count}}</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: {{ all_pod_metrics.total_pods}}</i></b></div></div>
   </div>
   
   <div class="container">
@@ -53,6 +53,10 @@
               <input class="form-check-input column-checkbox" type="checkbox" value="Memory" id="Memory" checked> 
               <label class="form-check-label" for="Memory"> Memory</label>
           </li>
+          <li>
+            <input class="form-check-input column-checkbox" type="checkbox" value="Error" id="Error"> 
+            <label class="form-check-label" for="Error"> Error</label>
+        </li>
         </ul>
         </div>
     </div>
@@ -65,17 +69,19 @@
           <th id="colName">NAME</th>
           <th id="colcpu">CPU</th>
           <th id="colMemory">Memory</th>
+          <th id="colError">Error</th>
         </tr>
       </thead>
 
       <tbody>
-      {% for met in metrics %}
-        <tr>
-          <td>{{ met.namespace }}</td>
-          <td>{{ met.name }}</td>
-          <td>{{ met.cpu }}</td>
-          <td>{{ met.memory }}</td>
-        </tr>
+      {% for pod in all_pod_metrics %}
+      <tr>
+        <td>{{ pod.namespace }}</td>
+        <td>{{ pod.name }}</td>
+        <td>{{ pod.cpu_usage_nano }}</td>
+        <td>{{ pod.memory_usage_bytes }}</td>
+        <td>{{ pod.error }}</td>
+    </tr>
       {% endfor %}
       </tbody>
       </table>

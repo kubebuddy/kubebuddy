@@ -102,6 +102,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
     }
 
     .container .box{
@@ -113,6 +114,7 @@
       border-radius: 10px;
       padding: 30px 40px;
       box-shadow: 0 0 10px var(--primary-color);
+      margin-bottom: 30px;
     }
 
     .box label{
@@ -166,6 +168,12 @@
         color: var(--base-color);
     }
 
+    .back-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
     footer {
         position: fixed;
         left: 0;
@@ -216,6 +224,7 @@
               </div>
               <button type="submit" class="btn">Go</button>
           </div>
+          
           <!-- Error Message -->
           {% if error_message %}
           <div class="error" style="color: red; margin-top: 10px; text-align: center;">
@@ -224,10 +233,10 @@
           {% endif %}
       </form>
 
-    
-
-  </div>
-  
+      <div class="back-container">
+        <button type="button" class="btn" onclick="goBack()">Back</button>
+      </div>
+    </div>
   
     <footer>
         <p>Powered by Thinknyx Technologies LLP</p>
@@ -254,20 +263,23 @@
     darkmode !== "active" ? enableDarkmode() : disableDarkmode()
   })
 
+  // Function to go back to the previous page
+  function goBack() {
+    window.history.back();
+  }
 
-//   ------------ script for input
-    function updateInputField() {
-        const pathInput = document.getElementById('path');
-        const pathType = document.getElementById('path-type').value;
+  // Script for input field
+  function updateInputField() {
+      const pathInput = document.getElementById('path');
+      const pathType = document.getElementById('path-type').value;
 
-        if (pathType === 'manual') {
-            pathInput.removeAttribute('readonly');
-            pathInput.value = '';
-        } else {
-            pathInput.setAttribute('readonly', 'readonly');
-            pathInput.value = '$HOME/.kube/config';
-        }
-    }
-
+      if (pathType === 'manual') {
+          pathInput.removeAttribute('readonly');
+          pathInput.value = '';
+      } else {
+          pathInput.setAttribute('readonly', 'readonly');
+          pathInput.value = '$HOME/.kube/config';
+      }
+  }
 </script>
 </html>

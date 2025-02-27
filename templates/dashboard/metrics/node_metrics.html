@@ -9,7 +9,7 @@
 
 <div class="container">
   <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Nodes:</i></b></div></div>
+    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Nodes: {{ total_nodes }}</i></b></div></div>
   </div>
   
   <div class="container">
@@ -27,12 +27,12 @@
             </li>
             <li>
                 <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
-                <label class="form-check-label" for="Name"> Name</label>
+                <label class="form-check-label" for="Name">Name</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="cpu_cores" id="cpu_cores" checked> 
-                <label class="form-check-label" for="cpu_cores"> CPU (cores)</label>
-            </li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="cpu_cores" id="cpu_cores" checked> 
+              <label class="form-check-label" for="cpu_cores"> CPU (cores)</label>
+          </li>
             <li>
               <input class="form-check-input column-checkbox" type="checkbox" value="cpu_percent" id="cpu_percent" checked> 
               <label class="form-check-label" for="cpu_percent"> CPU %</label>
@@ -44,6 +44,10 @@
             <li>
               <input class="form-check-input column-checkbox" type="checkbox" value="Memory_percent" id="Memory_percent" checked> 
               <label class="form-check-label" for="Memory_percent"> Memory %</label>
+            </li>
+            <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Error" id="Error" checked> 
+              <label class="form-check-label" for="Error"> Error</label>
             </li>
 
         </ul>
@@ -59,18 +63,19 @@
           <th id="colcpu_percent">CPU %</th>
           <th id="colMemory_bytes">Memory (bytes)</th>
           <th id="colMemory_percent">Memory %</th>
+          <th id="error">Error</th>
         </tr>
       </thead>
 
       <tbody>
-      {% for met in metrics %}
+      {% for node in node_metrics %}
         <tr>
-          <td>{{ met.namespace }}</td>
-          <td>{{ met.name }}</td>
-          <td>{{ met.cpu_cores }}</td>
-          <td>{{ met.cpu_percent }} </td>
-          <td>{{ met.memory_bytes }}</td>
-          <td>{{ met.memory_percent }}</td>
+          <td>{{ node.name }}</td>
+          <td>{{ node.cpu_cores }}</td>
+          <td>{{ node.cpu_usage_percentage }}</td>
+          <td>{{ node.memory_bytes }}</td>
+          <td>{{ node.memory_usage_percentage }}</td>
+          <td>{{ node.error }}</td>
         </tr>
       {% endfor %}
       </tbody>

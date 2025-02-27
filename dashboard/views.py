@@ -10,7 +10,7 @@ from .src.config_secrets import k8s_configmaps, k8s_secrets
 from .src.workloads import k8s_cronjobs, k8s_daemonset, k8s_deployments, k8s_jobs, k8s_pods, k8s_replicaset, k8s_statefulset
 from .src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
 from .src.rbac import k8s_role, k8s_cluster_role_bindings, k8s_cluster_roles, k8s_rolebindings, k8s_service_accounts
-from .src.metrics import k8s_pod_metrics
+from .src.metrics import k8s_pod_metrics, k8s_node_metrics
 from main.models import KubeConfig, Cluster
 from .src import k8s_cluster_metric
 from django.contrib.auth.decorators import login_required
@@ -1042,40 +1042,39 @@ def serviceAccountInfo(request, cluster_name, namespace, sa_name):
         'serviceAccountInfo': serviceAccountInfo,
     })
 
+
 def pod_metrics(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
-    current_cluster = Cluster.objects.get(id = cluster_id)
+    current_cluster = Cluster.objects.get(id=cluster_id)
     path = current_cluster.kube_config.path
-    # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
-    # get namespaces
     namespaces = k8s_namespaces.get_namespace(path, cluster_name)
 
-    metrics, count = k8s_pod_metrics.get_pod_metrics(path, cluster_name)
+    all_pod_metrics = k8s_pod_metrics.get_pod_metrics(path, current_cluster.cluster_name)
 
     return render(request, 'dashboard/metrics/pod_metrics.html', {
+        'all_pod_metrics': all_pod_metrics,
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
         'registered_clusters': registered_clusters,
-        'metrics': metrics,
-        'pod_count': count,
-        'namespaces': namespaces
+        'namespaces': namespaces,
     })
+
 
 def node_metrics(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
-    current_cluster = Cluster.objects.get(id = cluster_id)
+    current_cluster = Cluster.objects.get(id=cluster_id) 
     path = current_cluster.kube_config.path
-    # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
-    # get namespaces
     namespaces = k8s_namespaces.get_namespace(path, cluster_name)
 
-    # metrics, count = k8s_pod_metrics.get_pod_metrics()
 
+    node_metrics, total_nodes = k8s_node_metrics.get_node_metrics(path, current_cluster.cluster_name)
     return render(request, 'dashboard/metrics/node_metrics.html', {
+        'node_metrics': node_metrics,
+        'total_nodes': total_nodes,
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
         'registered_clusters': registered_clusters,
-        'namespaces': namespaces
+        'namespaces': namespaces,
     })

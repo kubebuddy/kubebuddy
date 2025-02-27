@@ -38,11 +38,24 @@ main {
   padding: 0 16px;
 }
 
-.sidebar.collapsed {
+/* .sidebar.collapsed {
+  display: none;
   width: 0;
   padding: 0;
   overflow: hidden;
+  transition: width 0.3s ease-in-out;
+} */
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0s 0.3s;
 }
+
 .toggle-btn {
   background: transparent;
   font-size: 2rem;
@@ -294,6 +307,13 @@ main {
   border-color: #333 !important;
 }
 
+.dark-mode .table tbody a, 
+.dark-mode .text-primary,
+.dark-mode .btn-link,
+.dark-mode ul li a {
+  color: #0dcaf0 !important;
+}
+
 .dark-mode .table tbody tr:nth-child(even) {
   background-color: #212121 !important;
 }
@@ -302,14 +322,18 @@ main {
   background-color: #2d2d2d !important;
 }
 
-.dark-mode .table td, .dark-mode .table th {
+.dark-mode .table td, 
+.dark-mode .table th {
   border-color: #333 !important;
 }
 
 /* Buttons & Interactive Elements */
-.dark-mode .btn-primary {
-  background-color: #0d6efd !important;
-  border-color: #0a58ca !important;
+.dark-mode .btn-primary, 
+.dark-mode .btn-custom, 
+.dark-mode .bg-primary {
+  background-color: #0db5fd !important;
+  border-color: #0db5fd !important;
+  color: #fff !important;
 }
 
 .dark-mode .btn-toggle {
@@ -457,8 +481,10 @@ table th, td {
   font-family:Verdana, Geneva, Tahoma, sans-serif;
 }
 
-/* Chat BOT
-*/
+.table th, .table td {
+  text-align: left;
+}
+/* Chat BOT*/
 
 .chatbot-container {
   position: fixed;

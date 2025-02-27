@@ -73,11 +73,10 @@
       </a>
       <!-- cluster dropdown -->
       <div class="card-body d-flex flex-column">
-        <div class="container my-4">
+        <div class="container my-2">
           <div class="dropdown ">
-            <input type="text" id="search-bar" class="form-control fw-bold" style="background-color:#0d6efd; color:white; cursor:pointer;" placeholder="Search for clusters..." onkeyup="searchClusters()">
-              <i class="bi bi-caret-down-fill position-absolute"
-                style="right: 15px; top: 50%; transform: translateY(-50%); color: white; pointer-events: none;"></i>
+            <input type="text" id="search-bar" class="form-control fw-bold bg-primary" style="color: #fff; cursor:pointer;" placeholder="Search for clusters..." onkeyup="searchClusters()">
+              <i class="bi bi-caret-down-fill position-absolute"style="right: 15px; top: 50%; transform: translateY(-50%); color: white; pointer-events: none;"></i>
               <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
                     {% for cluster in registered_clusters %}
                     <a href="
@@ -252,7 +251,7 @@
           <div class="chat-header">
               Buddy AI 🤘🏻✨
               <div class="chat-header-buttons">
-                <button class="clear-chat-btn" onclick="clearChatHistory()"><i class="bi bi-trash"></i></button>  
+                <button class="clear-chat-btn" onclick="clearChatHistory()"><i class="bi bi-trash"></i></button>
                 <button class="close-chat-btn" onclick="toggleChat()"><i class="bi bi-x-lg"></i></button>
               </div>
           </div>
@@ -263,9 +262,8 @@
           </div>
       </div>
   </div>
+  <script src="{% static 'js/bot.js' %}"></script>
   
-    
-
   </main>
   <!-- Include Bootstrap JS and dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>

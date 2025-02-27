@@ -117,7 +117,7 @@ async function sendMessage() {
         typingIndicator.remove();
         
         // Add and save error message
-        const errorMessage = "Sorry, you haven't configured your API key yet.";
+        const errorMessage = "Sorry, I encountered an error. Please try again.";
         const errorElement = document.createElement("div");
         errorElement.textContent = errorMessage;
         errorElement.className = "bot-message error";

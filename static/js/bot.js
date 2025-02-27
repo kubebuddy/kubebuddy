@@ -117,7 +117,7 @@ async function sendMessage() {
         typingIndicator.remove();
         
         // Add and save error message
-        const errorMessage = "Sorry, I encountered an error. Please try again.";
+        const errorMessage = "Sorry, you haven't configured your API key yet.";
         const errorElement = document.createElement("div");
         errorElement.textContent = errorMessage;
         errorElement.className = "bot-message error";
@@ -136,15 +136,7 @@ document.getElementById("chatInput").addEventListener("keypress", function(event
     }
 });
 
-// Optional: Add a function to clear chat history (you can add a button for this if needed)
-function addClearButton() {
-    const chatHeader = document.querySelector('.chat-header');
-    const clearButton = document.createElement('button');
-    clearButton.textContent = '🗑️';
-    clearButton.className = 'clear-chat-btn';
-    clearButton.onclick = clearChatHistory;
-    chatHeader.appendChild(clearButton);
+function toggleChat() {
+    var chatWindow = document.getElementById("chatbotWindow");
+    chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
 }
-
-// Initialize clear button when page loads
-document.addEventListener('DOMContentLoaded', addClearButton);

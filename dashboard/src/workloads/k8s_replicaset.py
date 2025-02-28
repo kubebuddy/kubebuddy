@@ -76,7 +76,6 @@ def get_replicaset_description(path=None, context=None, namespace=None, rs_name=
     try:
         # Fetch ReplicaSet details
         rs = v1.read_namespaced_replica_set(name=rs_name, namespace=namespace)
-
         # Prepare ReplicaSet information
         rs_info = {
             "name": rs.metadata.name,

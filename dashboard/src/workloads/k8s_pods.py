@@ -96,7 +96,10 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
     try:
         # Fetch pod details
         pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
-
+        # Get annotations
+        annotations =pod.metadata.annotations or {}
+        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
         # Prepare pod information
         pod_info = {
             "name": pod.metadata.name,
@@ -108,7 +111,7 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
             "host_ip": pod.status.host_ip,
             "start_time": pod.status.start_time.strftime('%a, %d %b %Y %H:%M:%S %z') if pod.status.start_time else None,
             "labels": list(pod.metadata.labels.items()),  # Convert to list of tuples
-            "annotations": list(pod.metadata.annotations.items()) if pod.metadata.annotations else [],
+            "annotations": filtered_annotations if filtered_annotations else None,
             "service_account": pod.spec.service_account_name,
             "containers": [
                 {
@@ -124,19 +127,23 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
                          if status.name == container.name), 0
                     ),
                     "env": [env.name for env in (container.env or [])],
-                    "mounts": [mount.mount_path for mount in (container.volume_mounts or [])]
+                    "mounts": [mount.mount_path + " from " + mount.name for mount in (container.volume_mounts or [])]
                 }
                 for container in pod.spec.containers
             ],
             "volumes": [
                 {
                     "name": volume.name,
-                    "type": volume.secret or volume.config_map or volume.projected
+                    "type": next(
+                            (attr for attr, value in volume.to_dict().items() 
+                            if attr != "name" and value is not None),
+                            None
+                        )
                 }
                 for volume in pod.spec.volumes
             ],
             "conditions": [
-                {"type": cond.type, "status": cond.status, "reason": cond.reason or ""}
+                {"type": cond.type, "status": cond.status}
                 for cond in (pod.status.conditions or [])
             ],
         }

@@ -39,7 +39,9 @@
     PodSelector: {{ np_info.describe.spec.pod_selector }}{% if np_info.describe.spec.ingress %}
     Allowing ingress traffic:
         {{np_info.describe.spec.ingress}}
-        To Port: {{np_info.describe.spec.ingress.ports.port}}/{{np_info.describe.spec.ingress.ports.protocol}}
+        {% endif %}{% if np_info.describe.spec.egress %}
+    Allowing egress traffic:
+        {{np_info.describe.spec.egress}}
         {% endif %}
 
                     </pre>

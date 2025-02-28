@@ -37,6 +37,7 @@
                     <pre>
 <b>Name</b>: {{ pod_info.describe.name }}
 <b>Namespace</b>: {{ pod_info.describe.namespace }}
+<b>Priority</b>: {{pod_info.describe.priority}}
 <b>Status</b>: {{ pod_info.describe.status }}
 <b>Node Name</b>: {{ pod_info.describe.node_name }}
 <b>Pod IP</b>: {{ pod_info.describe.pod_ip }}
@@ -45,23 +46,22 @@
 <b>Service Account</b>: {{ pod_info.describe.service_account }}
 <b>Labels</b>: {% for key, value in pod_info.describe.labels %}
     {{ key }}: {{ value }}{% if not loop.last %}{% endif %}{% endfor %}
-<b>Annotations</b>: {% for key, value in pod_info.describe.annotations %}
-    {{ key }}: {{ value }}{% if not loop.last %} {% endif %} {% endfor %}
+<b>Annotations</b>: {% if pod_info.describe.annotations %}{% for key, value in pod_info.describe.annotations %}
+    {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %} {% else %}None {% endif %}
 <b>Containers</b>:{% for container in pod_info.describe.containers %}
-- <strong>Name:</strong> {{ container.name }}
-  <strong>Image:</strong> {{ container.image }}
-  <strong>Ports:</strong>{% for port in container.ports %} {{ port }}{% endfor %}
-  <strong>State:</strong> {{ container.state }}
-  <strong>Restart Count:</strong> {{ container.restart_count }}
-  <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
-  <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
+  - <strong>Name:</strong> {{ container.name }}
+    <strong>Image:</strong> {{ container.image }}
+    <strong>Ports:</strong>{% for port in container.ports %} {{ port }}{% endfor %}
+    <strong>State:</strong> {{ container.state }}
+    <strong>Restart Count:</strong> {{ container.restart_count }}
+    <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
+    <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
 <b>Volumes</b>:{% for volume in pod_info.describe.volumes %}
 - <strong>Name:</strong> {{ volume.name }}
   <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %}{% endfor %}
 <b>Conditions</b>:{% for condition in pod_info.describe.conditions %}
 - <strong>Type:</strong> {{ condition.type }}
-    <strong>Status:</strong> {{ condition.status }}
-    <strong>Reason:</strong> {{ condition.reason }}{% endfor %}
+    <strong>Status:</strong> {{ condition.status }}{% endfor %}
                     </pre>
                   </div>                                    
             </div>

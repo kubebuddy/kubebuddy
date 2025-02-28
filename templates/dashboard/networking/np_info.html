@@ -1,8 +1,8 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Pod Disruption Budget{% endblock %}
+{% block title %}Netowrk Policy{% endblock %}
 
-{% block favicon %}https://cdn-icons-png.flaticon.com/512/18015/18015441.png{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/netpol-128.png?raw=true {% endblock %}
 
 {% block content %}
 
@@ -10,7 +10,7 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-start">
             <img src="https://cdn-icons-png.flaticon.com/512/18015/18015441.png" style="height: 5vh;" alt="ds">
-            <h2 class="mb-4 ps-3 text-primary">Pod Disruption Budget: {{ pdb_info.describe.name }}</h2>
+            <h2 class="mb-4 ps-3 text-primary">Network Policy: {{ np_info.describe.name }}</h2>
         </div>
 
 
@@ -33,12 +33,15 @@
                 <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
                     <pre>
 <b>Name:</b> {{ pdb_info.describe.name }}
-<b>Namespace:</b> {{ pdb_info.describe.namespace }}{% if pdb_info.describe.min %}
-<b>Min available:</b> {{ pdb_info.describe.min }}{% endif %}{% if pdb_info.describe.max %}
-<b>Max Unavailable:</b> {{ pdb_info.describe.max }}{% endif %}
-<b>Selector</b> {{pdb_info.describe.selector}}
-<b>Status:</b>{% for k, v in pdb_info.describe.status.items %}
-        {{ k }}: {{ v }}{% endfor %}
+<b>Namespace:</b> {{ np_info.describe.namespace }}
+<b>Selector</b> {{np_info.describe.selector}}
+<b>Spec:</b>
+    PodSelector: {{ np_info.describe.spec.pod_selector }}{% if np_info.describe.spec.ingress %}
+    Allowing ingress traffic:
+        {{np_info.describe.spec.ingress}}
+        To Port: {{np_info.describe.spec.ingress.ports.port}}/{{np_info.describe.spec.ingress.ports.protocol}}
+        {% endif %}
+
                     </pre>
                 </div>
               </div>
@@ -58,13 +61,13 @@
                     </button>
                     
                 
-                    <pre id="yamlContent">{{ pdb_info.yaml }}</pre>
+                    <pre id="yamlContent">{{ np_info.yaml }}</pre>
                 </div>
             </div>
             
         </div>
 
-        <a href="/{{current_cluster}}/pdbs?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Pod Disruption Budget</a>
+        <a href="/{{current_cluster}}/np?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Network Policy</a>
     </div>
     
     {% load static%}

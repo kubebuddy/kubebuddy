@@ -6,6 +6,8 @@ from .src.services import k8s_endpoints, k8s_services
 
 from .src.events import k8s_events
 
+from .src.networking import k8s_np
+
 from .src.config_secrets import k8s_configmaps, k8s_secrets
 from .src.workloads import k8s_cronjobs, k8s_daemonset, k8s_deployments, k8s_jobs, k8s_pods, k8s_replicaset, k8s_statefulset
 from .src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
@@ -626,7 +628,6 @@ def pdb_info(request, cluster_name, namespace, pdb_name):
     return render(request, 'dashboard/cluster_management/pdb_info.html', {
         "pdb_info": pdb_info,
         "cluster_id": cluster_id,
-        "pdb_name": pdb_name,
         'current_cluster': cluster_name,
         'registered_clusters': registered_clusters,
     })
@@ -732,6 +733,37 @@ def np(request, cluster_name):
     registered_clusters = clusters_DB.get_registered_clusters()
     # get namespaces
     namespaces = k8s_namespaces.get_namespace(path, cluster_name)
+    
+    nps, nps_count = k8s_np.get_np(path, cluster_name)
+
+    return render(request, 'dashboard/networking/np.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'nps': nps,
+        'nps_count': nps_count,
+        'namespaces': namespaces
+    })
+
+def np_info(request, cluster_name, namespace, np_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    np_info = {
+        "describe": k8s_np.get_np_description(path, cluster_name, namespace, np_name),
+        "events": k8s_np.get_np_events(path, cluster_name, namespace, np_name),
+        "yaml": k8s_np.get_np_yaml(path, cluster_name, namespace, np_name)
+    }    
+
+    return render(request, 'dashboard/networking/np_info.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'np_info': np_info,
+    })
 
 def role(request, cluster_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)

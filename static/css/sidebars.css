@@ -288,9 +288,13 @@ main {
 
 /* Tables */
 .dark-mode .table {
-  background-color: #1a1a1a !important;
+  /* background-color: #1a1a1a !important; */
   color: #e4e4e4 !important;
   border-color: #333 !important;
+}
+
+.dark-mode .table-danger {
+  --bs-table-striped-bg: #ff2739 !important;
 }
 
 .dark-mode .table thead {

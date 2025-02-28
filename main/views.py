@@ -192,6 +192,7 @@ def cluster_select(request):
 def cluster_error(request):
     pass
     return render(request, 'cluster_error.html')
+
 @login_required
 def delete_cluster(request, pk):
     cluster = Cluster.objects.get(pk=pk)

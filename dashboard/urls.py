@@ -10,7 +10,7 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 resourcequota_info, cronjob_info, configmap_info, pvc_info, \
                                 secret_info, role_info, pv_info, storageclass_info, role_binding_info, \
                                 clusterrole_info, cluster_role_binding_info, serviceAccountInfo, \
-                                pod_metrics, node_metrics, pdb, pdb_info, np
+                                pod_metrics, node_metrics, pdb, pdb_info, np, np_info
 
 
 urlpatterns = [
@@ -79,6 +79,8 @@ urlpatterns = [
     
     # Networking
     path('<str:cluster_name>/np', np, name="np"),
+    
+    path('<str:cluster_name>/np/<str:namespace>/<str:np_name>/', np_info, name='np_info'),
 
 
     # RBAC

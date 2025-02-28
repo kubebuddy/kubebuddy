@@ -1,0 +1,89 @@
+{% extends 'dashboard/base.html' %}
+
+{% load static %}
+
+{% block title %}Network Policy{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/netpol-128.png?raw=true {% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="row text-center">
+    <div class="col-md-4"><div class="stats-card bg-primary"><b><i>Total Network Policies: {{nps_count}}</i></b></div></div>
+  </div>
+  
+  <div class="container">
+    <!-- Dropdown with checkboxes to select columns -->
+    <div class="mb-3 d-flex justify-content-between">
+      <!-- New dropdown (namespaces) -->
+      <div class="dropdown">
+        <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          All Namespaces
+        </button>
+        <ul class="dropdown-menu p-2" aria-labelledby="newDropdown">
+        <li class="dropdown-item" onclick="namespaceHandler(event)">All Namespaces</li>
+        {% for ns in namespaces %}
+        <li class="dropdown-item" onclick="namespaceHandler(event)">{{ns}}</li>
+        {% endfor %}          
+        </ul>
+      </div>
+
+        <div class="dropdown">
+          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Columns to Display
+          </button>
+          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+                <label class="form-check-label" for="All"> All</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
+                <label class="form-check-label" for="Namespace"> Namespace</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
+                <label class="form-check-label" for="Name"> Name</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="PodSelector" id="PodSelector" checked> 
+                <label class="form-check-label" for="PodSelector"> Pod Selector</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
+                <label class="form-check-label" for="age"> Age</label>
+            </li>
+        </ul>
+        </div>
+    </div>
+  
+    <!-- Table -->
+    <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
+      <thead class="table-dark">
+        <tr>
+          <th id="colNamespace">NAMESPACE</th>
+          <th id="colName">NAME</th>
+          <th id="colPodSelector">POD SELECTOR</th>
+          <th id="colAge">AGE</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for np in nps %}
+        <tr>
+          <td>{{ np.namespace }}</td>
+          <td>
+            <a href="/{{current_cluster}}/np/{{np.namespace}}/{{np.name}}?cluster_id={{cluster_id}}">
+                {{ np.name }}
+            </a>
+          </td>
+          <td>{{ np.pod_selector }}</td>
+          <td>{{ np.age }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      </table>
+  </div>
+<script src="{% static 'js/namespaceFilter.js' %}"></script>
+{% endblock %}

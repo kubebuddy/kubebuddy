@@ -9,13 +9,6 @@
 {% block content %}
 
 <div class="container">
-  <!-- <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: {{pc}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Running: {{status_count.Running}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Failed: {{status_count.Failed}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Pending: {{status_count.Pending}}</i></b></div></div>
-    <div class="col-md-3"><div class="stats-card bg-info"><b><i>Succeeded: {{status_count.Succeeded}}</i></b></div></div>
-  </div> -->
   <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
     <div class="row mb-0">
       <div class="col-md-3 align-items-center justify-content-center mx-auto">
@@ -117,11 +110,7 @@
       </thead>
       <tbody>
       {% for pod in pod_info_list %}
-        {% if pod.status == "Failed" %}
-          <tr class="table-danger">
-        {% else %}
           <tr>
-        {% endif %}
           <td>{{ pod.namespace }}</td>
           <td>
             <a href="/{{current_cluster}}/pods/{{pod.namespace}}/{{pod.name}}?cluster_id={{cluster_id}}">
@@ -134,7 +123,7 @@
           <td>{{ pod.restarts }}</td>
           <td>{{ pod.age }}</td>
           <!-- <td style="{% if pod.status == "Running" %} background-color: #b3e6b3; {% elif pod.status == "Pending" %} background-color: #fff3cd; {% elif pod.status == "Succeeded" %} background-color: #bee3f8; {% endif %}">{{ pod.status }}</td> -->
-          <td><span class="{% if pod.status == "Running" %}running-pod{% elif pod.status == "Pending" %} pending-pod {% elif pod.status == "Succeeded" %} succeeded-pod {% endif %}">{{ pod.status }}</span></td>
+          <td><span class="{% if pod.status == "Running" %}running-pod{% elif pod.status == "Pending" %} pending-pod {% elif pod.status == "Succeeded" %} succeeded-pod {% else %} failed-pod {% endif %}">{{ pod.status }}</span></td>
         </tr>
       {% endfor %}
       </tbody>
@@ -142,7 +131,21 @@
   </div>
 </div>
 <script src="{% static 'js/namespaceFilter.js' %}"></script>
+<script src="{% static 'js/graph.js' %}"></script>
 <script>
+  document.addEventListener("DOMContentLoaded", function() {
+      if (typeof renderGaugeChart === "function") {
+          renderGaugeChart("gaugeChart", {
+              {% for status, count in status_count.items %}
+                  "{{ status }}": {{ count }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+          }, 'Pods');
+      } else {
+          console.error("renderGaugeChart is not defined. Make sure gaugeChart.js is loaded correctly.");
+      }
+  });
+</script>
+<!-- <script>
 // gauge chart
 const ctx = document.getElementById('gaugeChart').getContext('2d');
 
@@ -193,6 +196,6 @@ new Chart(ctx, {
       }
   }]
 });
-</script>
+</script> -->
 
 {% endblock %}

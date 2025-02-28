@@ -437,6 +437,18 @@ main {
  padding: 0.3rem;
  border-radius: 0.4rem;
 }
+.failed-pod {
+ background-color: #dc3545 !important;
+ padding: 0.3rem;
+ border-radius: 0.4rem;
+}
+
+.warning-event{
+  background-color: #dc3545 !important;
+  padding: 0.3rem;
+  border-radius: 0.4rem;
+}
+
 .dark-mode .succeeded-pod {
  background-color: #0dcaf0 !important;
  padding: 0.3rem;

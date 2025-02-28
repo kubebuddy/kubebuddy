@@ -9,11 +9,26 @@
 {% block content %}
 
 <div class="container">
-  <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Jobs: {{jobs_status.Count}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Completed: {{jobs_status.Completed}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Running: {{jobs_status.Running}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Failed: {{jobs_status.Failed}}</i></b></div></div>
+  <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
+    <div class="row mb-0">
+      <div class="col-md-3 align-items-center justify-content-center mx-auto">
+        <div class="grid-box flex-fill stats-card bg-primary "><b><i>Total Jobs: {{jobs_status.Count}}</i></b></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+        <div class="grid-box stats-card bg-success text-center p-3 w-100 m-2"><b><i>Running: {{jobs_status.Running}}</i></b></div>
+        <div class="grid-box stats-card bg-info text-center p-3 w-100 m-2"><b><i>Completed: {{jobs_status.Completed}}</i></b></div>
+      </div>
+      <div class="col-md-6 d-flex align-items-center justify-content-center">
+        <div class="grid-box d-flex align-items-center justify-content-center p-1 w-100" style="min-height: 200px;">
+            <canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas>
+        </div>
+    </div>
+      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+        <div class="grid-box stats-card bg-danger text-center p-3 w-100 m-2"><b><i>Failed: {{jobs_status.Failed}}</i></b></div>
+      </div>
+    </div>
   </div>
   
   <div class="container">
@@ -106,4 +121,14 @@
       </table>
   </div>
 <script src="{% static 'js/namespaceFilter.js' %}"></script>
+<script src="{% static 'js/graph.js' %}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+          renderGaugeChart("gaugeChart", {
+              {% for status, count in jobs_status.items %}
+                  "{{ status }}": {{ count }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+          }, 'Jobs');
+  });
+</script>
 {% endblock %}

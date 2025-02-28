@@ -9,11 +9,12 @@ def get_np(path, context):
         v1 = client.NetworkingV1Api()
         nps = v1.list_network_policy_for_all_namespaces()
         np_list = []
+        # np.spec.pod_selector.match_labels
         for np in nps.items:
            np_list.append({
               "namespace": np.metadata.namespace,
               "name": np.metadata.name,
-              "pod_selector": np.spec.pod_selector.match_labels or "None",
+              "pod_selector": ", ".join(f"{k}={v}" for k, v in np.spec.pod_selector.match_labels.items()) if np.spec.pod_selector.match_labels else "None",
               "age": calculateAge(datetime.now(timezone.utc) - np.metadata.creation_timestamp)
            })
         

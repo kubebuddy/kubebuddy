@@ -1,5 +1,7 @@
 {% extends 'dashboard/base.html' %}
 
+{% load static %}
+
 {% block title %}ReplicaSets{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/rs-128.png?raw=true{% endblock %}
@@ -7,10 +9,25 @@
 {% block content %}
 
 <div class="container">
-  <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total ReplicaSets: {{rs_status.Count}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Running: {{rs_status.Running}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Pending: {{rs_status.Pending}}</i></b></div></div>
+  <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
+    <div class="row mb-0">
+      <div class="col-md-3 align-items-center justify-content-center mx-auto">
+        <div class="grid-box flex-fill stats-card bg-primary "><b><i>Total ReplicaSets: {{rs_status.Count}}</i></b></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+        <div class="grid-box stats-card bg-success text-center p-3 w-100 m-2"><b><i>Running: {{rs_status.Running}}</i></b></div>
+      </div>
+      <div class="col-md-6 d-flex align-items-center justify-content-center">
+        <div class="grid-box d-flex align-items-center justify-content-center p-1 w-100" style="min-height: 200px;">
+            <canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas>
+        </div>
+    </div>
+      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+        <div class="grid-box stats-card bg-warning text-center p-3 w-100 m-2"><b><i>Pending: {{rs_status.Pending}}</i></b></div>
+      </div>
+    </div>
   </div>
   
   <div class="container">
@@ -103,46 +120,16 @@
       </tbody>
       </table>
   </div>
-
+<script src="{% static 'js/namespaceFilter.js' %}"></script>
+<script src="{% static 'js/graph.js' %}"></script>
 <script>
-    function namespaceHandler(event) {
-      let selectedNamespace = event.target.innerText.trim();
-        let tableRows = document.querySelectorAll("tbody tr");
-        rs_count = {
-          "Total": 0,
-          "Running": 0,
-          "Pending": 0
-        }
-        tableRows.forEach(row => {
-            let namespaceCell = row.querySelector("td:first-child");
-            let desiredCell = row.querySelector("td:nth-child(3)");
-            let readyCell = row.querySelector("td:nth-child(5)");
-            if (namespaceCell && desiredCell && readyCell) {
-                let namespace = namespaceCell.innerText.trim();
-                let status = ""
-                if(desiredCell.innerText.trim() === readyCell.innerText.trim()){
-                  status = "Running"
-                } else {
-                  status = "Pending"
-                }
-                if (selectedNamespace === "All Namespaces" || namespace === selectedNamespace) {
-                    row.style.display = "table-row";
-                    rs_count["Total"]++;
-                    if (rs_count.hasOwnProperty(status)) {
-                        rs_count[status]++;
-                    }
-                } else {
-                    row.style.display = "none";
-                }
-            }
-        });
-        // Update rs count display
-        document.querySelector(".stats-card.bg-primary b i").innerText = `Total ReplicaSets: ${rs_count["Total"]}`;
-        document.querySelector(".stats-card.bg-success b i").innerText = `Running: ${rs_count["Running"] || 0}`;
-        document.querySelector(".stats-card.bg-warning b i").innerText = `Pending: ${rs_count["Pending"] || 0}`;
-        // Update dropdown text to reflect the selected namespace
-        document.getElementById("newDropdown").innerText = selectedNamespace;
-    }
+  document.addEventListener("DOMContentLoaded", function() {
+        renderGaugeChart("gaugeChart", {
+            {% for status, count in rs_status.items %}
+                "{{ status }}": {{ count }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        }, 'ReplicaSets');
+});
 </script>
 
 {% endblock %}

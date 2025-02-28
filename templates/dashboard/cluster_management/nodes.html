@@ -1,5 +1,5 @@
 {% extends 'dashboard/base.html' %}
-
+{% load static %}
 {% block title %}Nodes{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/infrastructure_components/unlabeled/node-128.png?raw=true{% endblock %}
@@ -7,10 +7,30 @@
 {% block content %}
 
 <div class="container">
-  <div class="row text-center">
+  <!-- <div class="row text-center">
     <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Nodes: {{total_nodes}}</i></b></div></div>
     <div class="col-md-2"><div class="stats-card bg-success"><b><i>Ready: {{ready_nodes}}</i></b></div></div>
     <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Not Ready: {{not_ready_nodes}}</i></b></div></div>
+  </div> -->
+  <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
+    <div class="row mb-0">
+      <div class="col-md-3 align-items-center justify-content-center mx-auto">
+        <div class="grid-box flex-fill stats-card bg-primary "><b><i>Total Nodes: {{total_nodes}}</i></b></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+        <div class="grid-box stats-card bg-success text-center p-3 w-100 m-2"><b><i>Ready: {{ready_nodes}}</i></b></div>
+      </div>
+      <div class="col-md-6 d-flex align-items-center justify-content-center">
+        <div class="grid-box d-flex align-items-center justify-content-center p-1 w-100" style="min-height: 200px;">
+            <canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas>
+        </div>
+    </div>
+      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+        <div class="grid-box stats-card bg-danger text-center p-3 w-100 m-2"><b><i>Not Ready: {{not_ready_nodes}}</i></b></div>
+      </div>
+    </div>
   </div>
   
   <div class="container">
@@ -114,6 +134,13 @@
       </tbody>
     </table>
   </div>
-
+<script src="{% static 'js/graph.js' %}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+          renderGaugeChart("gaugeChart", {
+              "Ready": {{ready_nodes}}, "Not Ready": {{not_ready_nodes}}
+          }, 'Nodes');
+  });
+</script>
 {% endblock %}
 

@@ -81,11 +81,7 @@
       </thead>
       <tbody>
       {% for event in events %}
-      {% if event.type == "Warning" %}
-      <tr class="table-danger">
-      {% else %}
       <tr>
-      {% endif %}
           <td>{{event.namespace}}</td>
           <td>
               <span class="message-truncate" data-full="{{event.message}}">
@@ -96,7 +92,7 @@
           <td>{{event.source}}</td>
           <td>{{event.count}}</td>
           <td>{{event.last_seen}}</td>
-          <td>{{event.type}}</td>
+          <td><span {% if event.type == "Warning" %} class="warning-event" {% endif %}>{{event.type}}</span></td>
       </tr>
       {% endfor %}
       </tbody>

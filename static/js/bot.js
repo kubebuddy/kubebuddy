@@ -219,7 +219,6 @@ function toggleFullscreen() {
         // Maximize the chat window to fullscreen
         chatbotWindow.style.width = '80vw'; // Full width
         chatbotWindow.style.height = '80vh'; // Full height
-        chatbotWindow.style.bottom = '0'; // Stick to bottom
         chatbotWindow.style.right = '0'; // Stick to right
 
         // Show exit fullscreen icon, hide fullscreen icon
@@ -229,7 +228,6 @@ function toggleFullscreen() {
         // Minimize the chat window to original size
         chatbotWindow.style.width = '40vw'; // Original width
         chatbotWindow.style.height = '60vh'; // Original height
-        chatbotWindow.style.bottom = '70px'; // Reset bottom margin
         chatbotWindow.style.right = '0'; // Reset right margin
 
         // Show fullscreen icon, hide exit fullscreen icon

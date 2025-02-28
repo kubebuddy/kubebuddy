@@ -25,7 +25,7 @@
 </head>
 <body>
 
-<nav class="navbar bg-body-tertiary navbar-expand-lg bg-light py-2">
+  <nav class="navbar bg-body-tertiary navbar-expand-lg bg-light py-2">
     <button id="toggleSidebar" class="toggle-btn pb-2">
       <i class="bi bi-list"></i>
     </button>
@@ -34,21 +34,45 @@
       <span class="fs-5 fw-semibold">KubeBuddy</span>
     </a>
   
-      <!-- Right Section (Button + Dropdown) -->
-      <div class="d-flex ms-auto align-items-center gap-2">
-        <button id="reload-btn" class="btn btn-primary">
-          <i class="bi bi-arrow-clockwise"></i>
-        </button>
-        
-        <!-- Dark Mode Toggle -->
-
-        <div class="ms-auto">
-          <button id="darkModeToggle" class="btn btn-outline-secondary">
-              <i class="bi bi-moon-stars"></i>
-          </button>
+    <!-- Right Section (Cluster Dropdown + Button + Dropdown) -->
+    <div class="d-flex ms-auto align-items-center gap-2">
+  
+      <!-- Cluster dropdown -->
+      <div class="container my-2 p-0">
+        <div class="dropdown">
+          <input type="text" id="search-bar" class="form-control fw-bold bg-primary" style="color: #fff; cursor:pointer; width: 15vw;" placeholder="Search for clusters..." onkeyup="searchClusters()">
+          <i class="bi bi-caret-down-fill position-absolute" style="right: 15px; top: 50%; transform: translateY(-50%); color: white; pointer-events: none;"></i>
+          <ul class="dropdown-menu" id="cluster-list" style="width: 15vw;">
+            {% for cluster in registered_clusters %}
+            <a href="
+            {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
+            /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
+            {% else %}
+            {% url 'cluster_error' %}
+            {% endif %}
+            " class="text-decoration-none">
+              <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
+            </a>
+            {% empty %}
+              <li class="list-group-item">No clusters found.</li>
+            {% endfor %}
+          </ul>
         </div>
+      </div>
+  
+      <!-- Refresh Button -->
+      <button id="reload-btn" class="btn btn-primary">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
       
-
+      <!-- Dark Mode Toggle -->
+      <div class="ms-auto">
+        <button id="darkModeToggle" class="btn btn-outline-secondary">
+          <i class="bi bi-moon-stars"></i>
+        </button>
+      </div>
+  
+      <!-- Account Dropdown -->
       <div class="dropdown">
         <button class="btn btn-link dropdown-toggle d-flex align-items-center" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="true">
           <i class="bi bi-person-circle fs-4"></i> <!-- User Icon -->
@@ -62,6 +86,7 @@
     </div>
   </nav>
   
+  
   <main class="d-flex">
     
     <!-- Sidebar -->
@@ -71,30 +96,6 @@
         <i class="bi bi-speedometer pe-2"></i>
         <b>Dashboard</b>
       </a>
-      <!-- cluster dropdown -->
-      <div class="card-body d-flex flex-column">
-        <div class="container my-2">
-          <div class="dropdown ">
-            <input type="text" id="search-bar" class="form-control fw-bold bg-primary" style="color: #fff; cursor:pointer;" placeholder="Search for clusters..." onkeyup="searchClusters()">
-              <i class="bi bi-caret-down-fill position-absolute"style="right: 15px; top: 50%; transform: translateY(-50%); color: white; pointer-events: none;"></i>
-              <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
-                    {% for cluster in registered_clusters %}
-                    <a href="
-                    {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
-                    /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
-                    {% else %}
-                    {% url 'cluster_error' %}
-                    {% endif %}
-                    " class="text-decoration-none">
-                    <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
-                    </a>
-                    {% empty %}
-                        <li class="list-group-item">No clusters found.</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
 
       <ul class="list-unstyled ps-0 scrollable-list">
         <!-- Workloads Section -->
@@ -278,7 +279,7 @@
     function reloadPage() {
       // Disable the button and show the spinner when clicked
       var reloadButton = document.getElementById("reload-btn");
-      reloadButton.innerHTML = 'Refreshing... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      reloadButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
       reloadButton.disabled = true;
       // Reload the page after a short delay to show the spinner
       setTimeout(() => {

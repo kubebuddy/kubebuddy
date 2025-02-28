@@ -78,8 +78,8 @@
       <tr>
         <td>{{ pod.namespace }}</td>
         <td>{{ pod.name }}</td>
-        <td>{{ pod.cpu_usage_nano }}</td>
-        <td>{{ pod.memory_usage_bytes }}</td>
+        <td>{{ pod.cpu_usage_milli }} m</td>
+        <td>{{ pod.memory_usage_mi }} Mi</td>
         <td>{{ pod.error }}</td>
     </tr>
       {% endfor %}

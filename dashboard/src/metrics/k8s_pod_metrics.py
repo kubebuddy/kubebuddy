@@ -29,16 +29,39 @@ def get_pod_metrics(path=None, context=None):
                         total_memory_usage_bytes = 0
 
                         for container in metrics['containers']:
-                            total_cpu_usage_nano += int(container['usage']['cpu'].replace('n', ''))
-                            total_memory_usage_bytes += int(container['usage']['memory'].replace('Ki', '')) * 1024
+                            cpu_str = container['usage']['cpu']
+                            memory_str = container['usage']['memory']
+
+                            if cpu_str.endswith('n'):
+                                total_cpu_usage_nano += int(cpu_str.replace('n', ''))
+                            elif cpu_str.endswith('m'):
+                                total_cpu_usage_nano += int(cpu_str.replace('m', '')) * 1000000
+
+                            if memory_str.endswith('Ki'):
+                                total_memory_usage_bytes += int(memory_str.replace('Ki', '')) * 1024
+                            elif memory_str.endswith('Mi'):
+                                total_memory_usage_bytes += int(memory_str.replace('Mi', '')) * 1024 * 1024
+                            elif memory_str.endswith('Gi'):
+                                total_memory_usage_bytes += int(memory_str.replace('Gi','')) * 1024 * 1024 * 1024
+                            elif memory_str.endswith('Ti'):
+                                total_memory_usage_bytes += int(memory_str.replace('Ti','')) * 1024 * 1024 * 1024 * 1024
+                            elif memory_str.endswith('Pi'):
+                                total_memory_usage_bytes += int(memory_str.replace('Pi','')) * 1024 * 1024 * 1024 * 1024 * 1024
+                            elif memory_str.endswith('Ei'):
+                                total_memory_usage_bytes += int(memory_str.replace('Ei','')) * 1024 * 1024 * 1024 * 1024 * 1024 * 1024
+                            elif memory_str.endswith('B'):
+                                total_memory_usage_bytes += int(memory_str.replace('B',''))
+
+                        cpu_usage_milli = int(total_cpu_usage_nano / 1000000)
+                        memory_usage_mi = round( total_memory_usage_bytes / (1024 * 1024), 2)
 
                         all_pod_metrics.append({
                             "name": pod_name,
                             "namespace": namespace,
-                            "cpu_usage_nano": total_cpu_usage_nano,
-                            "memory_usage_bytes": total_memory_usage_bytes,
+                            "cpu_usage_milli": cpu_usage_milli,
+                            "memory_usage_mi": memory_usage_mi,
                             'total_pods': len(pod_name),
-                            'error': 'N/A'
+                            'error': '-'
                         })
 
                     except ApiException as e:

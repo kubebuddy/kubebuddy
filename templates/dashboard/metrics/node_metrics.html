@@ -72,9 +72,9 @@
         <tr>
           <td>{{ node.name }}</td>
           <td>{{ node.cpu_cores }}</td>
-          <td>{{ node.cpu_usage_percentage }}</td>
-          <td>{{ node.memory_bytes }}</td>
-          <td>{{ node.memory_usage_percentage }}</td>
+          <td>{{ node.cpu_usage_percentage }} %</td>
+          <td>{{ node.memory_mi }} Mi</td>
+          <td>{{ node.memory_usage_percentage }} %</td>
           <td>{{ node.error }}</td>
         </tr>
       {% endfor %}

@@ -1,7 +1,5 @@
 from kubernetes import config, client
 from kubernetes.client.rest import ApiException
-import requests
-import json
 
 def get_node_metrics(path=None, context=None):
     config.load_kube_config(path, context)
@@ -21,10 +19,9 @@ def get_node_metrics(path=None, context=None):
                     name=node_name,
                     plural="nodes",
                 )
-                
 
                 cpu_usage_nano = int(metrics['usage']['cpu'].replace('n', ''))
-                memory_usage_bytes = int(metrics['usage']['memory'].replace('Ki', '')) * 1024 # convert Ki to bytes
+                memory_usage_bytes = int(metrics['usage']['memory'].replace('Ki', '')) * 1024  # convert Ki to bytes
 
                 # Get node capacity for CPU and memory to calculate percentages
                 node_capacity = node.status.capacity
@@ -34,11 +31,13 @@ def get_node_metrics(path=None, context=None):
                 cpu_usage_percentage = (cpu_usage_nano / (cpu_capacity_cores * 1e9)) * 100
                 memory_usage_percentage = (memory_usage_bytes / memory_capacity_bytes) * 100
 
+                # Convert memory bytes to Mi
+                memory_capacity_mi = memory_capacity_bytes / (1024 * 1024)
                 node_metrics.append({
                     "name": node_name,
                     "cpu_cores": cpu_capacity_cores,
                     "cpu_usage_percentage": round(cpu_usage_percentage, 2),
-                    "memory_bytes": memory_capacity_bytes,
+                    "memory_mi": round(memory_capacity_mi,2),
                     "memory_usage_percentage": round(memory_usage_percentage, 2)
                 })
 

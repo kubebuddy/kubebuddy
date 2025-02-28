@@ -198,3 +198,73 @@ def delete_cluster(request, pk):
     cluster = Cluster.objects.get(pk=pk)
     cluster.delete()
     return JsonResponse({'status': 'deleted'})
+
+# Chat Bot
+
+from django.views.decorators.csrf import csrf_exempt
+from .models import AIConfig
+import json
+import requests
+from google import genai
+
+def gemini_response(api_key, user_message):
+    model="gemini-2.0-flash"
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(model=model, contents=user_message)
+    return response.text
+
+@csrf_exempt
+def check_api_key(request):
+    """Check if an API key is set; if not, prompt the user to enter one."""
+    config = AIConfig.objects.first()
+    if config:
+        return JsonResponse({"status": "success", "provider": config.provider, "api_key": config.api_key})
+    else:
+        return JsonResponse({"status": "missing", "message": "Please set the API key and provider."})
+
+@csrf_exempt
+def set_api_key(request):
+    """Allow the user to set an API key and provider."""
+    if request.method == "POST":
+        data = json.loads(request.body)
+        provider = data.get("provider")
+        api_key = data.get("api_key")
+
+        if provider not in ["openai", "gemini"]:
+            return JsonResponse({"status": "error", "message": "Invalid provider selected."})
+
+        # Save API key
+        AIConfig.objects.update_or_create(provider=provider, defaults={"api_key": api_key})
+        return JsonResponse({"status": "success", "message": "API key saved successfully."})
+
+    return JsonResponse({"status": "error", "message": "Invalid request method."})
+
+@csrf_exempt
+def chatbot_response(request):
+    """Handles chatbot communication."""
+    if request.method == "POST":
+        data = json.loads(request.body)
+        user_message = data.get("message")
+
+        # Get API key
+        config = AIConfig.objects.first()
+        if not config:
+            return JsonResponse({"status": "error", "message": "API key not set. Please configure it first."})
+
+        provider = config.provider
+        api_key = config.api_key
+
+        
+        try:
+
+            if provider == "gemini":
+                bot_response = gemini_response(api_key, user_message)
+            else:
+                bot_response = "Sorry, I couldn't process that."
+
+            return JsonResponse({"status": "success", "message": bot_response})
+
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+
+    return JsonResponse({"status": "error", "message": "Invalid request method."})

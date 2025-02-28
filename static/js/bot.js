@@ -1,142 +1,208 @@
-// Constants
-const API_KEY = 'API KEY';
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-
 // System prompt to focus responses on technical topics
-const SYSTEM_PROMPT = `You are Buddy AI, a technical assistant specializing in:
-- Kubernetes (K8s) and container orchestration
-- Cloud computing (AWS, Azure, GCP)
-- Programming languages and development
-- Technical error handling and debugging
-- DevOps practices and tools
-- Infrastructure and system architecture
-- Cloud-native technologies
-- Technical best practices and patterns
+// const SYSTEM_PROMPT = `You are Buddy AI, a technical assistant specializing in:
+// - Kubernetes (K8s) and container orchestration
+// - Cloud computing (AWS, Azure, GCP)
+// - Programming languages and development
+// - Technical error handling and debugging
+// - DevOps practices and tools
+// - Infrastructure and system architecture
+// - Cloud-native technologies
+// - Technical best practices and patterns
 
-Only respond to questions related to these technical domains. For non-technical questions, politely inform the user that you're focused on technical topics and can't help with that query.
+// Only respond to questions related to these technical domains. For non-technical questions, politely inform the user that you're focused on technical topics and can't help with that query.
 
-Keep responses clear, concise, and technically accurate. When relevant, include code examples or command-line instructions.`;
+// Keep responses clear, concise, and technically accurate. When relevant, include code examples or command-line instructions.`;
 
-// Initialize chat history from session storage when the page loads
+// Flags for handling API key input
+let awaitingProvider = false;
+let awaitingApiKey = false;
+let selectedProvider = "";
+
 document.addEventListener('DOMContentLoaded', () => {
+    checkAPIKey();
     loadChatHistory();
 });
 
-// Load chat history from session storage
+// Toggle Chat Window
+function toggleChat() {
+    var chatWindow = document.getElementById("chatbotWindow");
+    chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
+
+    if (chatWindow.style.display === "flex") {
+        checkAPIKey();
+    }
+}
+
+// Check if API Key Exists
+async function checkAPIKey() {
+    try {
+        const response = await fetch('/check-api-key/');
+        const data = await response.json();
+
+        if (data.status === "missing") {
+            botMessage("Hello! To start, please set up your AI API key.");
+            botMessage("Which provider do you want to use? (openai/gemini)");
+            awaitingProvider = true;
+        }
+    } catch (error) {
+        console.error("Error checking API key:", error);
+    }
+}
+
+// Handle User Messages
+async function sendMessage() {
+    const inputField = document.getElementById("chatInput");
+    const message = inputField.value.trim();
+    if (message === "") return;
+
+    userMessage(message);
+    inputField.value = "";
+
+    if (awaitingProvider) {
+        handleProviderSelection(message);
+        return;
+    }
+
+    if (awaitingApiKey) {
+        handleApiKeyInput(message);
+        return;
+    }
+
+    // Process user query only if API key is set
+    processUserQuery(message);
+}
+
+// Handle Provider Selection
+function handleProviderSelection(message) {
+    const provider = message.toLowerCase();
+    if (!["openai", "gemini"].includes(provider)) {
+        botMessage("Invalid provider. Please type 'openai' or 'gemini'.");
+        return;
+    }
+
+    selectedProvider = provider;
+    awaitingProvider = false;
+    awaitingApiKey = true;
+    botMessage(`Great! Now, please enter your ${provider.toUpperCase()} API key.`);
+}
+
+// Handle API Key Input
+async function handleApiKeyInput(apiKey) {
+    if (!apiKey) {
+        botMessage("API key cannot be empty. Please enter a valid key.");
+        return;
+    }
+
+    try {
+        const response = await fetch('/set-api-key/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ provider: selectedProvider, api_key: apiKey }),
+        });
+
+        const data = await response.json();
+        if (data.status === "success") {
+            botMessage("API Key saved successfully! You can now ask me technical questions.");
+            awaitingApiKey = false;
+        } else {
+            botMessage("Error saving API key: " + data.message);
+        }
+    } catch (error) {
+        console.error("Error saving API key:", error);
+    }
+}
+
+// Process User Query and Get AI Response
+async function processUserQuery(message) {
+    try {
+        console.log("Sending message to backend:", message);
+
+        const response = await fetch('/chatbot-response/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Received response from backend:", data);
+
+        if (data.message) {
+            botMessage(data.message);
+        } else {
+            botMessage("Sorry, I couldn't process that.");
+        }
+
+    } catch (error) {
+        console.error("Error processing message:", error);
+        botMessage("Oops! Something went wrong. Please try again.");
+    }
+}
+
+// Add User Message to Chat
+function userMessage(text) {
+    const chatBody = document.getElementById("chatBody");
+    const messageElement = document.createElement("div");
+    messageElement.textContent = text;
+    messageElement.className = "user-message";
+    chatBody.appendChild(messageElement);
+    saveMessage(text, "user-message");
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+// Add Bot Message to Chat
+function botMessage(text) {
+    const chatBody = document.getElementById("chatBody");
+    const messageElement = document.createElement("div");
+    messageElement.textContent = text;
+    messageElement.className = "bot-message";
+    chatBody.appendChild(messageElement);
+    saveMessage(text, "bot-message");
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+// Load Chat History from Session Storage
 function loadChatHistory() {
     const chatBody = document.getElementById("chatBody");
     const chatHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
     
-    // Clear existing messages
     chatBody.innerHTML = '';
     
-    // Recreate each message from history
     chatHistory.forEach(message => {
         const messageElement = document.createElement("div");
         messageElement.textContent = message.text;
         messageElement.className = message.type;
         chatBody.appendChild(messageElement);
     });
-    
-    // Scroll to bottom
+
     chatBody.scrollTop = chatBody.scrollHeight;
 }
 
-// Save a message to session storage
+// Save Chat Message to Session Storage
 function saveMessage(text, type) {
     const chatHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
     chatHistory.push({ text, type });
     sessionStorage.setItem('chatHistory', JSON.stringify(chatHistory));
 }
 
-// Clear chat history
+// Clear Chat History
 function clearChatHistory() {
     sessionStorage.removeItem('chatHistory');
     const chatBody = document.getElementById("chatBody");
     chatBody.innerHTML = '';
 }
 
-async function sendMessage() {
-    const inputField = document.getElementById("chatInput");
-    const message = inputField.value.trim();
-    if (message === "") return;
-    
-    const chatBody = document.getElementById("chatBody");
-    
-    // Add and save user message
-    const userMessageElement = document.createElement("div");
-    userMessageElement.textContent = message;
-    userMessageElement.className = "user-message";
-    chatBody.appendChild(userMessageElement);
-    saveMessage(message, "user-message");
-    
-    // Show typing indicator
-    const typingIndicator = document.createElement("div");
-    typingIndicator.className = "bot-message typing-indicator";
-    typingIndicator.textContent = "Buddy is thinking...";
-    chatBody.appendChild(typingIndicator);
-    
-    // Clear input
-    inputField.value = "";
-    chatBody.scrollTop = chatBody.scrollHeight;
-
-    try {
-        const response = await fetch(`${API_URL}?key=${API_KEY}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: SYSTEM_PROMPT + "\n\nUser: " + message
-                    }]
-                }]
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('API request failed');
-        }
-
-        const data = await response.json();
-        const botResponse = data.candidates[0].content.parts[0].text;
-        
-        // Remove typing indicator
-        typingIndicator.remove();
-        
-        // Add and save bot response
-        const botMessageElement = document.createElement("div");
-        botMessageElement.textContent = botResponse;
-        botMessageElement.className = "bot-message";
-        chatBody.appendChild(botMessageElement);
-        saveMessage(botResponse, "bot-message");
-        
-    } catch (error) {
-        // Remove typing indicator
-        typingIndicator.remove();
-        
-        // Add and save error message
-        const errorMessage = "Sorry, I encountered an error. Please try again.";
-        const errorElement = document.createElement("div");
-        errorElement.textContent = errorMessage;
-        errorElement.className = "bot-message error";
-        chatBody.appendChild(errorElement);
-        saveMessage(errorMessage, "bot-message error");
-    }
-    
-    chatBody.scrollTop = chatBody.scrollHeight;
-}
-
-// Add event listener for Enter key
+// Listen for "Enter" Key Press in Input Field
 document.getElementById("chatInput").addEventListener("keypress", function(event) {
     if (event.key === "Enter") {
         event.preventDefault();
         sendMessage();
     }
 });
-
-function toggleChat() {
-    var chatWindow = document.getElementById("chatbotWindow");
-    chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
-}

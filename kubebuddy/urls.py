@@ -17,7 +17,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from main.views import login_view, integrate_with, logout_view, change_pass, cluster_select, delete_cluster, cluster_error
+from main.views import login_view, integrate_with, logout_view, change_pass, cluster_select, delete_cluster, cluster_error, \
+                        check_api_key, set_api_key, chatbot_response
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,5 +31,8 @@ urlpatterns = [
     path('', include('dashboard.urls')),
     path('KubeBuddy', cluster_select, name='cluster-select'),
     path('delete_cluster/<int:pk>/', delete_cluster, name='delete_cluster'),
-    path('cluster_error', cluster_error, name="cluster_error")
+    path('cluster_error', cluster_error, name="cluster_error"),
+    path('check-api-key/', check_api_key, name='check_api_key'),
+    path('set-api-key/', set_api_key, name='set_api_key'),
+    path('chatbot-response/', chatbot_response, name='chatbot_response'),
 ]

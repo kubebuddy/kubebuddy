@@ -252,9 +252,14 @@
           <div class="chat-header">
               Buddy AI 🤘🏻✨
               <div class="chat-header-buttons">
+                <button class="clear-chat-btn" onclick="toggleFullscreen()">
+                    <i class="bi bi-fullscreen"></i> <!-- Fullscreen icon initially visible -->
+                    <i class="bi bi-fullscreen-exit d-none"></i> <!-- Exit fullscreen icon initially hidden -->
+                </button>
                 <button class="clear-chat-btn" onclick="clearChatHistory()"><i class="bi bi-trash"></i></button>
-                <button class="close-chat-btn" onclick="toggleChat()"><i class="bi bi-x-lg"></i></button>
-              </div>
+                <button class="close-chat-btn" onclick="toggleChat()"><i class="bi bi-dash-lg"></i></button>
+            </div>
+            
           </div>
           <div class="chat-body" id="chatBody"></div>
           <div class="chat-input">

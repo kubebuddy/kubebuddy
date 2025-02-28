@@ -206,3 +206,37 @@ document.getElementById("chatInput").addEventListener("keypress", function(event
         sendMessage();
     }
 });
+
+let isFullscreen = false; // Flag to check if the window is in fullscreen mode
+
+function toggleFullscreen() {
+    const chatbotWindow = document.querySelector('.chatbot-window');
+    const fullscreenIcon = document.querySelector('.bi-fullscreen'); // Fullscreen icon
+    const exitFullscreenIcon = document.querySelector('.bi-fullscreen-exit'); // Exit fullscreen icon
+
+    // Toggle fullscreen state
+    if (!isFullscreen) {
+        // Maximize the chat window to fullscreen
+        chatbotWindow.style.width = '80vw'; // Full width
+        chatbotWindow.style.height = '80vh'; // Full height
+        chatbotWindow.style.bottom = '0'; // Stick to bottom
+        chatbotWindow.style.right = '0'; // Stick to right
+
+        // Show exit fullscreen icon, hide fullscreen icon
+        fullscreenIcon.classList.add('d-none'); // Hide fullscreen icon
+        exitFullscreenIcon.classList.remove('d-none'); // Show exit fullscreen icon
+    } else {
+        // Minimize the chat window to original size
+        chatbotWindow.style.width = '40vw'; // Original width
+        chatbotWindow.style.height = '60vh'; // Original height
+        chatbotWindow.style.bottom = '70px'; // Reset bottom margin
+        chatbotWindow.style.right = '0'; // Reset right margin
+
+        // Show fullscreen icon, hide exit fullscreen icon
+        fullscreenIcon.classList.remove('d-none'); // Show fullscreen icon
+        exitFullscreenIcon.classList.add('d-none'); // Hide exit fullscreen icon
+    }
+
+    // Toggle the fullscreen state
+    isFullscreen = !isFullscreen;
+}

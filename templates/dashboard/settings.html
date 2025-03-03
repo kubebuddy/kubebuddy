@@ -103,30 +103,6 @@
                 </a>
             </div>
             
-            <!-- Search bar for clusters -->
-            <div class="card-body mb-4">
-                <div class="container">
-                    <div class="dropdown">
-                        <input type="text" id="search-bar" class="form-control" placeholder="Search for clusters..." onkeyup="searchClusters()">
-                        <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
-                            {% for cluster in registered_clusters %}
-                            <a href="
-                            {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
-                            /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
-                            {% else %}
-                            {% url 'cluster_error' %}
-                            {% endif %}
-                            " class="text-decoration-none">
-                            <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
-                            </a>
-                            {% empty %}
-                                <li class="list-group-item">No clusters found.</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
             <!-- User/Account Info at Bottom (Optional) -->
             <div class="mt-auto pt-3 border-top">
                 <div class="d-flex align-items-center">
@@ -482,45 +458,6 @@
 
         // Reload button event listener
         document.getElementById("reload-btn").addEventListener("click", reloadPage);
-
-        // Search functionality
-        function searchClusters() {
-            var input, filter, list, items, item, textValue;
-            input = document.getElementById('search-bar');
-            filter = input.value.toLowerCase();
-            list = document.getElementById('cluster-list');
-            items = list.getElementsByClassName('cluster-item');
-
-            if (filter.length > 0 || document.activeElement === input) {
-                list.classList.add("show"); // Show dropdown
-            } else {
-                list.classList.remove("show"); // Hide dropdown if input is empty
-            }
-
-            for (var i = 0; i < items.length; i++) {
-                item = items[i];
-                textValue = item.textContent || item.innerText;
-                if (textValue.toLowerCase().indexOf(filter) > -1) {
-                    item.style.display = "";
-                } else {
-                    item.style.display = "none";
-                }
-            }
-        }
-
-        document.getElementById('search-bar').addEventListener("focus", function() {
-            var list = document.getElementById('cluster-list');
-            list.classList.add("show");
-        });
-
-        // Hide dropdown when clicking outside
-        document.addEventListener("click", function(event) {
-            var dropdown = document.getElementById('cluster-list');
-            var input = document.getElementById('search-bar');
-            if (!dropdown.contains(event.target) && event.target !== input) {
-                dropdown.classList.remove("show");
-            }
-        });
     </script>
 </body>
 </html>

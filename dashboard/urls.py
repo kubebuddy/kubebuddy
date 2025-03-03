@@ -10,12 +10,14 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 resourcequota_info, cronjob_info, configmap_info, pvc_info, \
                                 secret_info, role_info, pv_info, storageclass_info, role_binding_info, \
                                 clusterrole_info, cluster_role_binding_info, serviceAccountInfo, \
-                                pod_metrics, node_metrics, pdb, pdb_info, np, np_info
+                                pod_metrics, node_metrics, pdb, pdb_info, np, np_info, \
+                                settings
 
 
 urlpatterns = [
     # Dashboard
     path('<str:cluster_name>/dashboard/', dashboard, name='dashboard'),
+    path('settings/', settings, name='settings'),
 
     # Workloads
     path('<str:cluster_name>/pods', pods, name='pods'),

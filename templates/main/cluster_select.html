@@ -43,12 +43,35 @@
         html.transition *:after {
             transition: all 0.3s ease-in-out !important;
         }
+        
+        /* Styles for sidebar bottom links */
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .sidebar-bottom-link {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .sidebar-bottom-link:hover {
+            color: #0d6efd;
+        }
+        
+        .sidebar-bottom-link i {
+            margin-right: 0.75rem;
+        }
     </style>
 </head>
 <body>
     <div class="d-flex">
         <!-- side bar -->
-        <div class="sidebar p-3 flex-shrink-0 bg-white border-end" style="width: 20rem; height:100vh">
+        <div class="sidebar p-3 flex-shrink-0 bg-white border-end d-flex flex-column" style="width: 20rem; height:100vh">
             <div class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
                 <a href="/KubeBuddy" class="d-flex align-items-center link-dark text-decoration-none">
                     <img src="https://cdn-icons-png.flaticon.com/512/11231/11231852.png" width="30" height="30" alt="KubeBuddy Logo">
@@ -76,6 +99,18 @@
                         </ul>
                     </div>
                 </div>
+            </div>
+            
+            <!-- Bottom sidebar links -->
+            <div class="sidebar-bottom mt-auto">
+                <a href="/settings" class="sidebar-bottom-link link-dark">
+                    <i class="bi bi-gear-fill"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="/documentation" class="sidebar-bottom-link link-dark">
+                    <i class="bi bi-file-text-fill"></i>
+                    <span>Documentation</span>
+                </a>
             </div>
         </div>
         <!-- main page  -->

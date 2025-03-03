@@ -1,0 +1,526 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KubeBuddy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/11231/11231852.png">
+    <style>
+        /* Custom styles for dark mode */
+        [data-bs-theme="dark"] .sidebar {
+            background-color: #121212 !important;
+            border-color: #495057 !important;
+        }
+        
+        [data-bs-theme="dark"] .link-dark {
+            color: #f8f9fa !important;
+        }
+        
+        [data-bs-theme="dark"] .card {
+            background-color: #121212;
+            border-color: #495057;
+        }
+        
+        [data-bs-theme="dark"] .text-black {
+            color: #f8f9fa !important;
+        }
+        
+        /* Animation for theme transition */
+        html.transition,
+        html.transition *,
+        html.transition *:before,
+        html.transition *:after {
+            transition: all 0.3s ease-in-out !important;
+        }
+        
+        /* Styles for sidebar navigation items */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            color: inherit;
+            text-decoration: none;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        
+        .nav-link.active {
+            background-color: #0d6efd;
+            color: white !important;
+        }
+        
+        .nav-link i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+        
+        /* Content sections */
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex">
+        <!-- side bar with tabs -->
+        <div class="sidebar p-3 flex-shrink-0 bg-white border-end d-flex flex-column" style="width: 20rem; height:100vh">
+            <div class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+                <a href="/KubeBuddy" class="d-flex align-items-center link-dark text-decoration-none">
+                    <img src="https://cdn-icons-png.flaticon.com/512/11231/11231852.png" width="30" height="30" alt="KubeBuddy Logo">
+                    <span class="fs-5 p-2 fw-semibold">KubeBuddy</span>
+                </a>
+            </div>
+            
+            <!-- Navigation tabs - moved to top of navbar -->
+            <div class="nav flex-column nav-pills mb-4" role="tablist" aria-orientation="vertical">
+                <a class="nav-link active link-dark" id="general-settings-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('general-settings-content')">
+                    <i class="bi bi-gear"></i>
+                    <span>General Settings</span>
+                </a>
+                <a class="nav-link link-dark" id="ai-config-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('ai-config-content')">
+                    <i class="bi bi-robot"></i>
+                    <span>AI Configuration</span>
+                </a>
+                <a class="nav-link link-dark" id="change-password-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('change-password-content')">
+                    <i class="bi bi-key-fill"></i>
+                    <span>Change Password</span>
+                </a>
+                <a class="nav-link link-dark" id="documentation-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('documentation-content')">
+                    <i class="bi bi-file-text-fill"></i>
+                    <span>Documentation</span>
+                </a>
+            </div>
+            
+            <!-- Search bar for clusters -->
+            <div class="card-body mb-4">
+                <div class="container">
+                    <div class="dropdown">
+                        <input type="text" id="search-bar" class="form-control" placeholder="Search for clusters..." onkeyup="searchClusters()">
+                        <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
+                            {% for cluster in registered_clusters %}
+                            <a href="
+                            {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
+                            /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
+                            {% else %}
+                            {% url 'cluster_error' %}
+                            {% endif %}
+                            " class="text-decoration-none">
+                            <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
+                            </a>
+                            {% empty %}
+                                <li class="list-group-item">No clusters found.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User/Account Info at Bottom (Optional) -->
+            <div class="mt-auto pt-3 border-top">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-person-circle fs-4 me-2"></i>
+                    <div>
+                        <small class="d-block text-muted">Logged in as</small>
+                        <span>Admin User</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- main content area -->
+        <div class="container-fluid p-4 flex-grow-1">
+            <!-- Header with action buttons -->
+            <div class="pb-3 mb-4 border-bottom d-flex justify-content-between">
+                <div id="section-title" class="h4">General Settings</div>
+                <div class="ms-auto">
+                    <button id="reload-btn" class="btn btn-primary me-2">
+                        Refresh
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button id="theme-toggle" class="btn btn-outline-secondary">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- General Settings Content Section - simplified with only Check for Updates button -->
+            <div id="general-settings-content" class="content-section active">
+                <!-- Default Kubeconfig Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        Kubeconfig Settings
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="mb-3">
+                                <label for="defaultKubeconfig" class="form-label">Default Kubeconfig Path</label>
+                                <input type="text" class="form-control" id="defaultKubeconfig" value="~/.kube/config">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Kubeconfig Path</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Simplified General Settings Card -->
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        Application Settings
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <button type="button" class="btn btn-outline-primary">
+                                <i class="bi bi-cloud-download me-2"></i>Check for Updates
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI Configuration Content Section -->
+            <div id="ai-config-content" class="content-section">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        AI Assistant Configuration
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="mb-3">
+                                <label for="aiModel" class="form-label">AI Model</label>
+                                <select class="form-select" id="aiModel">
+                                    <option value="chatgpt" selected>ChatGPT</option>
+                                    <option value="gemini">Gemini</option>
+                                    <option value="claude">Claude</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="apiKey" class="form-label">API Key</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="apiKey" value="sk-****************************************">
+                                    <button class="btn btn-outline-secondary" type="button" id="showApiKey">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">Your API key is stored securely and never shared.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save AI Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Change Password Content Section -->
+            <div id="change-password-content" class="content-section">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        Change Password
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="currentPassword" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="newPassword" required>
+                                <div class="form-text">Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" required>
+                            </div>
+                            <div class="mb-3">
+                                <div class="progress" style="height: 5px;">
+                                    <div id="passwordStrength" class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <small id="passwordStrengthText" class="form-text">Password strength: Too weak</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Change Password</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Documentation Content Section -->
+            <div id="documentation-content" class="content-section">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        KubeBuddy Documentation
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h5>Getting Started</h5>
+                            <p>KubeBuddy helps you manage and monitor multiple Kubernetes clusters from a single interface. Follow these steps to get started:</p>
+                            <ol>
+                                <li>Configure your general settings in the "General Settings" tab</li>
+                                <li>Set up your AI preferences in the "AI Configuration" tab</li>
+                                <li>For security, change your default password in the "Change Password" tab</li>
+                                <li>Start monitoring and managing your clusters</li>
+                            </ol>
+                        </div>
+                        <div class="mb-4">
+                            <h5>Frequently Asked Questions</h5>
+                            <div class="accordion" id="faqAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                            How do I add multiple clusters?
+                                        </button>
+                                    </h2>
+                                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            You can add as many clusters as you need by clicking the "Add Cluster" button for each one and providing the appropriate kubeconfig file.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                            What permissions does the AI assistant need?
+                                        </button>
+                                    </h2>
+                                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            By default, the AI assistant has limited permissions. You can configure which actions the AI is allowed to perform in the AI Configuration tab. For security reasons, we recommend limiting AI permissions to only what's necessary.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                            How secure is my API key?
+                                        </button>
+                                    </h2>
+                                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body">
+                                            Your API key is encrypted and stored securely. We never transmit your API key outside of your authenticated sessions, and it's not stored in plain text.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/cluster_actions.js' %}"></script>
+    <script>
+        // Function to show content sections
+        function showContent(contentId) {
+            // Hide all content sections
+            const contentSections = document.querySelectorAll('.content-section');
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show the selected content section
+            document.getElementById(contentId).classList.add('active');
+            
+            // Update active tab
+            const tabs = document.querySelectorAll('.nav-link');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Find the related tab and make it active
+            const relatedTabId = contentId.replace('-content', '-tab');
+            document.getElementById(relatedTabId).classList.add('active');
+            
+            // Update section title
+            const sectionTitle = document.getElementById('section-title');
+            switch(contentId) {
+                case 'general-settings-content':
+                    sectionTitle.textContent = 'General Settings';
+                    break;
+                case 'ai-config-content':
+                    sectionTitle.textContent = 'AI Configuration';
+                    break;
+                case 'change-password-content':
+                    sectionTitle.textContent = 'Change Password';
+                    break;
+                case 'documentation-content':
+                    sectionTitle.textContent = 'Documentation';
+                    break;
+            }
+        }
+        
+        // Theme toggle functionality
+        document.addEventListener("DOMContentLoaded", function() {
+            // Check for saved theme preference or use preferred color scheme
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            
+            // Set initial theme based on saved preference or system preference
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-bs-theme', savedTheme);
+                updateThemeIcon(savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                updateThemeIcon('dark');
+            }
+            
+            // Theme toggle button click handler
+            themeToggleBtn.addEventListener('click', function() {
+                // Add transition class
+                document.documentElement.classList.add('transition');
+                
+                // Toggle theme
+                const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                // Set the new theme
+                document.documentElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Update icon
+                updateThemeIcon(newTheme);
+                
+                // Remove transition class after animation completes
+                setTimeout(() => {
+                    document.documentElement.classList.remove('transition');
+                }, 300);
+            });
+            
+            // Function to update theme icon
+            function updateThemeIcon(theme) {
+                const iconElement = themeToggleBtn.querySelector('i');
+                if (theme === 'dark') {
+                    iconElement.className = 'bi bi-sun';
+                    themeToggleBtn.setAttribute('title', 'Switch to light mode');
+                } else {
+                    iconElement.className = 'bi bi-moon-stars';
+                    themeToggleBtn.setAttribute('title', 'Switch to dark mode');
+                }
+            }
+            
+            // Password strength meter
+            if (document.getElementById('newPassword')) {
+                document.getElementById('newPassword').addEventListener('input', function() {
+                    const password = this.value;
+                    let strength = 0;
+                    
+                    // Calculate password strength
+                    if (password.length >= 8) strength += 25;
+                    if (password.match(/[A-Z]/)) strength += 25;
+                    if (password.match(/[0-9]/)) strength += 25;
+                    if (password.match(/[^A-Za-z0-9]/)) strength += 25;
+                    
+                    // Update the progress bar
+                    const strengthBar = document.getElementById('passwordStrength');
+                    strengthBar.style.width = strength + '%';
+                    
+                    // Update the text and color
+                    const strengthText = document.getElementById('passwordStrengthText');
+                    if (strength < 25) {
+                        strengthBar.className = 'progress-bar bg-danger';
+                        strengthText.textContent = 'Password strength: Too weak';
+                    } else if (strength < 50) {
+                        strengthBar.className = 'progress-bar bg-warning';
+                        strengthText.textContent = 'Password strength: Weak';
+                    } else if (strength < 75) {
+                        strengthBar.className = 'progress-bar bg-info';
+                        strengthText.textContent = 'Password strength: Good';
+                    } else {
+                        strengthBar.className = 'progress-bar bg-success';
+                        strengthText.textContent = 'Password strength: Strong';
+                    }
+                });
+            }
+            
+            // Show/Hide API Key
+            if (document.getElementById('showApiKey')) {
+                document.getElementById('showApiKey').addEventListener('click', function() {
+                    const apiKeyInput = document.getElementById('apiKey');
+                    const eyeIcon = this.querySelector('i');
+                    
+                    if (apiKeyInput.type === 'password') {
+                        apiKeyInput.type = 'text';
+                        eyeIcon.className = 'bi bi-eye-slash';
+                    } else {
+                        apiKeyInput.type = 'password';
+                        eyeIcon.className = 'bi bi-eye';
+                    }
+                });
+            }
+        });
+        
+        // Initialize tooltips
+        document.addEventListener("DOMContentLoaded", function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        // Reload button functionality
+        function reloadPage() {
+            // Disable the button and show the spinner when clicked
+            var reloadButton = document.getElementById("reload-btn");
+            reloadButton.innerHTML = 'Refreshing... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            reloadButton.disabled = true;
+
+            // Reload the page after a short delay to show the spinner
+            setTimeout(() => {
+                location.reload();
+            }, 100);  // 100ms delay before reloading
+        }
+
+        // Reload button event listener
+        document.getElementById("reload-btn").addEventListener("click", reloadPage);
+
+        // Search functionality
+        function searchClusters() {
+            var input, filter, list, items, item, textValue;
+            input = document.getElementById('search-bar');
+            filter = input.value.toLowerCase();
+            list = document.getElementById('cluster-list');
+            items = list.getElementsByClassName('cluster-item');
+
+            if (filter.length > 0 || document.activeElement === input) {
+                list.classList.add("show"); // Show dropdown
+            } else {
+                list.classList.remove("show"); // Hide dropdown if input is empty
+            }
+
+            for (var i = 0; i < items.length; i++) {
+                item = items[i];
+                textValue = item.textContent || item.innerText;
+                if (textValue.toLowerCase().indexOf(filter) > -1) {
+                    item.style.display = "";
+                } else {
+                    item.style.display = "none";
+                }
+            }
+        }
+
+        document.getElementById('search-bar').addEventListener("focus", function() {
+            var list = document.getElementById('cluster-list');
+            list.classList.add("show");
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener("click", function(event) {
+            var dropdown = document.getElementById('cluster-list');
+            var input = document.getElementById('search-bar');
+            if (!dropdown.contains(event.target) && event.target !== input) {
+                dropdown.classList.remove("show");
+            }
+        });
+    </script>
+</body>
+</html>

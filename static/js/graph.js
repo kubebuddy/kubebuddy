@@ -1,4 +1,7 @@
 function renderGaugeChart(canvasId, chartData, object_name) {
+    const canvas = document.getElementById(canvasId);
+    canvas.width = 250;  // Set desired width
+    canvas.height = 250; // Set desired height
     const ctx = document.getElementById(canvasId).getContext('2d');
     delete chartData["Count"];
     // Define a fixed color mapping for known labels
@@ -31,8 +34,8 @@ function renderGaugeChart(canvasId, chartData, object_name) {
             }]
         },
         options: {
-            rotation: -90,
-            circumference: 180,
+            responsive: true,
+            maintainAspectRatio: false,
             cutout: '90%',
             plugins: {
                 legend: { display: false },
@@ -50,21 +53,21 @@ function renderGaugeChart(canvasId, chartData, object_name) {
         },
         plugins: [{
             beforeDraw: function (chart) {
-                let width = chart.width,
-                    height = chart.height,
-                    ctx = chart.ctx;
+                let { width, height, ctx } = chart;
+                ctx.save();
 
-                ctx.restore();
-                let fontSize = (height / 120).toFixed(2);
-                ctx.font = fontSize + "em sans-serif";
-                ctx.textBaseline = "middle";
+                // Set font size based on chart size
+                let fontSize = (height / 10).toFixed(2); // Adjusted for better scaling
+                ctx.font = fontSize + "px sans-serif";
+                ctx.textAlign = "center"; // Center text horizontally
+                ctx.textBaseline = "middle"; // Center text vertically
 
                 let text = "KB";
-                let textX = Math.round((width - ctx.measureText(text).width) / 2);
-                let textY = height / 1.8;
+                let textX = width / 2; // Middle of the canvas
+                let textY = height / 2; // Middle of the canvas
 
                 ctx.fillText(text, textX, textY);
-                ctx.save();
+                ctx.restore();
             }
         }]
     });

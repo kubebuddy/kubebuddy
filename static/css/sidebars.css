@@ -1,7 +1,6 @@
 html, body {
   height: 100%;
   overflow: hidden;
-  transition: background-color .5s ease;
   font-size: .875em;
 }
 
@@ -29,7 +28,7 @@ main {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  transition: .5s ease-in-out; 
+  transition: width .5s ease-in-out; 
 }
 
 /* Main content should be scrollable */
@@ -223,7 +222,7 @@ main {
 .dark-mode {
   background-color: #121212 !important;
   color: #e4e4e4;
-  transition: background-color .5s ease;
+  /* transition: background-color .5s ease; */
 }
 
 .dark-mode .navbar {

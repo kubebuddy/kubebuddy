@@ -18,7 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from main.views import login_view, integrate_with, logout_view, change_pass, cluster_select, delete_cluster, cluster_error, \
-                        check_api_key, set_api_key, chatbot_response
+                        check_api_key, set_api_key, chatbot_response, validate_api_key
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,4 +35,5 @@ urlpatterns = [
     path('check-api-key/', check_api_key, name='check_api_key'),
     path('set-api-key/', set_api_key, name='set_api_key'),
     path('chatbot-response/', chatbot_response, name='chatbot_response'),
+    path('validate-api-key/', validate_api_key, name='validate_api_key'),
 ]

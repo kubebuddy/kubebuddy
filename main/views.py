@@ -220,20 +220,116 @@ def delete_cluster(request, pk):
     return JsonResponse({'status': 'deleted'})
 
 
+# System prompt to focus responses on technical topics
+SYSTEM_PROMPT = """You are Buddy AI, a technical assistant specializing in:
+- Kubernetes (K8s) and container orchestration
+- Cloud computing (AWS, Azure, GCP)
+- Programming languages and development
+- Technical error handling and debugging
+- DevOps practices and tools
+- Infrastructure and system architecture
+- Cloud-native technologies
+- Technical best practices and patterns
+
+
+Only respond to questions related to these technical domains. For non-technical questions, politely inform the user that you're focused on technical topics and can't help with that query.
+
+Keep responses clear, concise, and technically accurate. When relevant, include code examples or command-line instructions.
+
+Sure! Here's your request reformatted using symbols:
+
+Try to use *Symbols* instead of **Bold** or _Italic_ styles, and give properly formatted responses.
+"""
+
+# ChatBot Views
 def gemini_response(api_key, user_message):
-    model="gemini-2.0-flash"
-    client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(model=model, contents=user_message)
-    return response.text
+    
+    try:
+        client = genai.Client(api_key=api_key)
+        
+        # For Gemini, we need to combine the system prompt and user message 
+        # in a specific format depending on the API version
+        try:
+            # Newer method with system prompt support
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=[
+                    {"role": "system", "parts": [SYSTEM_PROMPT]},
+                    {"role": "user", "parts": [user_message]}
+                ]
+            )
+        except Exception:
+            # Fallback method for older API versions or models
+            combined_prompt = f"{SYSTEM_PROMPT}\n\nUser: {user_message}\nBuddy AI:"
+            response = client.models.generate_content(
+                model="gemini-2.0-flash", 
+                contents=combined_prompt
+            )
+            
+        return response.text
+    except Exception as e:
+        return f"Error generating response: {str(e)}"
+
+def openai_response(api_key, user_message):
+    """Generate a response using the OpenAI API with system prompt."""
+    try:
+        client = openai.OpenAI(api_key=api_key)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message}
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Error generating response: {str(e)}"
 
 @csrf_exempt
 def check_api_key(request):
     """Check if an API key is set; if not, prompt the user to enter one."""
     config = AIConfig.objects.first()
-    if config:
-        return JsonResponse({"status": "success", "provider": config.provider, "api_key": config.api_key})
+    if config and config.api_key:
+        return JsonResponse({"status": "success", "provider": config.provider, "api_key": "********"})
     else:
         return JsonResponse({"status": "missing", "message": "Please set the API key and provider."})
+
+@csrf_exempt
+def validate_api_key(request):
+    """Validate the API key by making a test API call."""
+    if request.method == "POST":
+        data = json.loads(request.body)
+        provider = data.get("provider")
+        api_key = data.get("api_key")
+
+        if provider not in ["openai", "gemini"]:
+            return JsonResponse({"status": "error", "message": "Invalid provider selected."})
+
+        # Basic validation
+        if not api_key:
+            return JsonResponse({"status": "invalid", "message": "API key cannot be empty."})
+
+        try:
+            if provider == "gemini":
+                # Test the API key with a simple request
+                client = genai.Client(api_key=api_key)
+                response = client.models.generate_content(
+                    model="gemini-2.0-flash", 
+                    contents="Test"
+                )
+                # If we get here, the key works
+                return JsonResponse({"status": "valid"})
+                
+            elif provider == "openai":
+                # Test OpenAI key
+                client = openai.OpenAI(api_key=api_key)
+                models = client.models.list()
+                return JsonResponse({"status": "valid"})
+                
+        except Exception as e:
+            return JsonResponse({"status": "invalid", "message": f"API key validation failed: {str(e)}"})
+
+    return JsonResponse({"status": "error", "message": "Invalid request method."})
 
 @csrf_exempt
 def set_api_key(request):
@@ -246,9 +342,18 @@ def set_api_key(request):
         if provider not in ["openai", "gemini"]:
             return JsonResponse({"status": "error", "message": "Invalid provider selected."})
 
-        # Save API key
-        AIConfig.objects.update_or_create(provider=provider, defaults={"api_key": api_key})
-        return JsonResponse({"status": "success", "message": "API key saved successfully."})
+        if not api_key:
+            return JsonResponse({"status": "error", "message": "API key cannot be empty."})
+
+        try:
+            # Save API key - update or create a single config entry
+            config, created = AIConfig.objects.update_or_create(
+                defaults={"provider": provider, "api_key": api_key}
+            )
+            
+            return JsonResponse({"status": "success", "message": "API key saved successfully."})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": f"Error saving API key: {str(e)}"})
 
     return JsonResponse({"status": "error", "message": "Invalid request method."})
 
@@ -261,23 +366,23 @@ def chatbot_response(request):
 
         # Get API key
         config = AIConfig.objects.first()
-        if not config:
+        if not config or not config.api_key:
             return JsonResponse({"status": "error", "message": "API key not set. Please configure it first."})
 
         provider = config.provider
         api_key = config.api_key
 
-        
         try:
-
             if provider == "gemini":
                 bot_response = gemini_response(api_key, user_message)
+            elif provider == "openai":
+                bot_response = openai_response(api_key, user_message)
             else:
-                bot_response = "Sorry, I couldn't process that."
+                bot_response = "Sorry, I couldn't process that request. Invalid provider."
 
             return JsonResponse({"status": "success", "message": bot_response})
 
         except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)})
+            return JsonResponse({"status": "error", "message": f"Error: {str(e)}"})
 
     return JsonResponse({"status": "error", "message": "Invalid request method."})

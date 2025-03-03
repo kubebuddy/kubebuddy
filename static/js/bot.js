@@ -1,22 +1,8 @@
-// System prompt to focus responses on technical topics
-// const SYSTEM_PROMPT = `You are Buddy AI, a technical assistant specializing in:
-// - Kubernetes (K8s) and container orchestration
-// - Cloud computing (AWS, Azure, GCP)
-// - Programming languages and development
-// - Technical error handling and debugging
-// - DevOps practices and tools
-// - Infrastructure and system architecture
-// - Cloud-native technologies
-// - Technical best practices and patterns
-
-// Only respond to questions related to these technical domains. For non-technical questions, politely inform the user that you're focused on technical topics and can't help with that query.
-
-// Keep responses clear, concise, and technically accurate. When relevant, include code examples or command-line instructions.`;
-
 // Flags for handling API key input
 let awaitingProvider = false;
 let awaitingApiKey = false;
 let selectedProvider = "";
+let loadingMessageId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAPIKey();
@@ -41,7 +27,7 @@ async function checkAPIKey() {
 
         if (data.status === "missing") {
             botMessage("Hello! To start, please set up your AI API key.");
-            botMessage("Which provider do you want to use? (openai/gemini)");
+            botMessage("Which provider do you want to use? <br> 1) Gemini <br> 2) OpenAI");
             awaitingProvider = true;
         }
     } catch (error) {
@@ -74,16 +60,23 @@ async function sendMessage() {
 
 // Handle Provider Selection
 function handleProviderSelection(message) {
-    const provider = message.toLowerCase();
-    if (!["openai", "gemini"].includes(provider)) {
-        botMessage("Invalid provider. Please type 'openai' or 'gemini'.");
+    const input = message.toLowerCase();
+    let provider = "";
+    
+    // Handle both number and text input
+    if (input === "1" || input === "gemini") {
+        provider = "gemini";
+    } else if (input === "2" || input === "openai") {
+        provider = "openai";
+    } else {
+        botMessage("Invalid selection. Please type '1' or 'Gemini' for Gemini, or '2' or 'OpenAI' for OpenAI.");
         return;
     }
 
     selectedProvider = provider;
     awaitingProvider = false;
     awaitingApiKey = true;
-    botMessage(`Great! Now, please enter your ${provider.toUpperCase()} API key.`);
+    botMessage(`You selected ${provider.charAt(0).toUpperCase() + provider.slice(1)}. Now, please enter your ${provider.toUpperCase()} API key.`);
 }
 
 // Handle API Key Input
@@ -93,8 +86,11 @@ async function handleApiKeyInput(apiKey) {
         return;
     }
 
+    // Show loading message while validating API key
+    const loadingMsgId = showLoadingMessage("Validating API key...");
+
     try {
-        const response = await fetch('/set-api-key/', {
+        const response = await fetch('/validate-api-key/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -103,22 +99,45 @@ async function handleApiKeyInput(apiKey) {
         });
 
         const data = await response.json();
-        if (data.status === "success") {
-            botMessage("API Key saved successfully! You can now ask me technical questions.");
-            awaitingApiKey = false;
+        
+        // Remove loading message
+        removeLoadingMessage(loadingMsgId);
+        
+        if (data.status === "valid") {
+            // If valid, save the API key
+            const saveResponse = await fetch('/set-api-key/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ provider: selectedProvider, api_key: apiKey }),
+            });
+            
+            const saveData = await saveResponse.json();
+            
+            if (saveData.status === "success") {
+                botMessage("API Key validated and saved successfully! You can now ask me technical questions.");
+                awaitingApiKey = false;
+            } else {
+                botMessage("Error saving API key: " + saveData.message);
+            }
         } else {
-            botMessage("Error saving API key: " + data.message);
+            botMessage("Invalid API key. Please check your key and try again.");
         }
     } catch (error) {
-        console.error("Error saving API key:", error);
+        // Remove loading message on error
+        removeLoadingMessage(loadingMsgId);
+        console.error("Error validating API key:", error);
+        botMessage("An error occurred while validating your API key. Please try again.");
     }
 }
 
 // Process User Query and Get AI Response
 async function processUserQuery(message) {
     try {
-        console.log("Sending message to backend:", message);
-
+        // Show "Buddy is thinking" message
+        const loadingMsgId = showLoadingMessage("Buddy is thinking...");
+        
         const response = await fetch('/chatbot-response/', {
             method: 'POST',
             headers: {
@@ -127,12 +146,14 @@ async function processUserQuery(message) {
             body: JSON.stringify({ message }),
         });
 
+        // Remove the "Buddy is thinking" message
+        removeLoadingMessage(loadingMsgId);
+
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log("Received response from backend:", data);
 
         if (data.message) {
             botMessage(data.message);
@@ -141,8 +162,34 @@ async function processUserQuery(message) {
         }
 
     } catch (error) {
+        // Make sure to remove loading message on error
+        if (loadingMsgId) {
+            removeLoadingMessage(loadingMsgId);
+        }
         console.error("Error processing message:", error);
         botMessage("Oops! Something went wrong. Please try again.");
+    }
+}
+
+// Show a loading message and return its ID
+function showLoadingMessage(text) {
+    const chatBody = document.getElementById("chatBody");
+    const messageElement = document.createElement("div");
+    messageElement.textContent = text;
+    messageElement.className = "bot-message loading-message";
+    messageElement.id = "loading-" + Date.now();
+    chatBody.appendChild(messageElement);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return messageElement.id;
+}
+
+// Remove a loading message by ID
+function removeLoadingMessage(messageId) {
+    if (messageId) {
+        const loadingElement = document.getElementById(messageId);
+        if (loadingElement) {
+            loadingElement.remove();
+        }
     }
 }
 

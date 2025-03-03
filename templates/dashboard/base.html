@@ -25,13 +25,14 @@
 <body>
 
   <nav class="navbar bg-body-tertiary navbar-expand-lg bg-light py-2">
-    <button id="toggleSidebar" class="toggle-btn pb-2">
-      <i class="bi bi-list"></i>
-    </button>
     
-    <a class="navbar-brand d-flex align-items-center" href="/KubeBuddy">
-      <span class="fs-5 fw-semibold">KubeBuddy</span>
+    <a href="/KubeBuddy" class="text-decoration-none">
+      <div class="navbar-brand d-flex align-items-center p-4 gap-2">
+        <img src="https://cdn-icons-png.flaticon.com/512/11231/11231852.png" width="30" height="30" alt="KubeBuddy Logo">
+        <span class="fs-5 fw-semibold">KubeBuddy</span>
+      </div>
     </a>
+    
   
     <!-- Right Section (Cluster Dropdown + Button + Dropdown) -->
     <div class="d-flex ms-auto align-items-center gap-2">
@@ -85,16 +86,20 @@
     </div>
   </nav>
   
-  
+  <div id="toggleSidebar" class="position-absolute top-50 translate-middle-y bg-primary text-light" style="cursor: pointer; left: 17vw; padding: .3em .6em; border-radius: 4em; font-weight: bold; font-size: 1em; ">
+    <i class='bi bi-chevron-double-left'></i>
+  </div>
+
   <main class="d-flex">
     
     <!-- Sidebar -->
-    <div id="sidebar" class="sidebar flex-shrink-0 p-3 bg-white border-end">
+    <div id="sidebar" class="sidebar p-3 bg-white border-end">
       
       <a href="/{{current_cluster}}/dashboard?cluster_id={{cluster_id}}" class="btn btn-primary text-decoration-none text-white d-flex align-items-center mb-2">
         <i class="bi bi-speedometer pe-2"></i>
         <b>Dashboard</b>
       </a>
+
 
       <ul class="list-unstyled ps-0 scrollable-list">
         <!-- Workloads Section -->
@@ -296,17 +301,21 @@
     document.getElementById("reload-btn").addEventListener("click", reloadPage);
 
     document.getElementById('toggleSidebar').addEventListener('click', function() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('collapsed');
-      
-      const toggleButton = document.getElementById('toggleSidebar');
-      if (sidebar.classList.contains('collapsed')) {
-        
-        toggleButton.style.transition = '1s ease-in-out;'
-      } else {
-        
-        toggleButton.style.transition = '1s ease-in-out;'
-      }
+    const sidebar = document.getElementById('sidebar');
+    const toggleButton = document.getElementById('toggleSidebar');
+    
+    sidebar.classList.toggle('collapsed');
+
+    if (sidebar.classList.contains('collapsed')) {
+      // Change icon to chevron-right and move the button
+      toggleButton.innerHTML = "<i class='bi bi-chevron-double-right'></i>";
+      toggleButton.style.left = '.1vw';
+    } else {
+      // Change icon back to chevron-left and reset the position
+      toggleButton.innerHTML = "<i class='bi bi-chevron-double-left'></i>";
+      toggleButton.style.left = '17vw';
+    }
+    toggleButton.style.transition = '.5s ease-in-out';
     });
 
     document.addEventListener("DOMContentLoaded", function () {

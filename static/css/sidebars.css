@@ -1,7 +1,7 @@
 html, body {
   height: 100%;
   overflow: hidden;
-  transition: background-color 0.3s ease;
+  transition: background-color .5s ease;
   font-size: .875em;
 }
 
@@ -27,9 +27,9 @@ main {
   width: 18vw; /* Adjust as needed */
   height: 100%;
   overflow-y: auto;
-  transition: width 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
+  transition: .5s ease-in-out; 
 }
 
 /* Main content should be scrollable */
@@ -57,22 +57,13 @@ main {
   background: #555;
 }
 
-/* .sidebar.collapsed {
-  display: none;
-  width: 0;
-  padding: 0;
-  overflow: hidden;
-  transition: width 0.3s ease-in-out;
-} */
-
 .sidebar.collapsed {
   transform: translateX(-100%);
-  opacity: 0;
   visibility: hidden;
   width: 0;
   padding: 0;
   overflow: hidden;
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0s 0.3s;
+  transition: .5s ease-in-out, width .5s ease-in-out;
 }
 
 .toggle-btn {
@@ -230,8 +221,9 @@ main {
 /* -------------------------- Dark Mode -------------------------- */
 /* Enhanced Dark Mode */
 .dark-mode {
-  background-color: #212529;
+  background-color: #121212 !important;
   color: #e4e4e4;
+  transition: background-color .5s ease;
 }
 
 .dark-mode .navbar {
@@ -241,7 +233,7 @@ main {
 }
 
 .dark-mode .sidebar {
-  background-color: #212529 !important;
+  background-color: #121212 !important;
   color: #e4e4e4 !important;
   border-right: 1px solid #333;
 }

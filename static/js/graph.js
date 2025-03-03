@@ -1,7 +1,7 @@
 function renderGaugeChart(canvasId, chartData, object_name) {
     const canvas = document.getElementById(canvasId);
-    canvas.width = 250;  // Set desired width
-    canvas.height = 250; // Set desired height
+    canvas.width = 280;  // Set desired width
+    canvas.height = 280; // Set desired height
     const ctx = document.getElementById(canvasId).getContext('2d');
     delete chartData["Count"];
     // Define a fixed color mapping for known labels

@@ -68,7 +68,18 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to get the column index by column name
     function getColumnIndex(columnName) {
         for (let i = 0; i < tableHeaders.length; i++) {
-            if (tableHeaders[i].textContent.replace("-", "").split(" ").join("").toLowerCase() === columnName.split(" ").join("").toLowerCase()) {
+            if (
+                tableHeaders[i].textContent
+                    .replace(/[-%()_]/g, "")  // Remove unwanted characters
+                    .trim()  // Remove leading/trailing spaces
+                    .replace(/\s+/g, "")  // Remove all spaces (including multiple spaces)
+                    .toLowerCase() === 
+                columnName
+                    .replace(/[-%()_]/g, "")
+                    .trim()
+                    .replace(/\s+/g, "")
+                    .toLowerCase()
+            ){
                 return i;
             }
         }

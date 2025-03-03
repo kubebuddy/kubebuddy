@@ -62,9 +62,10 @@ def get_nodes_info(path: str, context: str):
         
 
         if node.metadata.labels:
-            roles = node.metadata.labels.get("kubernetes.io/role", "Unknown")
+            roles = [label.replace("node-role.kubernetes.io/", "") for label in node.metadata.labels if label.startswith("node-role.kubernetes.io/")]
         else:
             roles = "-"
+
 
         node_info = {
             "name": node.metadata.name,
@@ -77,7 +78,7 @@ def get_nodes_info(path: str, context: str):
             "os_image": node.status.node_info.os_image if node.status.node_info.os_image else "-",
             "kernel_version": node.status.node_info.kernel_version if node.status.node_info.kernel_version else "-",
             "container_runtime": node.status.node_info.container_runtime_version if node.status.node_info.container_runtime_version else "-",
-            "taints": node.spec.taints
+            "taints": [taint.key +"=" + taint.value + ":" + taint.effect for taint in node.spec.taints]
         }
         node_data.append(node_info)
     

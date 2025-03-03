@@ -746,6 +746,19 @@ def np(request, cluster_name):
     })
 
 def np_info(request, cluster_name, namespace, np_name):
+    
+    nps, nps_count = k8s_np.get_np(path, cluster_name)
+
+    return render(request, 'dashboard/networking/np.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'nps': nps,
+        'nps_count': nps_count,
+        'namespaces': namespaces
+    })
+
+def np_info(request, cluster_name, namespace, np_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
@@ -766,7 +779,13 @@ def np_info(request, cluster_name, namespace, np_name):
     })
 
 def role(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+    # get namespaces
+    namespaces = k8s_namespaces.get_namespace(path, cluster_name)
 
     role, total_role = k8s_role.list_roles(path, cluster_name)
 

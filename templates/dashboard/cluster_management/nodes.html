@@ -7,14 +7,9 @@
 {% block content %}
 
 <div class="container">
-  <!-- <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Nodes: {{total_nodes}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Ready: {{ready_nodes}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-danger"><b><i>Not Ready: {{not_ready_nodes}}</i></b></div></div>
-  </div> -->
   <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
     <div class="row mb-0">
-      <div class="col-md-3 align-items-center justify-content-center mx-auto">
+      <div class="col-md-3 align-items-center justify-content-evenly mx-auto">
         <div class="grid-box flex-fill stats-card bg-primary "><b><i>Total Nodes: {{total_nodes}}</i></b></div>
       </div>
     </div>
@@ -120,7 +115,7 @@
             </a>
           </td>
           <td>{{ node.status }}</td>
-          <td>{{ node.roles }}</td>
+          <td>{{node.roles}}</td>
           <td>{{ node.age }}</td>
           <td>{{ node.version }}</td>
           <td>{{ node.internal_ip }}</td>

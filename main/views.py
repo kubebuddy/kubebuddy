@@ -59,6 +59,19 @@ def login_view(request):
 @login_required
 def integrate_with(request):
     error_message = None  # Initialize an error message variable
+    try:
+        if os.name == 'posix':
+            os_name = r"e.g. /Users/user_name/.kube/config\n or $HOME/.kube/config" # for linux
+            path = os.path.expanduser("~/.kube/config") # for linux
+        elif os.name == 'nt':
+            os_name = r"e.g. C:\Users\user_name\.kube\config" # for windows
+            path = os.path.expanduser("C:\\Users\\user_name\\.kube\\config")
+        else:
+            os_name = "Unknown" # for unknown
+    except Exception as e:
+        pass
+
+
 
     if request.method == 'POST':
         path = request.POST.get('path')
@@ -90,7 +103,7 @@ def integrate_with(request):
                 error_message = f"Error: Unable to connect to the cluster. Details: {str(e)}"
 
     return render(request, 'main/integrate.html', {
-        'error_message': error_message,
+        'error_message': error_message, 'os_name': os_name, 'path': path,
     })
 
 def save_clusters(kube_config, changes):

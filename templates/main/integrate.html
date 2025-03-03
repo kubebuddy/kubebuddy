@@ -211,11 +211,11 @@
           <div class="box">
               <label for="path">Enter Kube Config File path: 
                   <br>
-                  <span style="font-size: small; font-weight: 100;">eg. /home/ubuntu/.kube/config</span>
+                  <span style="font-size: small; font-weight: 100;">{{os_name}}</span>
               </label>
   
               <div class="data">
-                  <input type="text" class="input-box" id="path" name="path" value="$HOME/.kube/config" readonly required>
+                  <input type="text" class="input-box" id="path" name="path" value={{path}} readonly required>
                   <select id="path-type" name="path_type" onchange="updateInputField()">
                       <option value="default" selected>Default</option>
                       <option value="manual">Manual</option>
@@ -268,6 +268,7 @@
   }
 
   // Script for input field
+  const path = document.getElementById('path').value;
   function updateInputField() {
       const pathInput = document.getElementById('path');
       const pathType = document.getElementById('path-type').value;
@@ -277,7 +278,7 @@
           pathInput.value = '';
       } else {
           pathInput.setAttribute('readonly', 'readonly');
-          pathInput.value = '$HOME/.kube/config';
+          pathInput.value = path;
       }
   }
 </script>

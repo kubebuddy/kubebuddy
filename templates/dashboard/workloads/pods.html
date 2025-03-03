@@ -95,7 +95,7 @@
     </div>
   
     <!-- Table -->
-    <table class="table" style="border-radius: 1rem; overflow: hidden;">
+    <table class="table" style="border-radius: 1rem;">
       <thead class="table-dark">
         <tr>
           <th id="colNamespace">NAMESPACE</th>
@@ -106,6 +106,7 @@
           <th id="colRestarts">RESTARTS</th>
           <th id="colAge">AGE</th>
           <th id="colStatus">STATUS</th>
+          <th id="colActions"></th>
         </tr>
       </thead>
       <tbody>
@@ -124,6 +125,19 @@
           <td>{{ pod.age }}</td>
           <!-- <td style="{% if pod.status == "Running" %} background-color: #b3e6b3; {% elif pod.status == "Pending" %} background-color: #fff3cd; {% elif pod.status == "Succeeded" %} background-color: #bee3f8; {% endif %}">{{ pod.status }}</td> -->
           <td><span class="{% if pod.status == "Running" %}running-pod{% elif pod.status == "Pending" %} pending-pod {% elif pod.status == "Succeeded" %} succeeded-pod {% else %} failed-pod {% endif %}">{{ pod.status }}</span></td>
+          <td id="actionElement">
+            <div class="dropup">
+              <button class="btn btn-light" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="/{{current_cluster}}/pods/{{pod.namespace}}/{{pod.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/pods/{{pod.namespace}}/{{pod.name}}?cluster_id={{cluster_id}}#logs">Logs</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/pods/{{pod.namespace}}/{{pod.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/pods/{{pod.namespace}}/{{pod.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+              </ul>
+            </div>
+          </td>
         </tr>
       {% endfor %}
       </tbody>
@@ -133,6 +147,7 @@
 <script src="{% static 'js/namespaceFilter.js' %}"></script>
 <script src="{% static 'js/graph.js' %}"></script>
 <script>
+  // graph
   document.addEventListener("DOMContentLoaded", function() {
       if (typeof renderGaugeChart === "function") {
           renderGaugeChart("gaugeChart", {
@@ -145,57 +160,5 @@
       }
   });
 </script>
-<!-- <script>
-// gauge chart
-const ctx = document.getElementById('gaugeChart').getContext('2d');
-
-new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels:['Running', 'Pending','Failed','Succeeded'],
-        datasets: [{
-          label: 'Count',
-            data: ["{{status_count.Running}}","{{status_count.Pending}}","{{status_count.Failed}}","{{status_count.Succeeded}}"], // First part is the filled, second is remaining, third is hidden
-            backgroundColor: ['#198754','#ffc107','#dc3545','#0dcaf0', 'transparent'], // Green for filled, gray for remaining, transparent for hiding
-        }]
-    },
-    options: {
-        rotation: -90,
-        circumference: 180,
-        cutout: '90%',
-        plugins: {
-            legend: { display: false },
-            title: {
-              display: true,
-              position: 'bottom',
-              text: 'Pod Status Summary',
-              font: {
-                  size: 20,
-                  weight: 'bold'
-              },
-          }
-        }
-    },
-    plugins: [{
-      beforeDraw: function(chart) {
-          let width = chart.width,
-          height = chart.height,
-          ctx = chart.ctx;
-
-          ctx.restore();
-          let fontSize = (height / 120).toFixed(2);
-          ctx.font = fontSize + "em sans-serif";
-          ctx.textBaseline = "middle";
-
-          let text = "KB";
-          let textX = Math.round((width - ctx.measureText(text).width) / 2);
-          let textY = height / 1.8;
-
-          ctx.fillText(text, textX, textY);
-          ctx.save();
-      }
-  }]
-});
-</script> -->
 
 {% endblock %}

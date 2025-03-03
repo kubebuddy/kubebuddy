@@ -88,7 +88,7 @@
     </div>
   
     <!-- Table -->
-    <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
+    <table class="table table-bordered" style="border-radius: 8px;">
       <thead class="table-dark">
         <tr>
           <th id="colNamespace">NAMESPACE</th>
@@ -98,6 +98,7 @@
           <th id="colReady">READY</th>
           <th id="colAge">AGE</th>
           <th id="colImages">IMAGES</th>
+          <th id="colActions"></th>
         </tr>
       </thead>
 
@@ -115,6 +116,18 @@
           <td>{{ rs.ready }}</td>
           <td>{{ rs.age }}</td>
           <td>{{ rs.images }}</td>
+          <td id="actionElement">
+            <div class="dropdown">
+              <button class="btn btn-light" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="/{{current_cluster}}/replicasets/{{rs.namespace}}/{{rs.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/replicasets/{{rs.namespace}}/{{rs.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/replicasets/{{rs.namespace}}/{{rs.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+              </ul>
+            </div>
+          </td>
         </tr>
       {% endfor %}
       </tbody>

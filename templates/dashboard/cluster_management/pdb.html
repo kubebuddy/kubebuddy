@@ -68,7 +68,7 @@
     </div>
   
     <!-- Table -->
-    <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
+    <table class="table table-bordered" style="border-radius: 8px;">
       <thead class="table-dark">
         <tr>
           <th id="colNamespace">NAMESPACE</th>
@@ -77,6 +77,7 @@
           <th id="colMaxUnavailable">MAX UNAVAILABLE</th>
           <th id="colAllowedDisruptions">ALLOWED DISRUPTIONS</th>
           <th id="colAge">AGE</th>
+          <th id="colActions"></th>
         </tr>
       </thead>
 
@@ -93,6 +94,18 @@
           <td>{{ pdb.max }}</td>
           <td>{{ pdb.disruptions }}</td>
           <td>{{ pdb.age }}</td>
+          <td id="actionElement">
+            <div class="dropup">
+              <button class="btn btn-light" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="/{{current_cluster}}/pdb/{{pdb.namespace}}/{{pdb.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/pdb/{{pdb.namespace}}/{{pdb.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/pdb/{{pdb.namespace}}/{{pdb.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+              </ul>
+            </div>
+          </td>
         </tr>
       {% endfor %}
       </tbody>

@@ -65,7 +65,7 @@
     </div>
   
     <!-- Table -->
-    <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
+    <table class="table table-bordered" style="border-radius: 8px;">
       <thead class="table-dark">
         <tr>
           <th id="colName">NAME</th>
@@ -77,6 +77,7 @@
           <th id="colStorageClass">STORAGE CLASS</th>
           <th id="colMode">VOLUME MODE</th>
           <th id="colAge">AGE</th>
+          <th id="colActions"></th>
         </tr>
       </thead>
 
@@ -104,6 +105,18 @@
           <td>{{ pv.storage_class }}</td>
           <td>{{ pv.volume_mode }}</td>
           <td>{{ pv.age }}</td>
+          <td id="actionElement">
+            <div class="dropup">
+              <button class="btn btn-light" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="/{{current_cluster}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+              </ul>
+            </div>
+          </td>
         </tr>
       {% endfor %}
       </tbody>

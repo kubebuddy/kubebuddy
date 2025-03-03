@@ -81,6 +81,7 @@
           <th style="position: sticky; top: 0;" id="colGroups">GROUPS</th>
           <th style="position: sticky; top: 0;" id="colServiceAccounts">SERVICE ACCOUNTS</th>
           <th style="position: sticky; top: 0;" id="colAge">AGE</th>
+          <th id="colActions"></th>
         </tr>
       </thead>
 
@@ -94,6 +95,18 @@
           <td>{{ rb.groups }}</td>
           <td>{{ rb.service_accounts }}</td>
           <td>{{ rb.age }}</td>
+          <td id="actionElement">
+            <div class="dropup">
+              <button class="btn btn-light" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="/{{current_cluster}}/rolebinding/{{rb.namespace}}/{{rb.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/rolebinding/{{rb.namespace}}/{{rb.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/rolebinding/{{rb.namespace}}/{{rb.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+              </ul>
+            </div>
+          </td>
         </tr>
       {% endfor %}
       </tbody>

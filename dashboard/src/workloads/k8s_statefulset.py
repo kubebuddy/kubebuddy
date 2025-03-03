@@ -84,6 +84,10 @@ def get_statefulset_description(path=None, context=None, namespace=None, sts_nam
     try:
         # Fetch StatefulSet details
         sts = v1.read_namespaced_stateful_set(name=sts_name, namespace=namespace)
+        # Get annotations
+        annotations = sts.metadata.annotations or {}
+        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
         # Prepare StatefulSet information
         sts_info = {
             "name": sts.metadata.name,
@@ -91,7 +95,7 @@ def get_statefulset_description(path=None, context=None, namespace=None, sts_nam
             "creation_timestamp": sts.metadata.creation_timestamp,
             "selector": sts.spec.selector.match_labels if sts.spec.selector else {},
             "labels": list(sts.metadata.labels.items()) if sts.metadata.labels else [],
-            "annotations": list(sts.metadata.annotations.items()) if sts.metadata.annotations else [],
+            "annotations": filtered_annotations if filtered_annotations else None,
             "replicas": {
                 "desired": sts.status.replicas,  # Desired number of replicas
                 "total": sts.status.replicas,  # Total number of replicas (desired)

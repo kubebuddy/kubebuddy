@@ -56,12 +56,13 @@
     </div>
   
     <!-- Table -->
-    <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
+    <table class="table table-bordered" style="border-radius: 8px;">
       <thead class="table-dark">
         <tr>
           <th id="colNamepsace">NAMESPACE</th>
           <th id="colName">NAME</th>
           <th id="colAge">AGE</th>
+          <th id="colActions"></th>
         </tr>
       </thead>
 
@@ -75,6 +76,18 @@
             </a>
         </td>
           <td>{{ lr.created_at }}</td>
+          <td id="actionElement">
+            <div class="dropup">
+              <button class="btn btn-light" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="/{{current_cluster}}/limitrange/{{lr.namespace}}/{{lr.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/limitrange/{{lr.namespace}}/{{lr.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/limitrange/{{lr.namespace}}/{{lr.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+              </ul>
+            </div>
+          </td>
         </tr>
       {% endfor %}
       </tbody>

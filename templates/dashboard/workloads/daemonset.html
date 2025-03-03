@@ -86,7 +86,7 @@
     </div>
   
     <!-- Table -->
-    <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
+    <table class="table table-bordered" style="border-radius: 8px;">
       <thead class="table-dark">
         <tr>
           <th id="colNamespace">NAMESPACE</th>
@@ -95,6 +95,7 @@
           <th id="colCurrent">CURRENT</th>
           <th id="colReady">READY</th>
           <th id="colAge">AGE</th>
+          <th id="colActions"></th>
         </tr>
       </thead>
 
@@ -111,6 +112,18 @@
           <td>{{ daemonset.current }}</td>
           <td>{{ daemonset.ready }}</td>
           <td>{{ daemonset.age }}</td>
+          <td id="actionElement">
+            <div class="dropup">
+              <button class="btn btn-light" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="/{{current_cluster}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{current_cluster}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+              </ul>
+            </div>
+          </td>
         </tr>
       {% endfor %}
       </tbody>

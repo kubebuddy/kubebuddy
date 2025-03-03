@@ -1,5 +1,5 @@
 {% extends 'dashboard/base.html' %}
-
+{% load static%}
 {% block title %}StatefulSets{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/sts-128.png?raw=true{% endblock %}
@@ -114,7 +114,5 @@
         <a href="/{{current_cluster}}/statefulsets={{cluster_id}}" class="btn btn-primary mt-3">Back to StatefulSets</a>
     </div>
     
-    {% load static%}
     <script src="{% static 'js/copyYAML.js' %}"></script>
-
 {% endblock %}

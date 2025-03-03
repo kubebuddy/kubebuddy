@@ -39,6 +39,24 @@ main {
   padding: 0 16px;
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #d8d6d6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 /* .sidebar.collapsed {
   display: none;
   width: 0;
@@ -502,6 +520,9 @@ table th, td {
 .table th, .table td {
   text-align: left;
 }
+#actionElement {
+  text-align:center;
+}
 /* Chat BOT*/
 
 .chatbot-container {
@@ -632,4 +653,20 @@ table th, td {
 
 .clear-chat-btn:hover, .close-chat-btn:hover {
   color: #8ddbff;
+}
+
+#dropdownMenuButton {
+  background-color: transparent;
+  border: 0;
+}
+
+#colActions {
+  width: 50px;
+}
+
+.bi-three-dots-vertical {
+  color: black;
+}
+.dark-mode .bi-three-dots-vertical {
+  color: white;
 }

@@ -1,5 +1,5 @@
 {% extends 'dashboard/base.html' %}
-
+{% load static%}
 {% block title %}Pods{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pod-128.png?raw=true{% endblock %}
@@ -92,6 +92,5 @@
         <a href="/{{current_cluster}}/pods?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Pods</a>
     </div>
     
-    {% load static%}
     <script src="{% static 'js/copyYAML.js' %}"></script>
 {% endblock %}

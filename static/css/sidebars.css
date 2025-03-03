@@ -1,13 +1,15 @@
 html, body {
   height: 100%;
   overflow: hidden;
+  transition: background-color 0.3s ease;
+  font-size: .875em;
 }
 
 /* Main layout: Sidebar and content */
 main {
   display: flex;
-  height: calc(100vh - 60px); /* Adjust based on navbar height */
-  margin-top: 60px; /* Prevent overlap with fixed navbar */
+  height: calc(100vh - 60px); 
+  margin-top: 60px; 
 }
 
 .navbar {
@@ -19,7 +21,6 @@ main {
   height: 60px; /* Adjust height if needed */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
-
 
 /* Sidebar should be scrollable */
 .sidebar {
@@ -495,6 +496,7 @@ main {
 
 table th, td {
   font-family:Verdana, Geneva, Tahoma, sans-serif;
+  font-size: .9em;
 }
 
 .table th, .table td {

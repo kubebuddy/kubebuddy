@@ -21,7 +21,6 @@
 
   <!-- Custom styles for this template -->
   <link rel="stylesheet" href="{% static 'css/sidebars.css' %}">
-  <!-- <link rel="stylesheet" href="{% static 'css/responsive.css' %}"> -->
 </head>
 <body>
 
@@ -278,6 +277,7 @@
   <script src="{% static 'js/toggleTable.js' %}"></script>
   <script src="{% static 'js/bot.js' %}"></script>
   <script src="{% static 'js/css.js' %}"></script>
+  <script src="{% static 'js/dark_mode.js' %}"></script>
   
   <script>
     // reload
@@ -291,49 +291,6 @@
             location.reload();
         }, 100);  // 1-second delay before reloading
     }
-
-    document.addEventListener("DOMContentLoaded", function () {
-    const toggleButton = document.getElementById("darkModeToggle");
-    const body = document.body;
-    const sidebar = document.getElementById("sidebar");
-
-    // Check localStorage for theme preference
-    if (localStorage.getItem("theme") === "dark") {
-        enableDarkMode();
-    }
-
-    // Toggle dark mode on button click
-    toggleButton.addEventListener("click", function () {
-        if (body.classList.contains("dark-mode")) {
-            disableDarkMode();
-        } else {
-            enableDarkMode();
-        }
-    });
-
-    function enableDarkMode() {
-        body.classList.add("dark-mode");
-        sidebar.classList.add("bg-dark", "text-white");
-        document.querySelector(".navbar").classList.add("navbar-dark", "bg-dark");
-        toggleButton.innerHTML = '<i class="bi bi-sun"></i>'; // Change icon to sun
-        document.querySelectorAll("table").forEach(table => {
-            table.classList.add("table-dark");
-        });
-        localStorage.setItem("theme", "dark");
-    }
-
-    function disableDarkMode() {
-        body.classList.remove("dark-mode");
-        sidebar.classList.remove("bg-dark", "text-white");
-        document.querySelector(".navbar").classList.remove("navbar-dark", "bg-dark");
-        toggleButton.innerHTML = '<i class="bi bi-moon-stars"></i>'; // Change icon to moon
-        document.querySelectorAll("table").forEach(table => {
-            table.classList.remove("table-dark");
-        });
-        localStorage.setItem("theme", "light");
-      }
-    });
-
 
     // Reload button event listener
     document.getElementById("reload-btn").addEventListener("click", reloadPage);

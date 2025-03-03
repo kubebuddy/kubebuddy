@@ -19,8 +19,15 @@ from kubernetes.config.config_exception import ConfigException
 
 from .models import KubeConfig
 
-import urllib3
 import os
+
+# Chat Bot
+
+from django.views.decorators.csrf import csrf_exempt
+from .models import AIConfig
+import json
+import requests
+from google import genai
 
 def login_view(request):
     if request.method == 'POST':
@@ -61,7 +68,7 @@ def integrate_with(request):
     error_message = None  # Initialize an error message variable
     try:
         if os.name == 'posix':
-            os_name = r"e.g. /Users/user_name/.kube/config\n or $HOME/.kube/config" # for linux
+            os_name = r"e.g. /Users/user_name/.kube/config or $HOME/.kube/config" # for linux
             path = os.path.expanduser("~/.kube/config") # for linux
         elif os.name == 'nt':
             os_name = r"e.g. C:\Users\user_name\.kube\config" # for windows
@@ -212,13 +219,6 @@ def delete_cluster(request, pk):
     cluster.delete()
     return JsonResponse({'status': 'deleted'})
 
-# Chat Bot
-
-from django.views.decorators.csrf import csrf_exempt
-from .models import AIConfig
-import json
-import requests
-from google import genai
 
 def gemini_response(api_key, user_message):
     model="gemini-2.0-flash"

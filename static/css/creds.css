@@ -1,0 +1,306 @@
+body {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    transition: background-color 0.3s ease;
+  }
+  
+  body.dark-mode {
+    background-color: #121212;
+    color: #fff;
+  }
+  
+  /* Common container styles */
+  .login-container,
+  .logout-container,
+  .change-password-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 15px;
+    margin: auto;
+  }
+  
+  /* Common card styles */
+  .login-card,
+  .logout-card,
+  .change-password-card {
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    background-color: #fff;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  body.dark-mode .login-card,
+  body.dark-mode .logout-card,
+  body.dark-mode .change-password-card {
+    background-color: #1e1e1e;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Common brand styles */
+  .login-brand,
+  .logout-brand,
+  .change-password-brand {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  /* Common title styles */
+  .login-title,
+  .logout-title,
+  .change-password-title {
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 600;
+    color: #3a435d;
+    transition: color 0.3s ease;
+  }
+  
+  body.dark-mode .login-title,
+  body.dark-mode .logout-title,
+  body.dark-mode .change-password-title {
+    color: #fff;
+  }
+  
+  /* Common form control styles */
+  .form-control {
+    border-radius: 20px;
+    padding: 12px 20px;
+    height: auto;
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+  }
+  
+  body.dark-mode .form-control {
+    background-color: #333;
+    border-color: #444;
+    color: #fff;
+  }
+  
+  body.dark-mode .form-control::placeholder {
+    color: #aaa;
+  }
+  
+  .form-control:focus {
+    box-shadow: none;
+    border-color: #0071ff;
+  }
+  
+  /* Common password input group styles */
+  .password-input-group {
+    position: relative;
+  }
+  
+  .password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 10;
+    color: #6c757d;
+    background: none;
+    border: none;
+  }
+  
+  body.dark-mode .password-toggle {
+    color: #aaa;
+  }
+  
+  /* Common button styles */
+  .login-btn,
+  .logout-btn,
+  .change-password-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 20px;
+    background-color: #0071ff;
+    border: none;
+    font-weight: 500;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .login-btn:hover,
+  .logout-btn:hover,
+  .change-password-btn:hover {
+    background-color: #0062db;
+  }
+  
+  /* Common error message styles */
+  .error-message {
+    color: #dc3545;
+    padding: 10px 0;
+    text-align: left;
+  }
+  
+  /* Common dark mode toggle styles */
+  .dark-mode-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+  }
+
+  
+  /* Common footer styles */
+  .footer {
+    position: fixed;
+    left: 0;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    color: #6c757d;
+    transition: color 0.3s ease;
+  }
+  
+  body.dark-mode .footer {
+    color: #aaa;
+  }
+
+/* Cluster Integrate */
+
+.integrate-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 19px 15px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: background-color 0.3s ease;
+}
+
+body.dark-mode .integrate-header {
+  background-color: #1e1e1e;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.integrate-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.integrate-logo {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+  left: 2px;
+  transition: color 0.3s ease;
+}
+
+body.dark-mode .integrate-logo {
+  color: #fff;
+}
+
+.integrate-container {
+  width: 100%;
+  max-width: 800px;
+  padding: 15px;
+  margin: 80px auto 0;
+}
+
+.integrate-card {
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  background-color: #fff;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark-mode .integrate-card {
+  background-color: #1e1e1e;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+}
+
+.integrate-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.integrate-label {
+  font-weight: 500;
+  color: #3a435d;
+  transition: color 0.3s ease;
+}
+
+body.dark-mode .integrate-label {
+  color: #fff;
+}
+
+.os-name {
+  display: block;
+  font-size: 14px;
+  font-weight: normal;
+  color: #6c757d;
+  margin-top: 5px;
+}
+
+body.dark-mode .os-name {
+  color: #aaa;
+}
+
+.integrate-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.integrate-controls .form-control,
+.integrate-controls .form-select {
+  border-radius: 20px;
+  padding: 12px 20px;
+  height: auto;
+  background-color: #f8f9fa;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.integrate-controls .form-select {
+  width: auto;
+  min-width: 120px;
+}
+
+body.dark-mode .integrate-controls .form-control,
+body.dark-mode .integrate-controls .form-select {
+  background-color: #333;
+  border-color: #444;
+  color: #fff;
+}
+
+.integrate-controls .form-control:focus,
+.integrate-controls .form-select:focus {
+  box-shadow: none;
+  border-color: #0071ff;
+}
+
+.integrate-btn {
+  padding: 12px 30px;
+  border-radius: 20px;
+  background-color: #0071ff;
+  border: none;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.integrate-btn:hover {
+  background-color: #0062db;
+}
+
+.integrate-back {
+  text-align: center;
+}
+
+.integrate-back .btn {
+  padding: 12px 30px;
+  border-radius: 20px;
+  font-weight: 500;
+}

@@ -1,5 +1,6 @@
 function renderGaugeChart(canvasId, chartData, object_name) {
     const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
     canvas.width = 280;  // Set desired width
     canvas.height = 280; // Set desired height
     const ctx = document.getElementById(canvasId).getContext('2d');
@@ -23,7 +24,7 @@ function renderGaugeChart(canvasId, chartData, object_name) {
     const backgroundColors = labels.map(label => labelColors[label] || "#6c757d");
 
     function getTitleColor() {
-        return document.body.classList.contains("dark-mode") ? "#e4e4e4" : "#000000";
+        return localStorage.getItem("theme") === "dark" ? "#e4e4e4" : "#000000";
     }
 
     let gaugeChart = new Chart(ctx, {
@@ -75,6 +76,10 @@ function renderGaugeChart(canvasId, chartData, object_name) {
         }]
     });
     document.addEventListener("darkModeChanged", function () {
+        gaugeChart.options.plugins.title.color = getTitleColor();
+        gaugeChart.update();
+    });
+    window.addEventListener("load", function () {
         gaugeChart.options.plugins.title.color = getTitleColor();
         gaugeChart.update();
     });

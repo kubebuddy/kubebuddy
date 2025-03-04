@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
             toggleButton.innerHTML = '<i class="bi bi-sun"></i>';
         }
         localStorage.setItem("theme", "dark");
+        document.dispatchEvent(new Event("darkModeChanged"));
     }
 
     function disableDarkMode() {
@@ -57,5 +58,6 @@ document.addEventListener("DOMContentLoaded", function () {
             toggleButton.innerHTML = '<i class="bi bi-moon-stars"></i>';
         }
         localStorage.setItem("theme", "light");
+        document.dispatchEvent(new Event("darkModeChanged"));
     }
 });

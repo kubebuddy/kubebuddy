@@ -351,7 +351,7 @@ main {
 
 /* Buttons & Interactive Elements */
 .dark-mode .btn-primary, 
-.dark-mode .btn-custom, 
+.dark-mode .btn-custom,
 .dark-mode .bg-primary {
   background-color: #0db5fd !important;
   border-color: #0db5fd !important;

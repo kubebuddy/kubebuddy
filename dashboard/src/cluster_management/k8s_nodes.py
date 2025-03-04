@@ -97,13 +97,18 @@ def get_node_description(path=None, context=None, node_name=None):
         node = v1.read_node(name=node_name)
         roles = [key.replace("node-role.kubernetes.io/", "") for key in node.metadata.labels if key.startswith("node-role.kubernetes.io/")]
         # Prepare node information
+        if node.spec.taints:
+            taints = [taint.key +"=" + taint.value + ":" + taint.effect for taint in node.spec.taints]
+        else:
+            taints = "none"
+            
         node_info = {
             "name": node.metadata.name,
             "roles": roles,
             "labels": list(node.metadata.labels.items()) if node.metadata.labels else [],
             "annotations": list(node.metadata.annotations.items()) if node.metadata.annotations else [],
             "creation_timestamp": node.metadata.creation_timestamp,
-            "taints": [taint.key +"=" + taint.value + ":" + taint.effect for taint in node.spec.taints if node.spec.taints],
+            "taints": taints,
             "unschedulable": node.spec.unschedulable,
             "addresses": {address.type: address.address for address in node.status.addresses} if node.status.addresses else {},
             "capacity": {key: str(value) for key, value in node.status.capacity.items()} if node.status.capacity else {},

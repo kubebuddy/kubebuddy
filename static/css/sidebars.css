@@ -202,7 +202,7 @@ main {
 }
 
 .cluster-sidebar {
-  width: 30%;
+  width: 17vw;
   padding: 10px;
   border-radius: 3px;
   text-align: center;
@@ -511,9 +511,12 @@ table th, td {
 .table th, .table td {
   text-align: left;
 }
+
 #actionElement {
   text-align:center;
+  padding: 0;
 }
+
 /* Chat BOT*/
 
 .chatbot-container {

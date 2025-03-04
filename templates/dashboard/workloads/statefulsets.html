@@ -9,28 +9,39 @@
 {% block content %}
 
 <div class="container">
-  <!-- <div class="row text-center">
-    <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total StatefulSets: {{statefulsets_status.Count}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-success"><b><i>Running: {{statefulsets_status.Running}}</i></b></div></div>
-    <div class="col-md-2"><div class="stats-card bg-warning"><b><i>Pending: {{statefulsets_status.Pending}}</i></b></div></div>
-  </div> -->
-  <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
-    <div class="row mb-0">
-      <div class="col-md-3 align-items-center justify-content-center mx-auto">
-        <div class="grid-box flex-fill stats-card bg-primary "><b><i>Total StatefulSets: {{statefulsets_status.Count}}</i></b></div>
-      </div>
+  <div class="d-flex justify-content-center mb-4">
+    <div class="gap" role="group" aria-label="Resource Tabs">
+      <a href="/{{current_cluster}}/pods?cluster_id={{cluster_id}}" class="btn btn-primary" id="pods-tab">Pods</a>
+      <a href="/{{current_cluster}}/replicasets?cluster_id={{cluster_id}}" class="btn btn-primary" id="replicasets-tab">ReplicaSets</a>
+      <a href="/{{current_cluster}}/deployments?cluster_id={{cluster_id}}" class="btn btn-primary" id="deployments-tab">Deployments</a>
+      <a href="/{{current_cluster}}/statefulsets?cluster_id={{cluster_id}}" class="btn btn-primary active" id="statefulsets-tab">StatefulSets</a>
+      <a href="/{{current_cluster}}/daemonset?cluster_id={{cluster_id}}" class="btn btn-primary" id="daemonset-tab">DaemonSets</a>
+      <a href="/{{current_cluster}}/jobs?cluster_id={{cluster_id}}" class="btn btn-primary" id="jobs-tab">Jobs</a>
+      <a href="/{{current_cluster}}/cronjobs?cluster_id={{cluster_id}}" class="btn btn-primary" id="cronjobs-tab">CronJobs</a>
     </div>
-    <div class="row">
-      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
-        <div class="grid-box stats-card bg-success text-center p-3 w-100 m-2"><b><i>Running: {{statefulsets_status.Running}}</i></b></div>
-      </div>
-      <div class="col-md-6 d-flex align-items-center justify-content-center p-3">
-        <div class="grid-box d-flex align-items-center justify-content-center p-1 w-100" style="min-height: 200px;">
-            <canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas>
+  </div>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="statefulsets">
+      <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
+        <div class="row mb-0">
+          <div class="col-md-3 align-items-center justify-content-center mx-auto">
+            <div class="grid-box flex-fill stats-card bg-primary "><b><i>Total StatefulSets: {{statefulsets_status.Count}}</i></b></div>
+          </div>
         </div>
-    </div>
-      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
-        <div class="grid-box stats-card bg-warning text-center p-3 w-100 m-2"><b><i>Pending: {{statefulsets_status.Pending}}</i></b></div>
+        <div class="row">
+          <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+            <div class="grid-box stats-card bg-success text-center p-3 w-100 m-2"><b><i>Running: {{statefulsets_status.Running}}</i></b></div>
+          </div>
+          <div class="col-md-6 d-flex align-items-center justify-content-center p-3">
+            <div class="grid-box d-flex align-items-center justify-content-center p-1 w-100" style="min-height: 200px;">
+                <canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas>
+            </div>
+          </div>
+          <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+            <div class="grid-box stats-card bg-warning text-center p-3 w-100 m-2"><b><i>Pending: {{statefulsets_status.Pending}}</i></b></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

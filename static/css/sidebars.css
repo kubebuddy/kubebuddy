@@ -358,6 +358,19 @@ main {
   color: #fff !important;
 }
 
+
+.dark-mode .btn.active {
+  background-color: transparent !important;
+  border-color: #fff !important;
+  color: #0db5fd;
+}
+
+.btn.active {
+  background-color: transparent !important;
+  color: #0d6efd;
+}
+
+
 .dark-mode .btn-toggle {
   color: #e4e4e4 !important;
 }
@@ -490,9 +503,7 @@ main {
 .btn-custom:hover {
   background-color: #0056b3;
 }
-.container {
-  margin-top: 30px;
-}
+
 .stats-card {
   color: white;
   padding: 15px;
@@ -506,7 +517,7 @@ main {
   color: #000;
 }
 .container {
-  margin-top: 50px;
+  margin-top: 1.6rem;
 }
 
 /* table font style */

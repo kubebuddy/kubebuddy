@@ -66,6 +66,10 @@ def get_nodes_info(path: str, context: str):
         else:
             roles = "-"
 
+        if node.spec.taints:
+            taints = [taint.key +"=" + taint.value + ":" + taint.effect for taint in node.spec.taints]
+        else:
+            taints = "none"
 
         node_info = {
             "name": node.metadata.name,
@@ -78,7 +82,7 @@ def get_nodes_info(path: str, context: str):
             "os_image": node.status.node_info.os_image if node.status.node_info.os_image else "-",
             "kernel_version": node.status.node_info.kernel_version if node.status.node_info.kernel_version else "-",
             "container_runtime": node.status.node_info.container_runtime_version if node.status.node_info.container_runtime_version else "-",
-            "taints": [taint.key +"=" + taint.value + ":" + taint.effect for taint in node.spec.taints if node.spec.taints]
+            "taints": taints
         }
         node_data.append(node_info)
     

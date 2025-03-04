@@ -46,7 +46,7 @@
 <b>Service Account</b>: {{ pod_info.describe.service_account }}
 <b>Labels</b>: {% for key, value in pod_info.describe.labels %}
     {{ key }}: {{ value }}{% if not loop.last %}{% endif %}{% endfor %}
-<b>Annotations</b>: {% if pod_info.describe.annotations %}{% for key, value in pod_info.describe.annotations %}
+<b>Annotations</b>:{% if pod_info.describe.annotations %}{% for key, value in pod_info.describe.annotations.items %}
     {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %} {% else %}None {% endif %}
 <b>Containers</b>:{% for container in pod_info.describe.containers %}
   - <strong>Name:</strong> {{ container.name }}

@@ -74,7 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
- 
+    'kubebuddy.middleware.MaxRetryRedirectMiddleware'
     # Prometheus Monitoring, After Middleware
     # 'django_prometheus.middleware.PrometheusAfterMiddleware',
  

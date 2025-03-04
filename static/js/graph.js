@@ -68,7 +68,7 @@ function renderGaugeChart(canvasId, chartData, object_name) {
 
                 let text = "KB";
                 let textX = width / 2; // Middle of the canvas
-                let textY = height / 2; // Middle of the canvas
+                let textY = height / 2.25; // Middle of the canvas
 
                 ctx.fillText(text, textX, textY);
                 ctx.restore();

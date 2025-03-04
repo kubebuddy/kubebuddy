@@ -31,7 +31,7 @@ urlpatterns = [
     path('', include('dashboard.urls')),
     path('KubeBuddy', cluster_select, name='cluster-select'),
     path('delete_cluster/<int:pk>/', delete_cluster, name='delete_cluster'),
-    path('cluster_error', cluster_error, name="cluster_error"),
+    path('<str:cluster_name>/cluster_error', cluster_error, name="cluster_error"),
     path('check-api-key/', check_api_key, name='check_api_key'),
     path('set-api-key/', set_api_key, name='set_api_key'),
     path('chatbot-response/', chatbot_response, name='chatbot_response'),

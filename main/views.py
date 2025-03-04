@@ -209,7 +209,7 @@ def cluster_select(request):
 
     return render(request, 'main/cluster_select.html', {'registered_clusters' : registered_clusters})
 
-def cluster_error(request):
+def cluster_error(request, cluster_name):
     pass
     return render(request, 'cluster_error.html')
 

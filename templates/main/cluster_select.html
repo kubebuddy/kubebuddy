@@ -102,7 +102,7 @@
                             {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
                             /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
                             {% else %}
-                            {% url 'cluster_error' %}
+                            {% url 'cluster_error' cluster.cluster_name %}
                             {% endif %}
                             " class="text-decoration-none">
                             <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
@@ -177,7 +177,7 @@
                         {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
                         /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
                         {% else %}
-                        {% url 'cluster_error' %}
+                        {% url 'cluster_error' cluster.cluster_name %}
                         {% endif %}
                         " 
                         class="text-decoration-none" style="text-decoration: none;">

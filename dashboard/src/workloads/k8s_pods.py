@@ -119,11 +119,11 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
                     "image": container.image,
                     "ports": [port.container_port for port in (container.ports or [])],
                     "state": next(
-                        (status.state for status in pod.status.container_statuses
+                        (status.state for status in (pod.status.container_statuses or [])
                          if status.name == container.name), "Unknown"
                     ),
                     "restart_count": next(
-                        (status.restart_count for status in pod.status.container_statuses
+                        (status.restart_count for status in (pod.status.container_statuses or [])
                          if status.name == container.name), 0
                     ),
                     "env": [env.name for env in (container.env or [])],

@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to show/hide columns
     function toggleColumns() {
+        let visibleColumnCount = 0; // Track visible columns
         checkboxes.forEach(checkbox => {
             const columnIndex = getColumnIndex(checkbox.value);
             if (columnIndex !== -1) {
@@ -61,8 +62,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 tableRows.forEach(row => {
                     row.children[columnIndex].style.display = displayStyle;
                 });
+                if (checkbox.checked) {
+                    visibleColumnCount++; // Increment visible column count
+                }
             }
         });
+        const actionsColumnIndex = tableHeaders.length - 1;
+        if (actionsColumnIndex >= 0) {
+            const shouldHideActions = visibleColumnCount === 0; // Hide if no other columns are visible
+            tableHeaders[actionsColumnIndex].style.display = shouldHideActions ? "none" : "table-cell";
+            tableRows.forEach(row => {
+                row.children[actionsColumnIndex].style.display = shouldHideActions ? "none" : "table-cell";
+            });
+        }
     }
 
     // Function to get the column index by column name

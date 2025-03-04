@@ -13,9 +13,11 @@
         html, body {
         height: 100%;
         overflow: hidden;
-        background-color: #121212 !important;
         transition: background-color 0.3s ease;    
         font-size: .875em;
+        }
+        body .dark-mode {
+            background-color: #121212 !important;
         }
 
         /* Custom styles for dark mode */
@@ -121,19 +123,23 @@
                     Add Cluster
                     <i class="bi bi-plus-lg"></i>
                 </a>
-                <div class="ms-auto  w-auto mt-auto mb-3">
-                    <button id="reload-btn" class="btn btn-primary">
+
+                <div class="ms-auto w-auto mt-auto mb-3">
+                    <div class="form-check form-switch d-inline-block mx-2">
+                        <input class="form-check-input" type="checkbox" id="reloadSwitch">
+                        <label class="form-check-label" for="reloadSwitch">Auto Reload</label>
+                    </div>
+
+                    <button id="reload-btn" class="btn btn-primary mx-2">
                         Refresh
                         <i class="bi bi-arrow-clockwise"></i>
                     </button>
 
-                    <button id="theme-toggle" class="btn btn-outline-secondary">
+                    <button id="theme-toggle" class="btn btn-outline-secondary mx-2">
                         <i class="bi bi-moon-stars"></i>
                     </button>
-
                 </div>
-                
-                
+    
             </div>
             <br><br>
             <div class="row">
@@ -154,7 +160,7 @@
                             {% else %}
                                 bg-danger text-white
                             {% endif %}">
-                        <span id="cluster_tag" class="w-100" contenteditable>{{ cluster.cluster_name }}</span>
+                        <span id="cluster_tag" class="w-100">{{ cluster.cluster_name }}</span>
                         </div>
                         <a href="
                         {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
@@ -320,6 +326,39 @@
 
         // Reload button event listener
         document.getElementById("reload-btn").addEventListener("click", reloadPage);
+
+        //auto reload
+        let reloadInterval;  // Variable to store interval ID
+
+        function startAutoReload() {
+            reloadInterval = setInterval(() => {
+                location.reload();  // Reload the page
+            }, 30000);  // Every 30 seconds
+        }
+    
+        function stopAutoReload() {
+            clearInterval(reloadInterval);
+        }
+    
+        window.onload = function () { // Check localStorage on page load
+            const autoReloadEnabled = localStorage.getItem("autoReload") === "true";
+            const switchElement = document.getElementById("reloadSwitch");
+    
+            if (autoReloadEnabled) {
+                switchElement.checked = true;
+                startAutoReload();
+            }
+            
+            switchElement.addEventListener("change", function () { // Listen for switch toggle
+                if (this.checked) {
+                    localStorage.setItem("autoReload", "true");
+                    startAutoReload();
+                } else {
+                    localStorage.setItem("autoReload", "false");
+                    stopAutoReload();
+                }
+            });
+        };
 
         // search functionality
         function searchClusters() {

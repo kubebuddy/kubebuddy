@@ -19,11 +19,14 @@ function renderGaugeChart(canvasId, chartData, object_name) {
     // Get labels and data dynamically
     const labels = Object.keys(chartData);
     const dataValues = Object.values(chartData);
-
     // Assign colors based on labels, fallback to a random color if not in labelColors
     const backgroundColors = labels.map(label => labelColors[label] || "#6c757d");
 
-    new Chart(ctx, {
+    function getTitleColor() {
+        return document.body.classList.contains("dark-mode") ? "#e4e4e4" : "#000000";
+    }
+
+    let gaugeChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: labels,
@@ -43,7 +46,7 @@ function renderGaugeChart(canvasId, chartData, object_name) {
                     display: true,
                     position: 'bottom',
                     text:  `${object_name} Status Summary`,
-                    color: '#e4e4e4',
+                    color: getTitleColor(),
                     font: {
                         size: 20,
                         weight: 'normal'
@@ -70,5 +73,9 @@ function renderGaugeChart(canvasId, chartData, object_name) {
                 ctx.restore();
             }
         }]
+    });
+    document.addEventListener("darkModeChanged", function () {
+        gaugeChart.options.plugins.title.color = getTitleColor();
+        gaugeChart.update();
     });
 }

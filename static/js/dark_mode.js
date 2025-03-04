@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 enableDarkMode();
             }
+            document.dispatchEvent(new Event("darkModeChanged"));
         });
     }
 

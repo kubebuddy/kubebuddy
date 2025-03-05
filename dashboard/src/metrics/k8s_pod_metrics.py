@@ -60,7 +60,6 @@ def get_pod_metrics(path=None, context=None):
                             "namespace": namespace,
                             "cpu_usage_milli": cpu_usage_milli,
                             "memory_usage_mi": memory_usage_mi,
-                            'total_pods': len(pod_name),
                             'error': '-'
                         })
 
@@ -76,7 +75,7 @@ def get_pod_metrics(path=None, context=None):
             except ApiException as e:
                 print(f"Error fetching pods in namespace {namespace}: {e}")
 
-        return all_pod_metrics
+        return all_pod_metrics, len(all_pod_metrics)
 
     except ApiException as e:
         return {"error": f"Failed to fetch namespace list: {e.reason}"}

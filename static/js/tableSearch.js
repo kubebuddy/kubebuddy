@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // searching table
     const searchInput = document.getElementById("tableSearchInput");
     
     searchInput.addEventListener("keyup", function () {
@@ -15,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // sorting columns
     document.querySelectorAll("th.sortable").forEach(header => {
         header.innerHTML += ' <span class="sort-indicator">↕</span>';
         header.style.cursor = "pointer";

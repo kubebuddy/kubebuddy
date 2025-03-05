@@ -936,10 +936,11 @@ def serviceAccountInfo(request, cluster_name, namespace, sa_name):
 def pod_metrics(request, cluster_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
 
-    all_pod_metrics = k8s_pod_metrics.get_pod_metrics(path, current_cluster.cluster_name)
+    all_pod_metrics, total_pods = k8s_pod_metrics.get_pod_metrics(path, current_cluster.cluster_name)
 
     return render(request, 'dashboard/metrics/pod_metrics.html', {
         'all_pod_metrics': all_pod_metrics,
+        'total_pods': total_pods,
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
         'registered_clusters': registered_clusters,

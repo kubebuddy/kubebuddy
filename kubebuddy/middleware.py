@@ -13,4 +13,4 @@ class MaxRetryRedirectMiddleware(MiddlewareMixin):
                 return redirect('cluster_error', cluster_name=cluster_name)
             
             # If no cluster_name found, redirect to a default error page
-            return redirect('/error-page/')  # Change this to a valid error route
+            return

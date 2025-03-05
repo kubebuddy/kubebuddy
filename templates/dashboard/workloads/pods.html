@@ -47,10 +47,11 @@
     </div>
   </div>
     
-  <div class="container p-0 m-0">
+  <div class="container">
     <!-- Dropdowns container -->
-    <div class="mb-3 d-flex justify-content-between">
+    <div class="mb-1 d-flex justify-content-between">
       <!-- New dropdown on the left -->
+      <div class="d-flex">
       <div class="dropdown">
         <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
           All Namespaces
@@ -59,13 +60,14 @@
         <li class="dropdown-item" onclick="namespaceHandler(event)">All Namespaces</li>
         {% for ns in namespaces %}
         <li class="dropdown-item" onclick="namespaceHandler(event)">{{ns}}</li>
-        {% endfor %}          
+        {% endfor %}      
         </ul>
       </div>
-      <div>
+
+      <div class="mx-3">
         <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search pods...">
       </div>
-      
+    </div>
       <!-- Original column selector dropdown -->
       <div class="dropdown">
         <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
@@ -164,7 +166,6 @@
 </div>
 <script src="{% static 'js/namespaceFilter.js' %}"></script>
 <script src="{% static 'js/graph.js' %}"></script>
-<script src="{% static 'js/tableSearch.js' %}"></script>
 <script>
   // graph
   // graph

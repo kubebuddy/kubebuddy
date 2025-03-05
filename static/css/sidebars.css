@@ -210,8 +210,8 @@ main {
 }
 
 .cluster-sidebar {
-  width: 17vw;
-  padding: 10px;
+  width: 18vw;
+  padding: 2rem 1rem;
   border-radius: 3px;
   text-align: center;
   background: #e6f7ff;
@@ -223,7 +223,7 @@ main {
   padding: auto;
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 4rem;
 }
 /* -------------------------- Dark Mode -------------------------- */
 /* Enhanced Dark Mode */

@@ -674,7 +674,7 @@ table th, td {
 }
 
 #colActions {
-  width: 50px;
+  width: 50px !important;
 }
 
 .bi-three-dots-vertical {

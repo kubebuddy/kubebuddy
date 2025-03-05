@@ -24,7 +24,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // sorting columns
     document.querySelectorAll("th.sortable").forEach(header => {
-        header.innerHTML += ' <span class="sort-indicator">↕</span>';
+        // header.innerHTML += ' <span class="sort-indicator">↕</span>';
+        header.innerHTML += ' <i class="bi bi-arrow-down sort-indicator"></i>';
         header.style.cursor = "pointer";
         header.addEventListener("click", function () {
             const table = header.closest("table");
@@ -44,8 +45,15 @@ document.addEventListener("DOMContentLoaded", function () {
             
             rows.forEach(row => tbody.appendChild(row));
             
-            document.querySelectorAll(".sort-indicator").forEach(indicator => indicator.innerText = "↕");
-            header.querySelector(".sort-indicator").innerText = newState === "asc" ? "▲" : "▼";
+            document.querySelectorAll(".sort-indicator").forEach(indicator => indicator.HTML = " <i class='bi bi-arrow-down sort-indicator'></i>");
+            // header.querySelector(".sort-indicator").classList = newState === "asc" ? "" : "";
+            if (newState === 'asc'){
+                header.querySelector(".sort-indicator").classList.remove("bi-arrow-down");
+                header.querySelector(".sort-indicator").classList.add("bi-arrow-up");
+            } else{
+                header.querySelector(".sort-indicator").classList.remove("bi-arrow-up");
+                header.querySelector(".sort-indicator").classList.add("bi-arrow-down");
+            }
         });
     });
 });

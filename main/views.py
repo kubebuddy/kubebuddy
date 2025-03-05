@@ -20,6 +20,8 @@ from kubernetes.config.config_exception import ConfigException
 from .models import KubeConfig
 
 import os
+from django.contrib.auth import update_session_auth_hash
+from django.http import JsonResponse
 
 # Chat Bot
 
@@ -386,3 +388,92 @@ def chatbot_response(request):
             return JsonResponse({"status": "error", "message": f"Error: {str(e)}"})
 
     return JsonResponse({"status": "error", "message": "Invalid request method."})
+
+
+
+def settings(request):
+    username = request.user.username
+    error_message = None
+    success_message = None
+    ai_configs = {}
+    for config in AIConfig.objects.all():
+        ai_configs[config.provider] = {
+            'provider': config.provider,
+            'api_key': config.api_key,
+            'display_name': config.get_provider_display()
+        }
+    
+    # Handle form submission for AI configuration
+    if request.method == 'POST' and 'save_ai_config' in request.POST:
+        provider = request.POST.get('aiModel')
+        api_key = request.POST.get('apiKey')
+        
+        if provider and api_key:
+            # Update or create AI configuration
+            obj, created = AIConfig.objects.update_or_create(
+                provider=provider,
+                defaults={'api_key': api_key}
+            )
+            return redirect('settings?ai_config_success=true')
+            
+    # Add this block for handling API key deletion
+    if request.method == 'POST' and 'delete_api_key' in request.POST:
+        provider = request.POST.get('delete_api_key')
+        if provider:
+            try:
+                AIConfig.objects.filter(provider=provider).delete()
+                return redirect('settings?ai_config_deleted=true')
+            except Exception as e:
+                # Handle exception
+                pass
+    
+    if request.method == 'POST' and 'change_password' in request.POST:
+        current_password = request.POST.get('currentPassword')
+        new_password = request.POST.get('newPassword')
+        confirm_password = request.POST.get('confirmPassword')
+        
+        # Authenticate the user with current password
+        user = authenticate(request, username=username, password=current_password)
+        
+        if user is None:
+            error_message = "Current password is incorrect. Please try again."
+        elif new_password != confirm_password:
+            error_message = "New passwords do not match. Please try again."
+        else:
+            # Change the password
+            user = request.user
+            user.set_password(new_password)
+            user.save()
+            
+            # Update the session to prevent logout
+            update_session_auth_hash(request, user)
+            
+            success_message = "Password updated successfully."
+    # Get existing AI configuration if available
+    ai_configs = {}
+    for config in AIConfig.objects.all():
+        ai_configs[config.provider] = {
+            'provider': config.provider,
+            'api_key': config.api_key,
+            'display_name': config.get_provider_display()
+        }
+    
+    # Handle form submission for AI configuration
+    if request.method == 'POST' and 'save_ai_config' in request.POST:
+        provider = request.POST.get('aiModel')
+        api_key = request.POST.get('apiKey')
+        
+        if provider and api_key:
+            # Update or create AI configuration
+            obj, created = AIConfig.objects.update_or_create(
+                provider=provider,
+                defaults={'api_key': api_key}
+            )
+            return redirect('settings?ai_config_success=true')
+    
+    return render(request, 'main/settings.html', {
+        'username': username,
+        'error_message': error_message,
+        'success_message': success_message,
+        'ai_configs': ai_configs,
+    })

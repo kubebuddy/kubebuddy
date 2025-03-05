@@ -959,6 +959,3 @@ def node_metrics(request, cluster_name):
         'registered_clusters': registered_clusters,
         'namespaces': namespaces,
     })
-
-def settings(request):    
-    return render(request, "dashboard/settings.html",)

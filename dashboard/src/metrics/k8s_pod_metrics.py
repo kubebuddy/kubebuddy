@@ -69,6 +69,7 @@ def get_pod_metrics(path=None, context=None):
                         all_pod_metrics.append({
                             "name": pod_name,
                             "namespace": namespace,
+                            "total_pods": len(pod_name),
                             "error": f"Failed to fetch metrics: {e.reason}"
                         })
 

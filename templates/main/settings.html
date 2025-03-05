@@ -10,6 +10,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/11231/11231852.png">
     <style>
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+            font-size: .875em;
+        }
+
         /* Custom styles for dark mode */
         [data-bs-theme="dark"] .sidebar {
             background-color: #121212 !important;
@@ -27,18 +34,6 @@
         
         [data-bs-theme="dark"] .text-black {
             color: #f8f9fa !important;
-        }
-
-        [data-bs-theme="dark"] .btn-primary {
-            background-color: #0db5fd !important;
-            border-color: #0db5fd !important;
-            color: #fff !important;
-        }
-
-        [data-bs-theme="dark"] .nav-link.active{
-            background-color: #0db5fd !important;
-            border-color: #0db5fd !important;
-            color: #fff !important;
         }
         
         /* Animation for theme transition */
@@ -117,12 +112,18 @@
             
             <!-- User/Account Info at Bottom (Optional) -->
             <div class="mt-auto pt-3 border-top">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-person-circle fs-4 me-2"></i>
-                    <div>
-                        <small class="d-block text-muted">Logged in as</small>
-                        <span>Admin User</span>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-person-circle fs-4 me-2"></i>
+                        <div>
+                            <small class="d-block text-muted">Logged in as</small>
+                            <span>{{username}}</span>
+                        </div>
                     </div>
+                    <a href="/logout" class="btn btn-sm btn-primary">
+                        Logout
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
@@ -142,6 +143,21 @@
                     </button>
                 </div>
             </div>
+            
+            <!-- Alerts for success and error messages -->
+            {% if success_message %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ success_message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+            
+            {% if error_message %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ error_message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
             
             <!-- General Settings Content Section - simplified with only Check for Updates button -->
             <div id="general-settings-content" class="content-section active">
@@ -177,36 +193,89 @@
             </div>
             
             <!-- AI Configuration Content Section -->
-            <div id="ai-config-content" class="content-section">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        AI Assistant Configuration
-                    </div>
-                    <div class="card-body">
-                        <form>
-                            <div class="mb-3">
-                                <label for="aiModel" class="form-label">AI Model</label>
-                                <select class="form-select" id="aiModel">
-                                    <option value="chatgpt" selected>ChatGPT</option>
-                                    <option value="gemini">Gemini</option>
-                                    <option value="claude">Claude</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="apiKey" class="form-label">API Key</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="apiKey" value="sk-****************************************">
-                                    <button class="btn btn-outline-secondary" type="button" id="showApiKey">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </div>
-                                <div class="form-text">Your API key is stored securely and never shared.</div>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Save AI Settings</button>
-                        </form>
-                    </div>
-                </div>
+            <!-- AI Configuration Content Section -->
+<div id="ai-config-content" class="content-section">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            AI Assistant Configuration
+        </div>
+        <div class="card-body">
+            {% if request.GET.ai_config_success %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                AI configuration saved successfully!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
+            {% endif %}
+            
+            <form method="POST" action="{% url 'settings' %}">
+                {% csrf_token %}
+                <input type="hidden" name="save_ai_config" value="true">
+                
+                <div class="mb-3">
+                    <label for="aiModel" class="form-label">AI Model Provider</label>
+                    <select class="form-select" id="aiModel" name="aiModel">
+                        <option value="openai" {% if 'openai' in ai_configs %}selected{% endif %}>OpenAI</option>
+                        <option value="gemini" {% if 'gemini' in ai_configs %}selected{% endif %}>Google Gemini</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="apiKey" class="form-label">API Key</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="apiKey" name="apiKey" 
+                               value="{% if 'openai' in ai_configs %}{{ ai_configs.openai.api_key }}{% elif 'gemini' in ai_configs %}{{ ai_configs.gemini.api_key }}{% endif %}">
+                        <button class="btn btn-outline-secondary" type="button" id="showApiKey">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">Your API key is stored securely and never shared.</div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Save AI Settings</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Current API Configuration Display -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            Current API Configuration
+        </div>
+        <div class="card-body">
+            {% if ai_configs %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Provider</th>
+                            <th>API Key</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for provider, config in ai_configs.items %}
+                        <tr>
+                            <td>{{ config.display_name }}</td>
+                            <td>
+                                <span class="text-muted">**********</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="if(confirm('Are you sure you want to delete this API key?')) { deleteApiKey('{{ config.provider }}'); }">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="alert alert-info">
+                    No API keys configured yet. Please add your first API key above.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
             
             <!-- Change Password Content Section -->
             <div id="change-password-content" class="content-section">
@@ -215,19 +284,21 @@
                         Change Password
                     </div>
                     <div class="card-body">
-                        <form>
+                        <form method="POST" action="{% url 'settings' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="change_password" value="true">
                             <div class="mb-3">
                                 <label for="currentPassword" class="form-label">Current Password</label>
-                                <input type="password" class="form-control" id="currentPassword" required>
+                                <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
                             </div>
                             <div class="mb-3">
                                 <label for="newPassword" class="form-label">New Password</label>
-                                <input type="password" class="form-control" id="newPassword" required>
+                                <input type="password" class="form-control" id="newPassword" name="newPassword" required>
                                 <div class="form-text">Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" required>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
                             </div>
                             <div class="mb-3">
                                 <div class="progress" style="height: 5px;">
@@ -445,6 +516,17 @@
                     }
                 });
             }
+            
+            // Auto-select the Change Password tab if there's an error or success message related to password change
+            const urlParams = new URLSearchParams(window.location.search);
+            if (document.querySelector('.alert-danger') || document.querySelector('.alert-success')) {
+                const errorText = document.querySelector('.alert-danger')?.textContent || '';
+                const successText = document.querySelector('.alert-success')?.textContent || '';
+                
+                if (errorText.includes('password') || successText.includes('Password')) {
+                    showContent('change-password-content');
+                }
+            }
         });
         
         // Initialize tooltips
@@ -470,6 +552,56 @@
 
         // Reload button event listener
         document.getElementById("reload-btn").addEventListener("click", reloadPage);
+        // Handle API model selection changes
+document.addEventListener('DOMContentLoaded', function() {
+    const aiModelSelect = document.getElementById('aiModel');
+    const apiKeyInput = document.getElementById('apiKey');
+    
+    if (aiModelSelect && apiKeyInput) {
+        // Store API keys for each provider
+        const apiKeys = {
+            {% for provider, config in ai_configs.items %}
+            '{{ provider }}': '{{ config.api_key }}',
+            {% endfor %}
+        };
+        
+        // Update API key when model selection changes
+        aiModelSelect.addEventListener('change', function() {
+            const selectedProvider = this.value;
+            if (apiKeys[selectedProvider]) {
+                apiKeyInput.value = apiKeys[selectedProvider];
+            } else {
+                apiKeyInput.value = '';
+            }
+        });
+    }
+});
+
+// Function to delete API key
+function deleteApiKey(provider) {
+    // Create a form to submit the delete request
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "settings" %}';
+    
+    // Add CSRF token
+    const csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = 'csrfmiddlewaretoken';
+    csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    form.appendChild(csrfToken);
+    
+    // Add delete_api_key parameter
+    const deleteParam = document.createElement('input');
+    deleteParam.type = 'hidden';
+    deleteParam.name = 'delete_api_key';
+    deleteParam.value = provider;
+    form.appendChild(deleteParam);
+    
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
+}
     </script>
 </body>
 </html>

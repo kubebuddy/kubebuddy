@@ -683,3 +683,8 @@ table th, td {
 .dark-mode .bi-three-dots-vertical {
   color: white;
 }
+
+th {
+  position: sticky;
+  top:0;
+}

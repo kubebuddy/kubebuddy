@@ -29,7 +29,7 @@
   </div>  
   <div class="container">
     <div class="mb-3">
-      <div class="mb-1 d-flex justify-content-between">
+      <div class="mb-1 d-flex justify-content-between align-items-center">
         <div class="d-flex">
           <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search namespaces...">
       </div>
@@ -59,7 +59,6 @@
                 <label class="form-check-label" for="Age"> Age</label>
             </li>
         </ul>
-        
         </div>
     </div>
   
@@ -67,10 +66,10 @@
     <table class="table table-bordered" style="border-radius: 8px;">
       <thead class="table-dark">
         <tr>
-          <th id="colName">NAME</th>
-          <th id="colStatus">STATUS</th>
-          <th id="colLabels">LABELS</th>
-          <th id="colAge">AGE</th>
+          <th class="sortable" id="colName">NAME</th>
+          <th class="sortable" id="colStatus">STATUS</th>
+          <th class="sortable" id="colLabels">LABELS</th>
+          <th class="sortable" id="colAge">AGE</th>
           <th id="colActions"></th>
         </tr>
       </thead>

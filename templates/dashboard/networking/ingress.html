@@ -2,34 +2,32 @@
 
 {% load static %}
 
-{% block title %}Resource Quota{% endblock %}
+{% block title %}Ingress{% endblock %}
 
-{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/quota-128.png?raw=true{% endblock %}
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ing-128.png?raw=true {% endblock %}
 
 {% block content %}
 
 <div class="container">
   <div class="d-flex justify-content-center mb-4">
-    <div class="gap" role="group" aria-label="Cluster Management Tabs">
-      <a href="/{{current_cluster}}/namespace?cluster_id={{cluster_id}}" class="btn btn-primary" id="namespaces-tab">Namespace</a>
-      <a href="/{{current_cluster}}/nodes?cluster_id={{cluster_id}}" class="btn btn-primary" id="nodes-tab">Nodes</a>
-      <a href="/{{current_cluster}}/pdb?cluster_id={{cluster_id}}" class="btn btn-primary" id="pdb-tab">PodDisruptionBudget</a>
-      <a href="/{{current_cluster}}/limitrange?cluster_id={{cluster_id}}" class="btn btn-primary" id="limitrange-tab">LimitRange</a>
-      <a href="/{{current_cluster}}/resourcequotas?cluster_id={{cluster_id}}" class="btn btn-primary active" id="resourcequotas-tab">Resource Quota</a>
+    <div class="gap" role="group" aria-label="Networking Tabs">
+      <a href="/{{current_cluster}}/ingress?cluster_id={{cluster_id}}" class="btn btn-primary active" id="pv-tab">Ingress</a>
+      <a href="/{{current_cluster}}/np?cluster_id={{cluster_id}}" class="btn btn-primary" id="np-tab">NetworkPolicy</a>
     </div>
   </div>
 
   <div class="tab-content">
-    <div class="tab-pane fade show active" id="resourcequotas">
+    <div class="tab-pane fade show active" id="np">
       <div class="d-flex align-items-center justify-content-evenly">
-        <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Resource Quotas: {{total_quotas}}</i></b></div>
+        <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Ingresses: {{ingress_count}}</i></b></div>
         <div><canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas></div>
       </div>
-    </div>  
+    </div>
   </div>
-
+  
   <div class="container">
     <div class="mb-1 d-flex justify-content-between">
+      <!-- New dropdown on the left -->
       <div class="d-flex">
       <div class="dropdown">
         <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -44,7 +42,7 @@
       </div>
 
       <div class="mx-3">
-        <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search quotas...">
+        <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search ingresses...">
       </div>
     </div>
 
@@ -66,16 +64,12 @@
                 <label class="form-check-label" for="Name"> Name</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="requests" id="requests" checked> 
-                <label class="form-check-label" for="requests"> Requests</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Class" id="Class" checked> 
+                <label class="form-check-label" for="Class"> Class</label>
             </li>
             <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="limits" id="limits" checked> 
-                <label class="form-check-label" for="limits"> Limits</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
-                <label class="form-check-label" for="age"> Age</label>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Hosts" id="Hosts" checked> 
+                <label class="form-check-label" for="Hosts"> Hosts</label>
             </li>
         </ul>
         </div>
@@ -87,34 +81,32 @@
         <tr>
           <th class="sortable" id="colNamespace">NAMESPACE</th>
           <th class="sortable" id="colName">NAME</th>
-          <th class="sortable" id="colRequests">REQUESTS</th>
-          <th class="sortable" id="colLimits">LIMITS</th>
-          <th class="sortable" id="colAge">AGE</th>
+          <th class="sortable" id="colClass">CLASS</th>
+          <th class="sortable" id="colHosts">HOSTS</th>
           <th id="colActions"></th>
         </tr>
       </thead>
 
       <tbody>
-      {% for q in resourcequotas %}
+      {% for ing in ingress %}
         <tr>
-          <td>{{ q.namespace }}</td>
+          <td>{{ ing.namespace }}</td>
           <td>
-            <a href="/{{current_cluster}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}">
-                {{ q.name }}
+            <a href="">
+                {{ ing.name }}
             </a>
           </td>
-          <td>{{ q.requests }}</td>
-          <td>{{ q.limits }}</td>
-          <td>{{ q.age }}</td>
+          <td>{{ing.class}}</td>
+          <td>{{ing.hosts}}</td>
           <td id="actionElement">
             <div class="dropup">
               <button class="btn btn-light" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <li><a class="dropdown-item" href="/{{current_cluster}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}">Describe</a></li>
-                <li><a class="dropdown-item" href="/{{current_cluster}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
-                <li><a class="dropdown-item" href="/{{current_cluster}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+                <li><a class="dropdown-item" href="">Describe</a></li>
+                <li><a class="dropdown-item" href="#events">Events</a></li>
+                <li><a class="dropdown-item" href="#yaml">YAML</a></li>
               </ul>
             </div>
           </td>
@@ -128,8 +120,8 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
           renderGaugeChart("gaugeChart", {
-            "Total": {{total_quotas}}
-          }, 'ResourceQuota');
+            "Total": {{ingress_count}}
+          }, 'Ingress');
   });
 </script>
 {% endblock %}

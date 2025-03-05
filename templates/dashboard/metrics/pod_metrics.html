@@ -24,9 +24,9 @@
   </div>
   
   <div class="container">
-    <!-- Dropdown with checkboxes to select columns -->
-    <div class="mb-3 d-flex justify-content-between">
-      <!-- New dropdown (namespaces) -->
+    <div class="mb-1 d-flex justify-content-between">
+      <!-- New dropdown on the left -->
+      <div class="d-flex">
       <div class="dropdown">
         <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
           All Namespaces
@@ -35,9 +35,14 @@
         <li class="dropdown-item" onclick="namespaceHandler(event)">All Namespaces</li>
         {% for ns in namespaces %}
         <li class="dropdown-item" onclick="namespaceHandler(event)">{{ns}}</li>
-        {% endfor %}          
+        {% endfor %}      
         </ul>
       </div>
+
+      <div class="mx-3">
+        <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search metrics...">
+      </div>
+    </div>
 
         <div class="dropdown">
           <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
@@ -76,11 +81,11 @@
     <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
       <thead class="table-dark">
         <tr>
-          <th id="colNamepsace">NAMESPACE</th>
-          <th id="colName">NAME</th>
-          <th id="colcpu">CPU</th>
-          <th id="colMemory">Memory</th>
-          <th id="colError">Error</th>
+          <th class="sortable" id="colNamepsace">NAMESPACE</th>
+          <th class="sortable" id="colName">NAME</th>
+          <th class="sortable" id="colcpu">CPU</th>
+          <th class="sortable" id="colMemory">Memory</th>
+          <th class="sortable" id="colError">Error</th>
         </tr>
       </thead>
 

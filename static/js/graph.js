@@ -35,6 +35,7 @@ function renderGaugeChart(canvasId, chartData, object_name) {
                 label: 'Count',
                 data: dataValues,
                 backgroundColor: backgroundColors,
+                borderWidth: 0
             }]
         },
         options: {

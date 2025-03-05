@@ -25,7 +25,11 @@
   
   <div class="container">
     <!-- Dropdown with checkboxes to select columns -->
-    <div class="mb-3 d-flex justify-content-between">
+    <div class="mb-3">
+      <div class="mb-1 d-flex justify-content-between">
+        <div class="d-flex">
+          <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search metrics...">
+        </div>
       
         <div class="dropdown">
           <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
@@ -69,12 +73,12 @@
     <table class="table table-bordered" style="border-radius: 8px; overflow: hidden;">
       <thead class="table-dark">
         <tr>
-          <th id="colName">NAME</th>
-          <th id="colcpu_cores">CPU (cores)</th>
-          <th id="colcpu_percent">CPU %</th>
-          <th id="colMemory_bytes">Memory (bytes)</th>
-          <th id="colMemory_percent">Memory %</th>
-          <th id="error">Error</th>
+          <th class="sortable" id="colName">NAME</th>
+          <th class="sortable" id="colcpu_cores">CPU (cores)</th>
+          <th class="sortable" id="colcpu_percent">CPU %</th>
+          <th class="sortable" id="colMemory_bytes">Memory (bytes)</th>
+          <th class="sortable" id="colMemory_percent">Memory %</th>
+          <th class="sortable" id="error">Error</th>
         </tr>
       </thead>
 

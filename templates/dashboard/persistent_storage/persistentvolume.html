@@ -31,7 +31,7 @@
         <div class="d-flex">
           <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search volumes...">
         </div>
-        <div class="dropdown d-flex justify-content-end">
+        <div class="dropdown d-flex justify-content-end align-items-center">
           <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
             Select Columns to Display
           </button>
@@ -84,15 +84,15 @@
     <table class="table table-bordered" style="border-radius: 8px;">
       <thead class="table-dark">
         <tr>
-          <th id="colName">NAME</th>
-          <th id="colCapacity">CAPACITY</th>
-          <th id="colAccessModes">ACCESS MODES</th>
-          <th id="colReclaimPolicy">RECLAIM POLICY</th>
-          <th id="colStatus">STATUS</th>
-          <th id="colClaim">CLAIM</th>
-          <th id="colStorageClass">STORAGE CLASS</th>
-          <th id="colMode">VOLUME MODE</th>
-          <th id="colAge">AGE</th>
+          <th class="sortable" id="colName">NAME</th>
+          <th class="sortable" id="colCapacity">CAPACITY</th>
+          <th class="sortable" id="colAccessModes">ACCESS MODES</th>
+          <th class="sortable" id="colReclaimPolicy">RECLAIM POLICY</th>
+          <th class="sortable" id="colStatus">STATUS</th>
+          <th class="sortable" id="colClaim">CLAIM</th>
+          <th class="sortable" id="colStorageClass">STORAGE CLASS</th>
+          <th class="sortable" id="colMode">VOLUME MODE</th>
+          <th class="sortable" id="colAge">AGE</th>
           <th id="colActions"></th>
         </tr>
       </thead>

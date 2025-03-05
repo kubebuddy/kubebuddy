@@ -29,7 +29,7 @@
   <div class="container">
     <!-- Dropdown with checkboxes to select columns -->
     <div class="mb-3">
-      <div class="mb-1 d-flex justify-content-between">
+      <div class="mb-1 d-flex justify-content-between align-items-center" style="position: sticky; top:0;">
         <div class="d-flex">
           <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search roles...">
         </div>
@@ -58,8 +58,8 @@
     <table class="table table-bordered" style="border-radius: 8px;">
       <thead class="table-dark">
         <tr>
-          <th id="colName">NAME</th>
-          <th id="colcreatedAt">CREATED AT</th>
+          <th class="sortable" id="colName">NAME</th>
+          <th class="sortable" id="colcreatedAt">CREATED AT</th>
           <th id="colActions"></th>
         </tr>
       </thead>

@@ -32,7 +32,7 @@
         <div class="d-flex">
           <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search bindings...">
         </div>
-        <div class="dropdown d-flex justify-content-end">
+        <div class="dropdown d-flex justify-content-end align-items-center">
           <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
             Select Columns to Display
           </button>
@@ -73,12 +73,12 @@
     <table class="table table-bordered" style="border-radius: 8px;">
       <thead class="table-dark">
         <tr>
-          <th id="colName">NAME</th>
-          <th id="colRole">ROLE</th>
-          <th id="colUsers">USERS</th>
-          <th id="colGroups">GROUPS</th>
-          <th id="colServiceAccounts">SERVICE ACCOUNTS</th>
-          <th id="colAge">AGE</th>
+          <th class="sortable" id="colName">NAME</th>
+          <th class="sortable" id="colRole">ROLE</th>
+          <th class="sortable" id="colUsers">USERS</th>
+          <th class="sortable" id="colGroups">GROUPS</th>
+          <th class="sortable" id="colServiceAccounts">SERVICE ACCOUNTS</th>
+          <th class="sortable" id="colAge">AGE</th>
           <th id="colActions"></th>
         </tr>
       </thead>

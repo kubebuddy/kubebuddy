@@ -2,19 +2,25 @@ document.addEventListener("DOMContentLoaded", function () {
     // searching table
     const searchInput = document.getElementById("tableSearchInput");
     
-    searchInput.addEventListener("keyup", function () {
-        const filter = searchInput.value.toLowerCase();
+    function debounce(func, delay) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+    
+    const filterTable = debounce(() => {
+        const filter = searchInput.value.trim().toLowerCase();
         const rows = document.querySelectorAll("table tbody tr");
-        
+    
         rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            if (text.includes(filter)) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
         });
-    });
+    }, 300); // delay
+    
+    searchInput.addEventListener("keyup", filterTable);
 
     // sorting columns
     document.querySelectorAll("th.sortable").forEach(header => {

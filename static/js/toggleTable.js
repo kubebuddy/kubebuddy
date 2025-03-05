@@ -82,12 +82,12 @@ document.addEventListener("DOMContentLoaded", function () {
         for (let i = 0; i < tableHeaders.length; i++) {
             if (
                 tableHeaders[i].textContent
-                    .replace(/[-%()_]/g, "")  // Remove unwanted characters
+                    .replace(/[^a-zA-Z]+/g, '')  // Remove unwanted characters
                     .trim()  // Remove leading/trailing spaces
                     .replace(/\s+/g, "")  // Remove all spaces (including multiple spaces)
                     .toLowerCase() === 
                 columnName
-                    .replace(/[-%()_]/g, "")
+                    .replace(/[^a-zA-Z]+/g, '')
                     .trim()
                     .replace(/\s+/g, "")
                     .toLowerCase()

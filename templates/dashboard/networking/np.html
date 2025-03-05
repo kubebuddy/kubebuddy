@@ -9,9 +9,20 @@
 {% block content %}
 
 <div class="container">
-  <div class="d-flex align-items-center justify-content-evenly">
-    <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Network Policies: {{nps_count}}</i></b></div>
-    <div><canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas></div>
+  <div class="d-flex justify-content-center mb-4">
+    <div class="gap" role="group" aria-label="Networking Tabs">
+      <a href="/{{current_cluster}}/np?cluster_id={{cluster_id}}" class="btn btn-primary" id="pv-tab">Ingress</a>
+      <a href="/{{current_cluster}}/np?cluster_id={{cluster_id}}" class="btn btn-primary active" id="np-tab">NetworkPolicy</a>
+    </div>
+  </div>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="np">
+      <div class="d-flex align-items-center justify-content-evenly">
+        <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Network Policies: {{nps_count}}</i></b></div>
+        <div><canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas></div>
+      </div>
+    </div>
   </div>
   
   <div class="container">

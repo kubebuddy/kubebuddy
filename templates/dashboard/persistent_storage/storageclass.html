@@ -7,9 +7,21 @@
 {% block content %}
 
 <div class="container">
-  <div class="d-flex align-items-center justify-content-evenly">
-    <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Storage Classes: {{total_sc}}</i></b></div>
-    <div><canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas></div>
+  <div class="d-flex justify-content-center mb-4">
+    <div class="gap" role="group" aria-label="Persistent Storage Tabs">
+      <a href="/{{current_cluster}}/pv?cluster_id={{cluster_id}}" class="btn btn-primary" id="pv-tab">PersistentVolume</a>
+      <a href="/{{current_cluster}}/pvc?cluster_id={{cluster_id}}" class="btn btn-primary" id="pvc-tab">PersistentVolumeClaim</a>
+      <a href="/{{current_cluster}}/storageclass?cluster_id={{cluster_id}}" class="btn btn-primary active" id="storageclass-tab">StorageClass</a>
+    </div>
+  </div>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="storageclass">
+      <div class="d-flex align-items-center justify-content-evenly">
+        <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Storage Classes: {{total_sc}}</i></b></div>
+        <div><canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas></div>
+      </div>
+    </div>
   </div>
   
   <div class="container">

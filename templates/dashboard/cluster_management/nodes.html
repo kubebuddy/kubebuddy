@@ -7,23 +7,37 @@
 {% block content %}
 
 <div class="container">
-  <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
-    <div class="row mb-0">
-      <div class="col-md-3 align-items-center justify-content-evenly mx-auto">
-        <div class="grid-box flex-fill stats-card bg-primary "><b><i>Total Nodes: {{total_nodes}}</i></b></div>
-      </div>
+  <div class="d-flex justify-content-center mb-4">
+    <div class="gap" role="group" aria-label="Cluster Management Tabs">
+      <a href="/{{current_cluster}}/namespace?cluster_id={{cluster_id}}" class="btn btn-primary" id="namespaces-tab">Namespace</a>
+      <a href="/{{current_cluster}}/nodes?cluster_id={{cluster_id}}" class="btn btn-primary active" id="nodes-tab">Nodes</a>
+      <a href="/{{current_cluster}}/pdb?cluster_id={{cluster_id}}" class="btn btn-primary" id="pdb-tab">PodDisruptionBudget</a>
+      <a href="/{{current_cluster}}/limitrange?cluster_id={{cluster_id}}" class="btn btn-primary" id="limitrange-tab">LimitRange</a>
+      <a href="/{{current_cluster}}/resourcequotas?cluster_id={{cluster_id}}" class="btn btn-primary" id="resourcequotas-tab">Resource Quota</a>
     </div>
-    <div class="row">
-      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
-        <div class="grid-box stats-card bg-success text-center p-3 w-100 m-2"><b><i>Ready: {{ready_nodes}}</i></b></div>
-      </div>
-      <div class="col-md-6 d-flex align-items-center justify-content-center p-3">
-        <div class="grid-box d-flex align-items-center justify-content-center p-1 w-100" style="min-height: 200px;">
-            <canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas>
+  </div>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="nodes">
+      <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
+        <div class="row mb-0">
+          <div class="col-md-3 align-items-center justify-content-evenly mx-auto">
+            <div class="grid-box flex-fill stats-card bg-primary "><b><i>Total Nodes: {{total_nodes}}</i></b></div>
+          </div>
         </div>
-    </div>
-      <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
-        <div class="grid-box stats-card bg-danger text-center p-3 w-100 m-2"><b><i>Not Ready: {{not_ready_nodes}}</i></b></div>
+        <div class="row">
+          <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+            <div class="grid-box stats-card bg-success text-center p-3 w-100 m-2"><b><i>Ready: {{ready_nodes}}</i></b></div>
+          </div>
+          <div class="col-md-6 d-flex align-items-center justify-content-center p-3">
+            <div class="grid-box d-flex align-items-center justify-content-center p-1 w-100" style="min-height: 200px;">
+                <canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas>
+            </div>
+        </div>
+          <div class="col-md-3 d-flex flex-column align-items-center justify-content-center">
+            <div class="grid-box stats-card bg-danger text-center p-3 w-100 m-2"><b><i>Not Ready: {{not_ready_nodes}}</i></b></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -48,21 +48,13 @@ main {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #444;
+  background: #b6b6b6;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #b6b6b6;
 }
-
-/* .sidebar.collapsed {
-  display: none;
-  width: 0;
-  padding: 0;
-  overflow: hidden;
-  transition: width 0.3s ease-in-out;
-} */
 
 .sidebar.collapsed {
   transform: translateX(-100%);
@@ -145,6 +137,14 @@ main {
 .btn-toggle-nav a:hover,
 .btn-toggle-nav a:focus {
   background-color: #8ddbff;
+}
+
+.bg-success {
+  background-color: RGB(50, 205, 50) !important;
+}
+
+.bg-danger {
+  background-color: RGB(220, 20, 60) !important;
 }
 
 .scrollarea {
@@ -470,6 +470,7 @@ main {
 }
 .failed-pod {
  background-color: #dc3545 !important;
+ color: #fff;
  padding: 0.3rem;
  border-radius: 0.4rem;
 }
@@ -477,6 +478,7 @@ main {
 .warning-event{
   background-color: #dc3545 !important;
   padding: 0.3rem;
+  color: #fff;
   border-radius: 0.4rem;
 }
 
@@ -518,7 +520,7 @@ main {
 }
 .container {
   margin-top: 1.6rem;
-  width: 80vw;
+  width: 75vw;
 }
 
 /* table font style */

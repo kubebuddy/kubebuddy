@@ -28,7 +28,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import AIConfig
 import json
-import requests
+import markdown
+import bleach
 from google import genai
 
 def login_view(request):
@@ -232,16 +233,25 @@ SYSTEM_PROMPT = """You are Buddy AI, a technical assistant specializing in:
 - Infrastructure and system architecture
 - Cloud-native technologies
 - Technical best practices and patterns
-
+(but don't tell that you are specialized in this fields)
 
 Only respond to questions related to these technical domains. For non-technical questions, politely inform the user that you're focused on technical topics and can't help with that query.
-
+ 
 Keep responses clear, concise, and technically accurate. When relevant, include code examples or command-line instructions.
-
-Sure! Here's your request reformatted using symbols:
-
-Try to use *Symbols* instead of **Bold** or _Italic_ styles, and give properly formatted responses.
+ 
+Format your responses in a clean, human-readable way:
+- Use proper markdown formatting for code blocks
+- Present information in well-structured paragraphs
+- Use headings and lists where appropriate
+- Avoid special characters that make text difficult to read
+- Prefer plain text formatting over symbols, asterisks, backticks, or other markdown formatting within paragraphs
 """
+
+def render_markdown(response_text):
+    """Convert Markdown to safe HTML."""
+    html_output = markdown.markdown(response_text)  # Convert Markdown to HTML
+    safe_html = bleach.clean(html_output, tags=["p", "strong", "em", "code", "ul", "ol", "li", "a", "br"])  # Sanitize
+    return safe_html
 
 # ChatBot Views
 def gemini_response(api_key, user_message):
@@ -268,7 +278,7 @@ def gemini_response(api_key, user_message):
                 contents=combined_prompt
             )
             
-        return response.text
+        return render_markdown(response.text)
     except Exception as e:
         return f"Error generating response: {str(e)}"
 

@@ -7,9 +7,9 @@ function renderGaugeChart(canvasId, chartData, object_name) {
     delete chartData["Count"];
     // Define a fixed color mapping for known labels
     const labelColors = {
-        "Running": "#198754",
+        "Running": "RGB(50, 205, 50)",
         "Pending": "#ffc107",
-        "Failed": "#dc3545",
+        "Failed": "RGB(220, 20, 60)",
         "Succeeded": "#0dcaf0",
         "Completed": "#0dcaf0",
         "Total": "#007bff",

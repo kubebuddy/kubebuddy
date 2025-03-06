@@ -208,8 +208,10 @@ function userMessage(text) {
 function botMessage(text) {
     const chatBody = document.getElementById("chatBody");
     const messageElement = document.createElement("div");
-    messageElement.textContent = text;
+
+    messageElement.innerHTML = text; // Use innerHTML to render HTML properly
     messageElement.className = "bot-message";
+    
     chatBody.appendChild(messageElement);
     saveMessage(text, "bot-message");
     chatBody.scrollTop = chatBody.scrollHeight;
@@ -220,17 +222,21 @@ function loadChatHistory() {
     const chatBody = document.getElementById("chatBody");
     const chatHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
     
-    chatBody.innerHTML = '';
-    
+    chatBody.innerHTML = ''; // Clear existing messages
+
     chatHistory.forEach(message => {
         const messageElement = document.createElement("div");
-        messageElement.textContent = message.text;
+
+        // Use innerHTML to render formatted text properly
+        messageElement.innerHTML = message.text; 
         messageElement.className = message.type;
+
         chatBody.appendChild(messageElement);
     });
 
     chatBody.scrollTop = chatBody.scrollHeight;
 }
+
 
 // Save Chat Message to Session Storage
 function saveMessage(text, type) {
@@ -246,13 +252,27 @@ function clearChatHistory() {
     chatBody.innerHTML = '';
 }
 
+// Auto Resize text area
+// function autoResize(textarea) {
+//     textarea.style.height = "auto"; // Reset height
+//     textarea.style.height = textarea.scrollHeight + "px"; // Set new height
+// }
+
 // Listen for "Enter" Key Press in Input Field
-document.getElementById("chatInput").addEventListener("keypress", function(event) {
+document.getElementById("chatInput").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
-        event.preventDefault();
-        sendMessage();
+        if (event.shiftKey) {
+            event.preventDefault();
+            this.value += "\n"; // Add a newline
+            autoResize(this); // Adjust height
+        } else {
+            event.preventDefault();
+            sendMessage();
+            this.style.height = "auto"; // Reset height after sending
+        }
     }
 });
+
 
 let isFullscreen = false; // Flag to check if the window is in fullscreen mode
 

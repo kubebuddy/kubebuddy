@@ -2,103 +2,149 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: deedee
+  name: demo-namespace
 ---
 apiVersion: v1
-kind: Namespace
+kind: Pod
 metadata:
-  name: kubenyx
+  name: running-pod-1
+  namespace: demo-namespace
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: running-pod-2
+  namespace: demo-namespace
+spec:
+  containers:
+  - name: alpine
+    image: alpine
+    command: ["sleep", "3600"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: failed-pod-1
+  namespace: demo-namespace
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+    command: ["/bin/false"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pending-pod-1
+  namespace: demo-namespace
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    resources:
+      limits:
+        cpu: "100"
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: my-replicaset
+  namespace: demo-namespace
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-deployment
-  namespace: deedee
+  name: my-deployment
+  namespace: demo-namespace
 spec:
-  replicas: 5
+  replicas: 3
   selector:
     matchLabels:
-      app: myapp
+      app: my-app
   template:
     metadata:
       labels:
-        app: myapp
+        app: my-app
     spec:
       containers:
-      - name: myapp-container
+      - name: nginx
         image: nginx
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "256Mi"
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: db-statefulset
-  namespace: kubenyx
+  name: my-statefulset
+  namespace: demo-namespace
 spec:
-  replicas: 1
+  serviceName: "stateful-service"
+  replicas: 2
   selector:
     matchLabels:
-      app: database
-  serviceName: "db-service"
+      app: stateful-app
   template:
     metadata:
       labels:
-        app: database
+        app: stateful-app
     spec:
       containers:
-      - name: db-container
-        image: mysql
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "256Mi"
+      - name: nginx
+        image: nginx
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: log-daemonset
-  namespace: deedee
+  name: my-daemonset
+  namespace: demo-namespace
 spec:
   selector:
     matchLabels:
-      name: log-agent
+      app: daemon-app
   template:
     metadata:
       labels:
-        name: log-agent
+        app: daemon-app
     spec:
       containers:
-      - name: log-agent
-        image: busybox
-        command: ["sh", "-c", "while true; do echo log-agent running; sleep 10; done"]
+      - name: nginx
+        image: nginx
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: cleanup-job
-  namespace: kubenyx
+  name: my-job
+  namespace: demo-namespace
 spec:
+  completions: 3
   template:
     spec:
       containers:
-      - name: cleanup
+      - name: busybox
         image: busybox
-        command: ["sh", "-c", "echo Cleaning up"]
+        command: ["/bin/sh", "-c", "echo Hello; sleep 5"]
       restartPolicy: Never
-  backoffLimit: 3
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: scheduled-task
-  namespace: deedee
+  name: my-cronjob
+  namespace: demo-namespace
 spec:
   schedule: "*/5 * * * *"
   jobTemplate:
@@ -106,108 +152,99 @@ spec:
       template:
         spec:
           containers:
-          - name: task
+          - name: busybox
             image: busybox
-            command: ["sh", "-c", "echo Running scheduled task"]
+            command: ["/bin/sh", "-c", "date"]
           restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+  namespace: demo-namespace
+spec:
+  selector:
+    app: my-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: personal-info
-  namespace: deedee
-  labels:
-    app: myapp
+  name: my-configmap
+  namespace: demo-namespace
 data:
-  name: "Dheeraj"
-  location: "India"
+  key1: "value1"
+  key2: "value2"
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: app-secret
-  namespace: kubenyx
-  labels:
-    app: secure
-type: Opaque
-data:
-  username: "dXNlcm5hbWU="
-  password: "cGFzc3dvcmQ="
+  name: my-secret
+  namespace: demo-namespace
+stringData:
+  password: "mypassword"
+  token: "securetoken"
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: app-pv
+  name: my-pv
 spec:
   capacity:
-    storage: 500Mi
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: standard
   hostPath:
     path: "/mnt/data"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: app-pvc
-  namespace: deedee
+  name: my-pvc
+  namespace: demo-namespace
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 500Mi
-  storageClassName: standard
 ---
-apiVersion: v1
-kind: ServiceAccount
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
 metadata:
-  name: app-serviceaccount
-  namespace: kubenyx
+  name: my-storageclass
+provisioner: kubernetes.io/no-provisioner
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: pod-reader
-  namespace: deedee
-rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "watch", "list"]
+  name: my-ingress
+  namespace: demo-namespace
+spec:
+  rules:
+  - host: my-app.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-service
+            port:
+              number: 80
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
 metadata:
-  name: pod-reader-binding
-  namespace: deedee
-subjects:
-- kind: ServiceAccount
-  name: app-serviceaccount
-roleRef:
-  kind: Role
-  name: pod-reader
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: cluster-admin-role
-rules:
-- apiGroups: [""]
-  resources: ["*"]
-  verbs: ["*"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: cluster-admin-binding
-subjects:
-- kind: ServiceAccount
-  name: app-serviceaccount
-  namespace: kubenyx
-roleRef:
-  kind: ClusterRole
-  name: cluster-admin-role
-  apiGroup: rbac.authorization.k8s.io
+  name: my-network-policy
+  namespace: demo-namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: my-app
+  policyTypes:
+  - Ingress
+  - Egress

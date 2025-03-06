@@ -134,7 +134,8 @@
                 {{ job.name }}
             </a>
           </td>
-          <td  class="{% if job.status == "Completed" %} bg-success {% elif job.status == "Running" %} bg-warning {% else %} bg-danger {% endif %}">{{ job.status }}</td>
+          <!-- <td  class="{% if job.status == "Completed" %} bg-success {% elif job.status == "Running" %} bg-warning {% else %} bg-danger {% endif %}">{{ job.status }}</td> -->
+          <td><span class="{% if job.status == "Completed" %}running-pod{% elif job.status == "Running" %} pending-pod {% else %} failed-pod {% endif %}">{{ job.status }}</span></td>
           <td>{{ job.completions }}</td>
           <td>{{ job.duration }}</td>
           <td>{{ job.age }}</td>

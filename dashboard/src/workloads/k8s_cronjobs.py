@@ -85,6 +85,10 @@ def get_cronjob_description(path=None, context=None, namespace=None, cronjob_nam
     try:
         # Fetch CronJob details
         cronjob = v1.read_namespaced_cron_job(name=cronjob_name, namespace=namespace)
+        # Get annotations
+        annotations =cronjob.metadata.annotations or {}
+        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
         
         # Prepare CronJob information
         cronjob_info = {
@@ -98,7 +102,7 @@ def get_cronjob_description(path=None, context=None, namespace=None, cronjob_nam
             "starting_deadline_seconds": cronjob.spec.starting_deadline_seconds,
             "selector": cronjob.spec.selector.match_labels if hasattr(cronjob.spec, 'selector') and cronjob.spec.selector else "<unset>",
             "labels": cronjob.metadata.labels if isinstance(cronjob.metadata.labels, dict) else "<none>",
-            "annotations": cronjob.metadata.annotations if isinstance(cronjob.metadata.annotations, dict) else "<none>",
+            "annotations": filtered_annotations if filtered_annotations else None,
             "pods_status": {
                 "active": cronjob.status.active,
                 "last_schedule_time": cronjob.status.last_schedule_time

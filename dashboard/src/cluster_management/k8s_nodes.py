@@ -100,7 +100,7 @@ def get_node_description(path=None, context=None, node_name=None):
         if node.spec.taints:
             taints = [taint.key +"=" + taint.value + ":" + taint.effect for taint in node.spec.taints]
         else:
-            taints = "none"
+            taints = ["none"]
             
         node_info = {
             "name": node.metadata.name,

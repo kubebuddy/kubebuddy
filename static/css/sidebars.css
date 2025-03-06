@@ -4,6 +4,10 @@ html, body {
   font-size: .875em;
 }
 
+table {
+  border-radius: 0.5rem !important;
+}
+
 /* Main layout: Sidebar and content */
 main {
   display: flex;
@@ -534,6 +538,11 @@ table th, td {
   text-align: left;
 }
 
+.table th {
+  position: sticky !important;
+  top:0 !important;
+}
+
 #actionElement {
   text-align:center;
   padding: 0;
@@ -685,9 +694,4 @@ table th, td {
 }
 .dark-mode .bi-three-dots-vertical {
   color: white;
-}
-
-th {
-  position: sticky;
-  top:0;
 }

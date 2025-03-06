@@ -24,7 +24,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // sorting columns
     document.querySelectorAll("th.sortable").forEach(header => {
-        // header.innerHTML += ' <span class="sort-indicator">↕</span>';
         header.innerHTML += ' <i class="bi bi-arrow-down sort-indicator"></i>';
         header.style.cursor = "pointer";
         header.addEventListener("click", function () {

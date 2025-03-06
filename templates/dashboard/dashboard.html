@@ -126,6 +126,10 @@
     <div class="container">
         <!-- Dropdown with checkboxes to select columns -->
         <div class="mb-3">
+            <div class="mb-1 d-flex justify-content-between align-items-center">
+              <div class="d-flex">
+                <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search events...">
+              </div>
             <div class="dropdown d-flex justify-content-end">
                 <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
                   Select Columns to Display
@@ -169,13 +173,13 @@
         <table class="table table-bordered" style="border-radius: 8px;">
             <thead class="table-dark">
             <tr>
-              <th id="colNamespace">NAMESPACE</th>
-              <th id="colMessage">MESSAGE</th>
-              <th id="colObject">OBJECT</th>
-              <th id="colSource">SOURCE</th>
-              <th id="colCount">COUNT</th>
-              <th id="colTimestamp">TIMESTAMP</th>
-              <th id="colType">TYPE</th>
+              <th class="sortable" id="colNamespace">NAMESPACE</th>
+              <th class="sortable" id="colMessage">MESSAGE</th>
+              <th class="sortable" id="colObject">OBJECT</th>
+              <th class="sortable" id="colSource">SOURCE</th>
+              <th class="sortable" id="colCount">COUNT</th>
+              <th class="sortable" id="colTimestamp">TIMESTAMP</th>
+              <th class="sortable" id="colType">TYPE</th>
             </tr>
             </thead>
             <tbody>

@@ -128,11 +128,13 @@
                     <div class="d-flex align-items-center">
                         <i class="bi bi-person-circle fs-4 me-2"></i>
                         <div>
-                            <small class="d-block text-muted">Logged in as</small>
+                            <a href="/profile" class="text-decoration-none">
+                                <small class="d-block text-muted">Logged in as</small>
                             <span>{{username}}</span>
+                            </a>
                         </div>
                     </div>
-                    <a href="/logout" class="btn btn-sm btn-primary">
+                    <a href="/logout" class="btn btn-primary">
                         Logout
                         <i class="bi bi-box-arrow-right"></i>
                     </a>
@@ -150,10 +152,6 @@
                     <button id="back-btn" class="btn btn-outline-secondary me-2" onclick="goBack()">
                         <i class="bi bi-arrow-left"></i>
                         Back
-                    </button>
-                    <button id="reload-btn" class="btn btn-primary me-2">
-                        Refresh
-                        <i class="bi bi-arrow-clockwise"></i>
                     </button>
                     <button id="theme-toggle" class="btn btn-outline-secondary">
                         <i class="bi bi-moon-stars"></i>
@@ -578,9 +576,6 @@
             }, 100);  // 100ms delay before reloading
         }
 
-        // Reload button event listener
-        document.getElementById("reload-btn").addEventListener("click", reloadPage);
-        
         // Handle API model selection changes
         document.addEventListener('DOMContentLoaded', function() {
             const aiModelSelect = document.getElementById('aiModel');

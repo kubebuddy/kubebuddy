@@ -487,3 +487,7 @@ def settings(request):
         'success_message': success_message,
         'ai_configs': ai_configs,
     })
+
+def profile(request):
+    username = request.user.username
+    return render(request, 'main/profile.html', {'username': username})

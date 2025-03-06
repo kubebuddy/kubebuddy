@@ -108,15 +108,15 @@
                     <i class="bi bi-gear"></i>
                     <span>General Settings</span>
                 </a>
-                <a class="nav-link link-dark" id="ai-config-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('ai-config-content')">
+                <a class="nav-link link-dark" id="ai-config-tab" data-bs-toggle="pill" role="tab" onclick="showContent('ai-config-content')">
                     <i class="bi bi-robot"></i>
                     <span>AI Configuration</span>
                 </a>
-                <a class="nav-link link-dark" id="change-password-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('change-password-content')">
+                <a class="nav-link link-dark" id="change-password-tab" data-bs-toggle="pill" role="tab" onclick="showContent('change-password-content')">
                     <i class="bi bi-key-fill"></i>
                     <span>Change Password</span>
                 </a>
-                <a class="nav-link link-dark" id="documentation-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('documentation-content')">
+                <a class="nav-link link-dark" id="documentation-tab" data-bs-toggle="pill" role="tab" onclick="showContent('documentation-content')">
                     <i class="bi bi-file-text-fill"></i>
                     <span>Documentation</span>
                 </a>
@@ -146,6 +146,11 @@
             <div class="pb-3 mb-4 border-bottom d-flex justify-content-between">
                 <div id="section-title" class="h4">General Settings</div>
                 <div class="ms-auto">
+                    <!-- Added Back Button -->
+                    <button id="back-btn" class="btn btn-outline-secondary me-2" onclick="goBack()">
+                        <i class="bi bi-arrow-left"></i>
+                        Back
+                    </button>
                     <button id="reload-btn" class="btn btn-primary me-2">
                         Refresh
                         <i class="bi bi-arrow-clockwise"></i>
@@ -205,89 +210,88 @@
             </div>
             
             <!-- AI Configuration Content Section -->
-            <!-- AI Configuration Content Section -->
-<div id="ai-config-content" class="content-section">
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            AI Assistant Configuration
-        </div>
-        <div class="card-body">
-            {% if request.GET.ai_config_success %}
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                AI configuration saved successfully!
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endif %}
-            
-            <form method="POST" action="{% url 'settings' %}">
-                {% csrf_token %}
-                <input type="hidden" name="save_ai_config" value="true">
-                
-                <div class="mb-3">
-                    <label for="aiModel" class="form-label">AI Model Provider</label>
-                    <select class="form-select" id="aiModel" name="aiModel">
-                        <option value="openai" {% if 'openai' in ai_configs %}selected{% endif %}>OpenAI</option>
-                        <option value="gemini" {% if 'gemini' in ai_configs %}selected{% endif %}>Google Gemini</option>
-                    </select>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="apiKey" class="form-label">API Key</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control" id="apiKey" name="apiKey" 
-                               value="{% if 'openai' in ai_configs %}{{ ai_configs.openai.api_key }}{% elif 'gemini' in ai_configs %}{{ ai_configs.gemini.api_key }}{% endif %}">
-                        <button class="btn btn-outline-secondary" type="button" id="showApiKey">
-                            <i class="bi bi-eye"></i>
-                        </button>
+            <div id="ai-config-content" class="content-section">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        AI Assistant Configuration
                     </div>
-                    <div class="form-text">Your API key is stored securely and never shared.</div>
+                    <div class="card-body">
+                        {% if request.GET.ai_config_success %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            AI configuration saved successfully!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endif %}
+                        
+                        <form method="POST" action="{% url 'settings' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="save_ai_config" value="true">
+                            
+                            <div class="mb-3">
+                                <label for="aiModel" class="form-label">AI Model Provider</label>
+                                <select class="form-select" id="aiModel" name="aiModel">
+                                    <option value="openai" {% if 'openai' in ai_configs %}selected{% endif %}>OpenAI</option>
+                                    <option value="gemini" {% if 'gemini' in ai_configs %}selected{% endif %}>Google Gemini</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="apiKey" class="form-label">API Key</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="apiKey" name="apiKey" 
+                                           value="{% if 'openai' in ai_configs %}{{ ai_configs.openai.api_key }}{% elif 'gemini' in ai_configs %}{{ ai_configs.gemini.api_key }}{% endif %}">
+                                    <button class="btn btn-outline-secondary" type="button" id="showApiKey">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">Your API key is stored securely and never shared.</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save AI Settings</button>
+                        </form>
+                    </div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary">Save AI Settings</button>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Current API Configuration Display -->
-    <div class="card shadow-sm">
-        <div class="card-header">
-            Current API Configuration
-        </div>
-        <div class="card-body">
-            {% if ai_configs %}
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Provider</th>
-                            <th>API Key</th>
-                            <th>Last Updated</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for provider, config in ai_configs.items %}
-                        <tr>
-                            <td>{{ config.display_name }}</td>
-                            <td>
-                                <span class="text-muted">**********</span>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-danger" 
-                                        onclick="if(confirm('Are you sure you want to delete this API key?')) { deleteApiKey('{{ config.provider }}'); }">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <div class="alert alert-info">
-                    No API keys configured yet. Please add your first API key above.
+                <!-- Current API Configuration Display -->
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        Current API Configuration
+                    </div>
+                    <div class="card-body">
+                        {% if ai_configs %}
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>API Key</th>
+                                        <th>Last Updated</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for provider, config in ai_configs.items %}
+                                    <tr>
+                                        <td>{{ config.display_name }}</td>
+                                        <td>
+                                            <span class="text-muted">**********</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="if(confirm('Are you sure you want to delete this API key?')) { deleteApiKey('{{ config.provider }}'); }">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="alert alert-info">
+                                No API keys configured yet. Please add your first API key above.
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
+            </div>
             
             <!-- Change Password Content Section -->
             <div id="change-password-content" class="content-section">
@@ -391,6 +395,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/cluster_actions.js' %}"></script>
     <script>
+        // Function to go back to previous page
+        function goBack() {
+            window.history.back();
+        }
+        
         // Function to show content sections
         function showContent(contentId) {
             // Hide all content sections
@@ -529,9 +538,16 @@
                 });
             }
             
-            // Auto-select the Change Password tab if there's an error or success message related to password change
+            // Check URL parameters for active tab or error/success messages
             const urlParams = new URLSearchParams(window.location.search);
-            if (document.querySelector('.alert-danger') || document.querySelector('.alert-success')) {
+            const tabParam = urlParams.get('tab');
+            
+            // First check if there's a tab parameter in the URL
+            if (tabParam) {
+                showContent(tabParam + '-content');
+            } 
+            // Otherwise check for error/success messages
+            else if (document.querySelector('.alert-danger') || document.querySelector('.alert-success')) {
                 const errorText = document.querySelector('.alert-danger')?.textContent || '';
                 const successText = document.querySelector('.alert-success')?.textContent || '';
                 
@@ -564,56 +580,57 @@
 
         // Reload button event listener
         document.getElementById("reload-btn").addEventListener("click", reloadPage);
-        // Handle API model selection changes
-document.addEventListener('DOMContentLoaded', function() {
-    const aiModelSelect = document.getElementById('aiModel');
-    const apiKeyInput = document.getElementById('apiKey');
-    
-    if (aiModelSelect && apiKeyInput) {
-        // Store API keys for each provider
-        const apiKeys = {
-            {% for provider, config in ai_configs.items %}
-            '{{ provider }}': '{{ config.api_key }}',
-            {% endfor %}
-        };
         
-        // Update API key when model selection changes
-        aiModelSelect.addEventListener('change', function() {
-            const selectedProvider = this.value;
-            if (apiKeys[selectedProvider]) {
-                apiKeyInput.value = apiKeys[selectedProvider];
-            } else {
-                apiKeyInput.value = '';
+        // Handle API model selection changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const aiModelSelect = document.getElementById('aiModel');
+            const apiKeyInput = document.getElementById('apiKey');
+            
+            if (aiModelSelect && apiKeyInput) {
+                // Store API keys for each provider
+                const apiKeys = {
+                    {% for provider, config in ai_configs.items %}
+                    '{{ provider }}': '{{ config.api_key }}',
+                    {% endfor %}
+                };
+                
+                // Update API key when model selection changes
+                aiModelSelect.addEventListener('change', function() {
+                    const selectedProvider = this.value;
+                    if (apiKeys[selectedProvider]) {
+                        apiKeyInput.value = apiKeys[selectedProvider];
+                    } else {
+                        apiKeyInput.value = '';
+                    }
+                });
             }
         });
-    }
-});
 
-// Function to delete API key
-function deleteApiKey(provider) {
-    // Create a form to submit the delete request
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '{% url "settings" %}';
-    
-    // Add CSRF token
-    const csrfToken = document.createElement('input');
-    csrfToken.type = 'hidden';
-    csrfToken.name = 'csrfmiddlewaretoken';
-    csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    form.appendChild(csrfToken);
-    
-    // Add delete_api_key parameter
-    const deleteParam = document.createElement('input');
-    deleteParam.type = 'hidden';
-    deleteParam.name = 'delete_api_key';
-    deleteParam.value = provider;
-    form.appendChild(deleteParam);
-    
-    // Submit the form
-    document.body.appendChild(form);
-    form.submit();
-}
+        // Function to delete API key
+        function deleteApiKey(provider) {
+            // Create a form to submit the delete request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{% url "settings" %}';
+            
+            // Add CSRF token
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = 'csrfmiddlewaretoken';
+            csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            form.appendChild(csrfToken);
+            
+            // Add delete_api_key parameter
+            const deleteParam = document.createElement('input');
+            deleteParam.type = 'hidden';
+            deleteParam.name = 'delete_api_key';
+            deleteParam.value = provider;
+            form.appendChild(deleteParam);
+            
+            // Submit the form
+            document.body.appendChild(form);
+            form.submit();
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,324 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KubeBuddy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/11231/11231852.png">
+    <style>
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+            font-size: .875em;
+        }
+
+        /* Custom styles for dark mode */
+        [data-bs-theme="dark"] .sidebar {
+            background-color: #121212 !important;
+            border-color: #495057 !important;
+        }
+        
+        [data-bs-theme="dark"] .link-dark {
+            color: #f8f9fa !important;
+        }
+        
+        [data-bs-theme="dark"] .card {
+            background-color: #121212;
+            border-color: #495057;
+        }
+        
+        [data-bs-theme="dark"] .text-black {
+            color: #f8f9fa !important;
+        }
+
+        [data-bs-theme="dark"] .btn-primary {
+            background-color: #0db5fd !important;
+            border-color: #0db5fd !important;
+            color: #fff !important;
+        }
+
+        [data-bs-theme="dark"] .nav-link.active{
+            background-color: #0db5fd !important;
+            border-color: #0db5fd !important;
+            color: #fff !important;
+        }
+        
+        /* Animation for theme transition */
+        html.transition,
+        html.transition *,
+        html.transition *:before,
+        html.transition *:after {
+            transition: all 0.3s ease-in-out !important;
+        }
+        
+        /* Styles for sidebar navigation items */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            color: inherit;
+            text-decoration: none;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        
+        .nav-link.active {
+            background-color: #0d6efd;
+            color: white !important;
+        }
+        
+        .nav-link i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+        
+        /* Content sections */
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex">
+        <!-- side bar with single profile tab -->
+        <div class="sidebar p-3 flex-shrink-0 bg-white border-end d-flex flex-column" style="width: 20rem; height:100vh">
+            <div class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+                <a href="/KubeBuddy" class="d-flex align-items-center link-dark text-decoration-none">
+                    <img src="https://cdn-icons-png.flaticon.com/512/11231/11231852.png" width="30" height="30" alt="KubeBuddy Logo">
+                    <span class="fs-5 p-2 fw-semibold">KubeBuddy</span>
+                </a>
+            </div>
+            
+            <!-- Navigation tabs - only profile tab -->
+            <div class="nav flex-column nav-pills mb-4" role="tablist" aria-orientation="vertical">
+                <a class="nav-link active link-dark" id="profile-tab" data-bs-toggle="pill" role="tab" onclick="showContent('profile-content')">
+                    <i class="bi bi-person-fill"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+            
+            <!-- User/Account Info at Bottom -->
+            <div class="mt-auto pt-3 border-top">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-person-circle fs-4 me-2"></i>
+                        <div>
+                            <small class="d-block text-muted">Logged in as</small>
+                            <span>{{username}}</span>
+                        </div>
+                    </div>
+                    <a href="/logout" class="btn btn-sm btn-primary">
+                        Logout
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- main content area -->
+        <div class="container-fluid p-4 flex-grow-1">
+            <!-- Header with action buttons -->
+            <div class="pb-3 mb-4 border-bottom d-flex justify-content-between">
+                <div id="section-title" class="h4">Profile</div>
+                <div class="ms-auto">
+                    <!-- Added Back Button -->
+                    <button id="back-btn" class="btn btn-outline-secondary me-2" onclick="goBack()">
+                        <i class="bi bi-arrow-left"></i>
+                        Back
+                    </button>
+                    <button id="reload-btn" class="btn btn-primary me-2">
+                        Refresh
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button id="theme-toggle" class="btn btn-outline-secondary">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alerts for success and error messages -->
+            {% if success_message %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ success_message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+            
+            {% if error_message %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ error_message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+            
+            <!-- Profile Content Section -->
+            <div id="profile-content" class="content-section active">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        User Profile
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <div class="avatar mb-3">
+                                <i class="bi bi-person-circle" style="font-size: 5rem;"></i>
+                            </div>
+                            <h4>{{username}}</h4>
+                            <p class="text-muted">KubeBuddy User</p>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="mb-3">
+                            <h5>Account Information</h5>
+                            <div class="row my-3">
+                                <div class="col-md-4 fw-bold">Username:</div>
+                                <div class="col-md-8">{{username}}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Role:</div>
+                                <div class="col-md-8">Administrator</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Last Login:</div>
+                                <div class="col-md-8">Today</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button class="btn btn-primary" type="button">
+                                <i class="bi bi-pencil-square me-2"></i>Edit Profile
+                            </button>
+                            <a href="/settings?tab=change-password" class="btn btn-outline-danger" type="button">
+                                <i class="bi bi-key-fill me-2"></i>Change Password
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Function to go back to previous page
+        function goBack() {
+            window.history.back();
+        }
+        
+        // Function to show content sections
+        function showContent(contentId) {
+            // Hide all content sections
+            const contentSections = document.querySelectorAll('.content-section');
+            contentSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show the selected content section
+            document.getElementById(contentId).classList.add('active');
+            
+            // Update active tab
+            const tabs = document.querySelectorAll('.nav-link');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Find the related tab and make it active
+            const relatedTabId = contentId.replace('-content', '-tab');
+            document.getElementById(relatedTabId).classList.add('active');
+            
+            // Update section title
+            const sectionTitle = document.getElementById('section-title');
+            if(contentId === 'profile-content') {
+                sectionTitle.textContent = 'Profile';
+            }
+        }
+        
+        // Theme toggle functionality
+        document.addEventListener("DOMContentLoaded", function() {
+            // Check for saved theme preference or use preferred color scheme
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            
+            // Set initial theme based on saved preference or system preference
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-bs-theme', savedTheme);
+                updateThemeIcon(savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                updateThemeIcon('dark');
+            }
+            
+            // Theme toggle button click handler
+            themeToggleBtn.addEventListener('click', function() {
+                // Add transition class
+                document.documentElement.classList.add('transition');
+                
+                // Toggle theme
+                const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                // Set the new theme
+                document.documentElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                
+                // Update icon
+                updateThemeIcon(newTheme);
+                
+                // Remove transition class after animation completes
+                setTimeout(() => {
+                    document.documentElement.classList.remove('transition');
+                }, 300);
+            });
+            
+            // Function to update theme icon
+            function updateThemeIcon(theme) {
+                const iconElement = themeToggleBtn.querySelector('i');
+                if (theme === 'dark') {
+                    iconElement.className = 'bi bi-sun';
+                    themeToggleBtn.setAttribute('title', 'Switch to light mode');
+                } else {
+                    iconElement.className = 'bi bi-moon-stars';
+                    themeToggleBtn.setAttribute('title', 'Switch to dark mode');
+                }
+            }
+        });
+        
+        // Initialize tooltips
+        document.addEventListener("DOMContentLoaded", function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        // Reload button functionality
+        function reloadPage() {
+            // Disable the button and show the spinner when clicked
+            var reloadButton = document.getElementById("reload-btn");
+            reloadButton.innerHTML = 'Refreshing... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            reloadButton.disabled = true;
+
+            // Reload the page after a short delay to show the spinner
+            setTimeout(() => {
+                location.reload();
+            }, 100);  // 100ms delay before reloading
+        }
+
+        // Reload button event listener
+        document.getElementById("reload-btn").addEventListener("click", reloadPage);
+    </script>
+</body>
+</html>

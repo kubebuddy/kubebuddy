@@ -518,6 +518,7 @@ main {
 }
 .container {
   margin-top: 1.6rem;
+  width: 80vw;
 }
 
 /* table font style */

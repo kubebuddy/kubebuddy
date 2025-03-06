@@ -59,9 +59,10 @@
             </div>
             {% endif %}
 
-            <!-- <div class="integrate-back mt-4">
-                <button type="button" class="btn btn-outline-primary" onclick="goBack()">Back</button>
-            </div> -->
+            <div class="integrate-back mt-4">
+                <a href="/KubeBuddy" class="btn btn-outline-primary">Back to Cluster Select</a>
+                <!-- <button type="button" class="btn btn-outline-primary" onclick="goBack()">Back </button> -->
+            </div>
         </div>
     </div>
 
@@ -75,9 +76,9 @@
     <script src="{% static 'js/dark_mode.js' %}"></script>
 
     <script>
-        // function goBack() {
-        //     window.history.back();
-        // }
+        function goBack() {
+            window.history.back();
+        }
 
         const path = document.getElementById('path').value;
         function updateInputField() {

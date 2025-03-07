@@ -16,12 +16,13 @@ def get_registered_clusters():
 
     for context in registered_clusters:
         cluster_name = context.cluster_name
+        path = context.kube_config.path
         failed_control_pods = []
         failed_dns_pods = []
         
         try:
             # Set the current context to the specific context
-            config.load_kube_config(context=cluster_name)
+            config.load_kube_config(context=cluster_name, path=path)
             v1 = client.CoreV1Api()
 
             # Get number of nodes

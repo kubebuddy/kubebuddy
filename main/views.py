@@ -100,11 +100,11 @@ def integrate_with(request):
                     kube_config = KubeConfig.objects.create(path=path, path_type=path_type)
                     kube_config.save()
 
-                    save_clusters(kube_config, changes=False)
+                    save_clusters(kube_config, changes=False, path=path)
                     return redirect('/KubeBuddy')
                 else:
                     kube_config = KubeConfig.objects.get(path=path)
-                    save_clusters(kube_config, changes = True)
+                    save_clusters(kube_config, changes = True, path=path)
                     return redirect('/KubeBuddy') # kubeconfig already exists
                 
             except ConfigException as e:
@@ -116,10 +116,8 @@ def integrate_with(request):
         'error_message': error_message, 'os_name': os_name, 'path': path,
     })
 
-def save_clusters(kube_config, changes):
-
-    contexts, _ = config.list_kube_config_contexts()
-
+def save_clusters(kube_config, changes, path):
+    contexts, _ = config.list_kube_config_contexts(config_file = path)
     if not contexts:
         return # error handling
     

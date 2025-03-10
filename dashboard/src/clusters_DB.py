@@ -22,7 +22,6 @@ def get_registered_clusters():
         
         try:
             import os
-            print(os.path.exists(path))
             # Set the current context to the specific context
             try:
                 config.load_kube_config(config_file=path, context=cluster_name)

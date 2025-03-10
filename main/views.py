@@ -74,8 +74,9 @@ def integrate_with(request):
             os_name = r"e.g. /Users/user_name/.kube/config or $HOME/.kube/config" # for linux
             path = os.path.expanduser("~/.kube/config") # for linux
         elif os.name == 'nt':
-            os_name = r"e.g. C:\Users\user_name\.kube\config" # for windows
-            path = os.path.expanduser("C:\\Users\\user_name\\.kube\\config")
+            profile_name = os.environ.get("USERNAME")
+            os_name = r"e.g. \%USERPROFILE%\.kube\config" # for windows
+            path = os.path.expanduser(f"C:\\Users\\{profile_name}\\.kube\\config")
         else:
             os_name = "Unknown" # for unknown
     except Exception as e:

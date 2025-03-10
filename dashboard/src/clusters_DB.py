@@ -21,10 +21,15 @@ def get_registered_clusters():
         failed_dns_pods = []
         
         try:
+            import os
+            print(os.path.exists(path))
             # Set the current context to the specific context
-            config.load_kube_config(context=cluster_name, path=path)
+            try:
+                config.load_kube_config(config_file=path, context=cluster_name)
+            except Exception as e:
+                print(f"Error loading kubeconfig: {e}")
+            
             v1 = client.CoreV1Api()
-
             # Get number of nodes
             nodes = v1.list_node().items
             context.number_of_nodes = len(nodes)

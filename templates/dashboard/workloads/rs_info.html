@@ -32,42 +32,30 @@
                     <pre>
 <b>Name</b>: {{ rs_info.describe.name }}
 <b>Namespace</b>: {{ rs_info.describe.namespace }}
+<b>Labels</b>: {% for key, value in rs_info.describe.labels %} {{ key }}={{ value }}{% if not loop.last %} {% endif %} 
+        {% endfor %}
+<b>Annotations</b>: {% for key, value in rs_info.describe.annotations %}{{ key }}: {{ value }}{% if not loop.last %} {% endif %}
+             {% endfor %} 
 <b>Controlled By</b>: {{ rs_info.describe.controlled_by }}
 <b>Replicas</b>: Current: {{ rs_info.describe.replicas.current }}, Desired: {{ rs_info.describe.replicas.available }}
-
-<b>Pods Status</b>: 
-- Running: {{ rs_info.describe.pods_status.running }}
-- Waiting: {{ rs_info.describe.pods_status.waiting }}
-- Succeeded: {{ rs_info.describe.pods_status.succeeded }}
-- Failed: {{ rs_info.describe.pods_status.failed }}
-
-<b>Labels</b>: {% for key, value in rs_info.describe.labels %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %}
-
-<b>Annotations</b>: {% for key, value in rs_info.describe.annotations %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
-
+<b>Pods Status</b>: {{ rs_info.describe.pods_status.running }} Running / {{ rs_info.describe.pods_status.waiting }} Waiting / {{ rs_info.describe.pods_status.succeeded }} Succeeded / {{ rs_info.describe.pods_status.failed }} Failed
 <b>Pod Template</b>:
-<strong>Labels:</strong>{% for key, value in rs_info.describe.pod_template.labels %}
-{{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+    <strong>Labels:</strong>{% for key, value in rs_info.describe.pod_template.labels %} {{ key }}={{ value }}{% if not loop.last %}, {% endif %}
+           {% endfor %}
+    <strong>Containers</strong>:{% for container in rs_info.describe.pod_template.containers %}
+      <strong>Name:</strong> {{ container.name }}
+        <strong>Image:</strong> {{ container.image }}
+        <strong>Ports:</strong>{% for port in container.ports %} {{ port }}{% endfor %}
+        <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
+        <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
 
-<strong>Containers</strong>:{% for container in rs_info.describe.pod_template.containers %}
-- <strong>Name:</strong> {{ container.name }}
-  <strong>Image:</strong> {{ container.image }}
-  <strong>Ports:</strong>{% for port in container.ports %} {{ port }}{% endfor %}
-  <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
-  <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
-
-<strong>Volumes:</strong>{% for volume in rs_info.describe.pod_template.volumes %}
-- <strong>Name:</strong> {{ volume.name }}
-  <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %} {% endfor %}
-
-<strong>Node Selectors:</strong> {% if rs_info.describe.pod_template.node_selectors %} {% for key, value in rs_info.describe.pod_template.node_selectors %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %} {% else %}
-<span>- None</span> {% endif %}
-  
-<strong>Tolerations:</strong>{% for toleration in rs_info.describe.pod_template.tolerations %}
-- {{ toleration }}{% endfor %}
+    <strong>Volumes:</strong>{% for volume in rs_info.describe.pod_template.volumes %}
+        <strong>Name:</strong> {{ volume.name }}
+        <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %} {% endfor %}
+    <strong>Node Selectors:</strong> {% if rs_info.describe.pod_template.node_selectors %} {% for key, value in rs_info.describe.pod_template.node_selectors %}{{ key }}: {{ value }}{% if not loop.last %}, {% endif %} 
+        {% endfor %} {% else %}<span> &lt; None &gt; </span> {% endif %}
+    <strong>Tolerations:</strong>{% for toleration in rs_info.describe.pod_template.tolerations %}{{ toleration }}
+        {% endfor %}
                     </pre>
                   </div>
                   

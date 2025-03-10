@@ -33,19 +33,11 @@
 <b>Name</b>: {{ deploy_info.describe.name }}
 <b>Namespace</b>: {{ deploy_info.describe.namespace }}
 <b>Creation Timestamp</b>: {{ deploy_info.describe.creation_timestamp }}
-<b>Labels</b>: {% for key, value in deploy_info.describe.labels %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %}
-
-<b>Annotations</b>: {% for key, value in deploy_info.describe.annotations %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
-
-<b>Replicas</b>: 
-- Desired: {{ deploy_info.describe.replicas.desired }}
-- Updated: {{ deploy_info.describe.replicas.updated }}
-- Total: {{ deploy_info.describe.replicas.total }}
-- Available: {{ deploy_info.describe.replicas.available }}
-- Unavailable: {{ deploy_info.describe.replicas.unavailable }}
-
+<b>Labels</b>: {% for key, value in deploy_info.describe.labels %} {{ key }}={{ value }}{% if not loop.last %}{% endif %} 
+        {% endfor %}
+<b>Annotations</b>: {% for key, value in deploy_info.describe.annotations %}{{ key }}: {{ value }}{% if not loop.last %}{% endif %}
+        {% endfor %}
+<b>Replicas</b>: {{ deploy_info.describe.replicas.desired }} desired | {{ deploy_info.describe.replicas.updated }} updated | {{ deploy_info.describe.replicas.total }} total | {{ deploy_info.describe.replicas.available }} available | {{ deploy_info.describe.replicas.unavailable }} unavailable
 <b>Strategy</b>: 
 - Type: {{ deploy_info.describe.strategy.type }}
 - Rolling Update: 

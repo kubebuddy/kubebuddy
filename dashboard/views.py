@@ -67,7 +67,7 @@ def dashboard(request, cluster_name):
     ready_nodes, not_ready_nodes, node_count = k8s_nodes.getNodesStatus(path, current_cluster)
 
     # getting list of nodes
-    node_list, node_count = k8s_nodes.getnodes()
+    node_list, node_count = k8s_nodes.getnodes(path, current_cluster)
 
     # get pods status
     status_count = k8s_pods.getPodsStatus(path,current_cluster, namespace)

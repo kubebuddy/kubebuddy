@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 from ..utils import calculateAge
 import yaml
 
-def getnodes():
-    config.load_kube_config()
+def getnodes(path, cluster_name):
+    config.load_kube_config(config_file = path, context = cluster_name) #Load the kube config with the specified path and context
     v1 = client.CoreV1Api() #Create an API client for the CoreV1Api
     nodes = v1.list_node() #total number of nodes
     node_list = []

@@ -87,6 +87,7 @@ def get_daemonset_description(path=None, context=None, namespace=None, daemonset
             "name": daemonset.metadata.name,
             "namespace": daemonset.metadata.namespace,
             "selector": daemonset.spec.selector.match_labels, # Add selector info
+            "labels": daemonset.metadata.labels,
             "annotations": daemonset.metadata.annotations,
             "pod_status": daemonset.status.conditions,
             "template": { # Expanded pod template structure

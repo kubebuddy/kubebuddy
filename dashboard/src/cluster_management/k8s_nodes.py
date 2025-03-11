@@ -91,16 +91,42 @@ def get_nodes_info(path: str, context: str):
 def get_node_description(path=None, context=None, node_name=None):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
+    coordination_v1 = client.CoordinationV1Api()
 
     try:
         # Fetch node details
         node = v1.read_node(name=node_name)
         roles = [key.replace("node-role.kubernetes.io/", "") for key in node.metadata.labels if key.startswith("node-role.kubernetes.io/")]
+        
         # Prepare node information
         if node.spec.taints:
             taints = [taint.key +"=" + taint.value + ":" + taint.effect for taint in node.spec.taints]
         else:
             taints = ["none"]
+        
+        # Get lease information
+        try:
+            lease = coordination_v1.read_namespaced_lease(name=node_name, namespace="kube-node-lease")
+            lease_info = {
+                "holder_identity": lease.spec.holder_identity,
+                "acquire_time": lease.spec.acquire_time,
+                "renew_time": lease.spec.renew_time,
+                "lease_duration_seconds": lease.spec.lease_duration_seconds,
+            }
+        except client.exceptions.ApiException:
+            lease_info = {"error": "Lease information not available"}
+        
+        # Get non-terminated pods on the node
+        pods = v1.list_pod_for_all_namespaces(field_selector=f"spec.nodeName={node_name},status.phase!=Failed,status.phase!=Succeeded")
+        non_terminated_pods = []
+        for pod in pods.items:
+            non_terminated_pods.append({
+                "name": pod.metadata.name,
+                "namespace": pod.metadata.namespace,
+                "status": pod.status.phase,
+                "cpu_requests": pod.spec.containers[0].resources.requests.get("cpu", "N/A") if pod.spec.containers[0].resources and pod.spec.containers[0].resources.requests else "N/A",
+                "memory_requests": pod.spec.containers[0].resources.requests.get("memory", "N/A") if pod.spec.containers[0].resources and pod.spec.containers[0].resources.requests else "N/A",
+            })
             
         node_info = {
             "name": node.metadata.name,
@@ -132,7 +158,23 @@ def get_node_description(path=None, context=None, node_name=None):
                 "cpu_limits": node.status.capacity.get("cpu", "0"),
                 "memory_limits": node.status.capacity.get("memory", "0"),
                 "ephemeral_storage_limits": node.status.capacity.get("ephemeral-storage", "0"),
-            }
+            },
+            "lease": lease_info,
+            "conditions": [
+                {
+                    "type": condition.type,
+                    "status": condition.status,
+                    "last_heartbeat_time": condition.last_heartbeat_time,
+                    "last_transition_time": condition.last_transition_time,
+                    "reason": condition.reason,
+                    "message": condition.message
+                } 
+                for condition in node.status.conditions
+            ] if node.status.conditions else [],
+            "pod_cidr": node.spec.pod_cidr if hasattr(node.spec, "pod_cidr") else None,
+            "pod_cidrs": node.spec.pod_cidrs if hasattr(node.spec, "pod_cidrs") else None,
+            "provider_id": node.spec.provider_id if hasattr(node.spec, "provider_id") else None,
+            "non_terminated_pods": non_terminated_pods
         }
 
         return node_info

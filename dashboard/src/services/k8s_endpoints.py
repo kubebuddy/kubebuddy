@@ -32,10 +32,21 @@ def get_endpoints(path, context):
             
             for ep in endpoints.items:
                 try:
+                    # Extract IP addresses with associated ports
+                    ip_port_pairs = []
+                    for subset in ep.subsets or []:
+                        if subset.addresses:
+                            for addr in subset.addresses:
+                                if subset.ports:
+                                    for port in subset.ports:
+                                        ip_port_pairs.append(f"{addr.ip}:{port.port}")
+                                else:
+                                    ip_port_pairs.append(addr.ip)
+
                     endpoint_info = {
                         'namespace': namespace,
                         'name': ep.metadata.name,
-                        'endpoints': [subset.addresses[0].ip if subset.addresses else 'None' for subset in ep.subsets or []],
+                        'endpoints': ip_port_pairs if ip_port_pairs else ['None'],
                         'age': calculateAge(datetime.now(timezone.utc) - ep.metadata.creation_timestamp) if ep.metadata.creation_timestamp else 'N/A'
                     }
                     endpoint_data.append(endpoint_info)
@@ -64,6 +75,8 @@ def get_endpoint_description(path=None, context=None, namespace=None, endpoint_n
         endpoint_info = {
             "name": target_endpoint.metadata.name,
             "namespace": target_endpoint.metadata.namespace,
+            "labels": target_endpoint.metadata.labels,
+            "annotations": target_endpoint.metadata.annotations,
             "subsets": [
                 {
                     "addresses": [

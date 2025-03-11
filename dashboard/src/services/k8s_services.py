@@ -46,6 +46,22 @@ def get_service_description(path=None, context=None, namespace=None, service_nam
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     service = v1.read_namespaced_service(name=service_name, namespace=namespace)
+    
+    # Get Endpoints related to this service
+    endpoints = None
+    try:
+        endpoints_obj = v1.read_namespaced_endpoints(name=service_name, namespace=namespace)
+        endpoints = []
+        if endpoints_obj.subsets:
+            for subset in endpoints_obj.subsets:
+                addresses = [addr.ip for addr in subset.addresses] if subset.addresses else []
+                ports = [{"port": port.port, "protocol": port.protocol, "name": port.name} 
+                        for port in subset.ports] if subset.ports else []
+                endpoints.append({"addresses": addresses, "ports": ports})
+    except client.exceptions.ApiException:
+        # Endpoints might not exist for this service
+        pass
+    
     load_balancer_ip = "N/A"
     external_ips = []  # Initialize to an empty list
     if service.spec.type == "LoadBalancer" and hasattr(service.status, "load_balancer") and service.status.load_balancer and hasattr(service.status.load_balancer, "ingress") and service.status.load_balancer.ingress:
@@ -74,6 +90,15 @@ def get_service_description(path=None, context=None, namespace=None, service_nam
         "selector": service.spec.selector,
         "load_balancer_ip": load_balancer_ip,
         "external_ips": external_ips,
+        
+        # Added fields
+        "labels": service.metadata.labels if hasattr(service.metadata, "labels") else {},
+        "annotations": service.metadata.annotations if hasattr(service.metadata, "annotations") else {},
+        "ip_family_policy": getattr(service.spec, "ip_family_policy", "N/A"),
+        "ip_families": getattr(service.spec, "ip_families", []),
+        "endpoints": endpoints,
+        "session_affinity": getattr(service.spec, "session_affinity", "N/A"),
+        "internal_traffic_policy": getattr(service.spec, "internal_traffic_policy", "N/A")
     }
     return service_info
 

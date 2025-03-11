@@ -34,21 +34,27 @@
                     <pre>
 <b>Name:</b> {{ endpoint_info.describe.name }}
 <b>Namespace:</b> {{ endpoint_info.describe.namespace }}
+<b>Labels</b>: {% for key, value in endpoint_info.describe.labels.items %} {{ key }}={{ value }}{% if not loop.last %}{% endif %} 
+        {% endfor %}
+<b>Annotations</b>: {% for key, value in endpoint_info.describe.annotations.items %}{{ key }}: {{ value }}{% if not loop.last %}{% endif %}
+        {% endfor %}
 <b>Subsets:</b>{% for subset in endpoint_info.describe.subsets %}
-<b>Addresses:</b>{% for address in subset.addresses %}
-<b>IP:</b> {{ address.ip }}
-<b>Hostname:</b> {% if address.hostname != "N/A" %}{{ address.hostname }}{% else %}N/A{% endif %}
-<b>Target Ref:</b> {% if address.target_ref != "N/A" %}{{ address.target_ref }}{% else %}N/A{% endif %}{% endfor %}
-<b>Not Ready Addresses:</b>{% for address in subset.not_ready_addresses %}
-<b>IP:</b> {{ address.ip }}
-<b>Hostname:</b> {% if address.hostname != "N/A" %}{{ address.hostname }}{% else %}N/A{% endif %}
-<b>Target Ref:</b> {% if address.target_ref != "N/A" %}{{ address.target_ref }}{% else %}N/A{% endif %}{% endfor %}
-<b>Ports:</b>{% for port in subset.ports %}
-<b>Name:</b> {{ port.name }}
-<b>Port:</b> {{ port.port }}
-<b>Protocol:</b> {{ port.protocol }}
-{% endfor %}
-{% endfor %}
+    <b>Addresses:</b>{% for address in subset.addresses %} {{address.ip}},{% endfor %}
+    <b>Not Ready Addresses:</b>{% for address in subset.not_ready_addresses %} {{address}} {% endfor %}
+<b>Ports</b>:
+<table>
+    <thead>
+        <th>Name</th>
+        <th>Port</th>
+        <th>Protocol</th>
+    </thead>
+    <tbody>
+        {% for port in subset.ports %}
+        <tr>
+            <td>{{ port.name }}</td>
+            <td>{{ port.port }}</td>
+            <td>{{ port.protocol }}</td>
+        </tr>{% endfor %}</tbody></table>{% endfor %}
                     </pre>
                 </div>
               </div>

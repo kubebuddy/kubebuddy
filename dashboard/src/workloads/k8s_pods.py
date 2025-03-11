@@ -97,9 +97,10 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
         # Fetch pod details
         pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
         # Get annotations
-        annotations =pod.metadata.annotations or {}
+        annotations = pod.metadata.annotations or {}
         # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
         filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
+        
         # Prepare pod information
         pod_info = {
             "name": pod.metadata.name,
@@ -110,7 +111,7 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
             "pod_ip": pod.status.pod_ip,
             "host_ip": pod.status.host_ip,
             "start_time": pod.status.start_time.strftime('%a, %d %b %Y %H:%M:%S %z') if pod.status.start_time else None,
-            "labels": list(pod.metadata.labels.items()),  # Convert to list of tuples
+            "labels": list(pod.metadata.labels.items()),
             "annotations": filtered_annotations if filtered_annotations else None,
             "service_account": pod.spec.service_account_name,
             "containers": [
@@ -118,9 +119,24 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
                     "name": container.name,
                     "image": container.image,
                     "ports": [port.container_port for port in (container.ports or [])],
-                    "state": next(
-                        (status.state for status in (pod.status.container_statuses or [])
-                         if status.name == container.name), "Unknown"
+                    # Simplify state to just show container state name (running, waiting, terminated) without details
+                    "container_status": next(
+                        (
+                            next((state_name for state_name, state_obj in status.state.to_dict().items() if state_obj is not None), "Unknown")
+                            for status in (pod.status.container_statuses or [])
+                            if status.name == container.name
+                        ), 
+                        "Unknown"
+                    ),
+                    # Add container ID
+                    "container_id": next(
+                        (status.container_id for status in (pod.status.container_statuses or [])
+                         if status.name == container.name), None
+                    ),
+                    # Add image ID
+                    "image_id": next(
+                        (status.image_id for status in (pod.status.container_statuses or [])
+                         if status.name == container.name), None
                     ),
                     "restart_count": next(
                         (status.restart_count for status in (pod.status.container_statuses or [])
@@ -147,7 +163,6 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
                 for cond in (pod.status.conditions or [])
             ],
         }
-
         return pod_info
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch pod details: {e.reason}"}

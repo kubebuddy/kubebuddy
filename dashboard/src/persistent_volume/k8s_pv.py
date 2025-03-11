@@ -50,11 +50,11 @@ def get_pv_description(path=None, context=None, pv_name=None):
         "StorageClass": pv.spec.storage_class_name,
         "Status": pv.status.phase,
         "Claim": f"{pv.spec.claim_ref.namespace}/{pv.spec.claim_ref.name}" if pv.spec.claim_ref else "N/A",
-        "Reclaim Policy": pv.spec.persistent_volume_reclaim_policy,
-        "Access Modes": pv.spec.access_modes,
+        "reclaim_policy": pv.spec.persistent_volume_reclaim_policy,
+        "Access_Modes": pv.spec.access_modes,
         "VolumeMode": pv.spec.volume_mode,
         "Capacity": pv.spec.capacity.get("storage"),  # Get storage capacity
-        "Node Affinity": pv.spec.node_affinity,  # Add Node Affinity
+        "Node_Affinity": pv.spec.node_affinity,  # Add Node Affinity
         "Message": pv.status.message,  # Add Message
         "Source": {},  # Initialize Source dictionary
     }

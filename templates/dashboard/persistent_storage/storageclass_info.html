@@ -32,13 +32,13 @@
             <div class="tab-pane fade show active" id="describe">
                 <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
                     <pre>
-<b>Name:</b> {{ resourcequota_info.describe.name }}
+<b>Name:</b> {{ sc_info.describe.name }}
 <b>IsDefaultClass:</b> {{ sc_info.describe.is_default_class }}
 <b>Annotations:</b> {{ sc_info.describe.annotations }}
 <b>Provisioner:</b> {{ sc_info.describe.provisioner }}
-<b>Parameters:</b> {{ sc_info.describe.parameters }}
-<b>AllowVolumeExpansion:</b> {{ sc_info.describe.allow_volume_expansion }}
-<b>MountOptions:</b> {{ sc_info.describe.mount_options }}
+<b>Parameters:</b> {% if sc_info.describe.parameters %}{{ sc_info.describe.parameters }}{% else %} &lt;none&gt;{% endif %}
+<b>AllowVolumeExpansion:</b> {% if sc_info.describe.allow_volume_expansion %}{{ sc_info.describe.allow_volume_expansion }}{% else %}&lt;unset&gt;{% endif %}
+<b>MountOptions:</b> {% if sc_info.describe.mount_options %}{{ sc_info.describe.mount_options }}{% else %}&lt;none&gt;{% endif %}
 <b>ReclaimPolicy:</b> {{ sc_info.describe.reclaim_policy }}
 <b>VolumeBindingMode:</b> {{ sc_info.describe.volume_binding_mode }}
                     </pre>

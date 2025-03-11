@@ -209,8 +209,8 @@ main {
   align-items: center;
   justify-content: space-around;
   border-radius: 15px;
-  box-shadow: 0 4px 6px rgba(31, 255, 46, 0.1);
-  border: 1px solid #8ddbff;
+  box-shadow:  0 0 10px rgba(31, 255, 46, 0.1); /* Light green shadow */
+  border: 1px solid #8ddbff; /* Soft blue border */
 }
 
 .cluster-sidebar {
@@ -335,9 +335,13 @@ main {
 
 .dark-mode .table tbody a, 
 .dark-mode .text-primary,
-.dark-mode .btn-link,
+.dark-mode .btn-link{
+  color: #0dcaf0 !important;
+}
+
 .dark-mode ul li a {
   color: #0dcaf0 !important;
+  background-color: transparent !important;
 }
 
 .dark-mode .table tbody tr:nth-child(even) {
@@ -694,4 +698,20 @@ table th, td {
 }
 .dark-mode .bi-three-dots-vertical {
   color: white;
+}
+
+.highlight {
+  background-color: rgb(100, 162, 255);
+  padding: .2em;
+  border-radius: .2em;
+  color: #ffffff;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.dark-mode .highlight {
+  background-color: #E8F9FF;
+  padding: .2em;
+  border-radius: .2em;
+  color: #000;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }

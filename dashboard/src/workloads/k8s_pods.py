@@ -96,23 +96,36 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
     try:
         # Fetch pod details
         pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
+        
+        # Extract "Controlled By" from owner references
+        controlled_by = None
+        if pod.metadata.owner_references:
+            owner_reference = pod.metadata.owner_references[0]
+            controlled_by = f"{owner_reference.kind}/{owner_reference.name}"
+        
         # Get annotations
         annotations = pod.metadata.annotations or {}
+        
+        
+
         # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
         
         # Prepare pod information
         pod_info = {
             "name": pod.metadata.name,
             "namespace": pod.metadata.namespace,
             "priority": pod.spec.priority,
-            "status": pod.status.phase,
+            "status": getPodStatus(pod),
             "node_name": pod.spec.node_name,
             "pod_ip": pod.status.pod_ip,
             "host_ip": pod.status.host_ip,
             "start_time": pod.status.start_time.strftime('%a, %d %b %Y %H:%M:%S %z') if pod.status.start_time else None,
-            "labels": list(pod.metadata.labels.items()),
+            "labels": list(pod.metadata.labels.items()) if pod.metadata.labels else [],
             "annotations": filtered_annotations if filtered_annotations else None,
+            "qos_class": pod.status.qos_class,
+            "node_selectors": pod.spec.node_selector if pod.spec.node_selector else None,
+            "tolerations" : pod.spec.tolerations if pod.spec.tolerations else None,
             "service_account": pod.spec.service_account_name,
             "containers": [
                 {
@@ -154,7 +167,11 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
                             (attr for attr, value in volume.to_dict().items() 
                             if attr != "name" and value is not None),
                             None
-                        )
+                        ),
+                    # "TokenExpirationSeconds": volume.secret.token_expiration_seconds,
+                    # "ConfigMapName": volume.config_map.name,
+                    # "ConfigMapOptional": volume.config_map.optional,
+                    # "DownwardAPI": volume.downward_api.items,
                 }
                 for volume in pod.spec.volumes
             ],
@@ -162,11 +179,11 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
                 {"type": cond.type, "status": cond.status}
                 for cond in (pod.status.conditions or [])
             ],
+            "controlled_by": controlled_by
         }
         return pod_info
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch pod details: {e.reason}"}
-
 
 def get_pod_logs(path, context, namespace, pod_name):
     config.load_kube_config(path, context)

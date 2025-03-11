@@ -33,7 +33,7 @@
         <!-- Tab Content -->
         <div class="tab-content mt-3">
             <div class="tab-pane fade show active" id="describe">
-                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                <div class="overflow-auto" style="max-height: 70vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
                     <pre>
 <b>Name</b>: {{ pod_info.describe.name }}
 <b>Namespace</b>: {{ pod_info.describe.namespace }}
@@ -48,7 +48,7 @@
 <b>Status</b>: {{ pod_info.describe.status }}
 <b>Pod IP</b>: {{ pod_info.describe.pod_ip }}
 <b>Host IP</b>: {{ pod_info.describe.host_ip }}
-<!-- Add Cotrolled By: -->
+<b>Controlled by</b>: {{ pod_info.describe.controlled_by }}
 <b>Containers</b>:{% for container in pod_info.describe.containers %}
   - <strong>Name:</strong> {{ container.name }}
     <strong>Image:</strong> {{ container.image }}
@@ -56,30 +56,30 @@
     <strong>State:</strong> {{ container.state }}
     <strong>Restart Count:</strong> {{ container.restart_count }}
     <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
-    <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
+    <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}<br>{% endfor %}
 <b>Volumes</b>:{% for volume in pod_info.describe.volumes %}
 - <strong>Name:</strong> {{ volume.name }}
   <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %}{% endfor %}
 <b>Conditions</b>:{% for condition in pod_info.describe.conditions %}
 - <strong>Type:</strong> {{ condition.type }}
-    <strong>Status:</strong> {{ condition.status }}{% endfor %}
+  <strong>Status:</strong> {{ condition.status }}{% endfor %} 
                     </pre>
                   </div>                                    
             </div>
               
             <div class="tab-pane fade" id="logs">
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
+                <div class="overflow-auto" style="max-height: 70vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
                     <pre>{{ pod_info.logs }}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="events">
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
+                <div class="overflow-auto" style="max-height: 70vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
                     <pre>{{ pod_info.events }}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">
                 <!-- <h4>Pod YAML</h4> -->
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                <div class="overflow-auto" style="max-height: 70vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
                     <!-- Copy Button inside the div -->
                     <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
                         Copy YAML

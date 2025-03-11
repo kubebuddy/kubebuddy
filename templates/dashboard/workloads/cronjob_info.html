@@ -32,6 +32,8 @@
                     <pre>
 <b>Name</b>: {{ cronjob_info.describe.name }}
 <b>Namespace</b>: {{ cronjob_info.describe.namespace }}
+<b>Labels</b>: {% if cronjob_info.describe.labels %}{{ cronjob_info.describe.labels }}{% else %}<span>- None</span>{% endif %}
+<b>Annotations</b>: {% if cronjob_info.describe.annotations %}{{ cronjob_info.describe.annotations }}{% else %}<span>- None</span>{% endif %}
 <b>Schedule</b>: {{ cronjob_info.describe.schedule }}
 <b>Concurrency Policy</b>: {{ cronjob_info.describe.concurrency_policy }}
 <b>Suspend</b>: {{ cronjob_info.describe.suspend }}
@@ -39,35 +41,26 @@
 <b>Failed Job History Limit</b>: {{ cronjob_info.describe.failed_jobs_history_limit }}
 <b>Starting Deadline Seconds</b>: {{ cronjob_info.describe.starting_deadline_seconds|default:"<unset>" }}
 <b>Selector</b>: {{ cronjob_info.describe.selector|default:"<unset>" }}
-<b>Labels</b>: {% if cronjob_info.describe.labels %}{{ cronjob_info.describe.labels }}{% else %}<span>- None</span>{% endif %}
-<b>Annotations</b>: {% if cronjob_info.describe.annotations %}{{ cronjob_info.describe.annotations }}{% else %}<span>- None</span>{% endif %}
-
 <b>Pod Template</b>:
-<strong>Labels:</strong>{% for key, value in cronjob_info.describe.pod_template.labels.items %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %}
+    <strong>Labels:</strong>{% for key, value in cronjob_info.describe.pod_template.labels.items %} {{ key }}={{ value }}{% if not loop.last %}{% endif %}<br>         {% endfor %}
+    <strong>Containers:</strong> {% for container in cronjob_info.describe.pod_template.containers %}
+    - {{ container.name }}
+    <strong>Image:</strong> {{ container.image }}
+    <strong>Command:</strong> {% for cmd in container.command %}{{ cmd }}{% if not loop.last %}, {% endif %}{% endfor %}
+    <strong>Environment:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
+    <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
 
-<strong>Containers:</strong> {% for container in cronjob_info.describe.pod_template.containers %}
-- <strong>Name:</strong> {{ container.name }}
-  <strong>Image:</strong> {{ container.image }}
-  <strong>Command:</strong> {% for cmd in container.command %}{{ cmd }}{% if not loop.last %}, {% endif %}{% endfor %}
-  <strong>Environment:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
-  <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
-
-<strong>Volumes:</strong> {% for volume in cronjob_info.describe.pod_template.volumes %}
-- <strong>Name:</strong> {{ volume.name }}
-  <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %}{% endfor %}
-
-<strong>Node Selectors:</strong> {% if cronjob_info.describe.pod_template.node_selectors %}{% for key, value in cronjob_info.describe.pod_template.node_selectors %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
-<span>- None</span>{% endif %}
-
-<strong>Tolerations:</strong> {% for toleration in cronjob_info.describe.pod_template.tolerations %}
-- {{ toleration }}{% if not loop.last %}, {% endif %}{% endfor %}
+    <strong>Volumes:</strong> {% for volume in cronjob_info.describe.pod_template.volumes %}
+    - <strong>Name:</strong> {{ volume.name }}
+    <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %}{% endfor %}
+    <strong>Node Selectors:</strong> {% if cronjob_info.describe.pod_template.node_selectors %}{% for key, value in cronjob_info.describe.pod_template.node_selectors %}
+    - {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
+    <span>- None</span>{% endif %}
+    <strong>Tolerations:</strong> {% for toleration in cronjob_info.describe.pod_template.tolerations %}
+    - {{ toleration }}{% if not loop.last %}, {% endif %}{% endfor %}
 
 <b>Last Schedule Time</b>: {{ cronjob_info.describe.pods_status.last_schedule_time|date:"r" }}
-<b>Active Jobs</b>: {% if cronjob_info.describe.active_jobs %} {% for job in cronjob_info.describe.active_jobs %}
-- {{ job }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
-<span>- None</span>{% endif %}
+<b>Active Jobs</b>: {% if cronjob_info.describe.active_jobs %} {% for job in cronjob_info.describe.active_jobs %} {{ job }}{% if not loop.last %}{% endif %}{% endfor %} <br>{% else %}<span>None</span>{% endif %}
                     </pre>
                 </div>
                 

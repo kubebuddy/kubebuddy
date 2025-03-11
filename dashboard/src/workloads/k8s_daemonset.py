@@ -82,32 +82,62 @@ def get_daemonset_description(path=None, context=None, namespace=None, daemonset
     v1 = client.AppsV1Api()  # Use AppsV1Api for DaemonSets
     try:
         daemonset = v1.read_namespaced_daemon_set(name=daemonset_name, namespace=namespace)
-
+        
         daemonset_info = {
             "name": daemonset.metadata.name,
             "namespace": daemonset.metadata.namespace,
             "selector": daemonset.spec.selector.match_labels, # Add selector info
-            "template": { # Replicate pod template structure
+            "template": { # Expanded pod template structure
+                "labels": daemonset.spec.template.metadata.labels,
+                "service_account": getattr(daemonset.spec.template.spec, "service_account_name", None),
                 "containers": [
                     {
                         "name": container.name,
                         "image": container.image,
                         "ports": [port.container_port for port in (container.ports or [])],
-                        # Add other relevant container info as needed (resources, etc.)
+                        "resources": getattr(container, "resources", None),
+                        "volume_mounts": [
+                            {
+                                "name": volume_mount.name,
+                                "mount_path": volume_mount.mount_path,
+                                "read_only": getattr(volume_mount, "read_only", False)
+                            } for volume_mount in (container.volume_mounts or [])
+                        ]
                     }
                     for container in daemonset.spec.template.spec.containers
                 ],
-                # Add other template info as needed (volumes, node selector, etc.)
+                "volumes": [
+                    {
+                        "name": volume.name,
+                        # Instead of trying to dynamically determine volume type, extract known volume types
+                        "config_map": getattr(volume, "config_map", None),
+                        "secret": getattr(volume, "secret", None),
+                        "empty_dir": getattr(volume, "empty_dir", None),
+                        "host_path": getattr(volume, "host_path", None),
+                        "persistent_volume_claim": getattr(volume, "persistent_volume_claim", None),
+                        "projected": getattr(volume, "projected", None)
+                    } for volume in (getattr(daemonset.spec.template.spec, "volumes", []) or [])
+                ],
+                "priority_class_name": getattr(daemonset.spec.template.spec, "priority_class_name", None),
+                "node_selector": getattr(daemonset.spec.template.spec, "node_selector", None),
+                "tolerations": [
+                    {
+                        "key": toleration.key,
+                        "operator": toleration.operator,
+                        "value": toleration.value,
+                        "effect": toleration.effect,
+                        "toleration_seconds": toleration.toleration_seconds
+                    } for toleration in (getattr(daemonset.spec.template.spec, "tolerations", []) or [])
+                ]
             },
             "status": {
-            "desired_number_scheduled": daemonset.status.desired_number_scheduled,
-            "current_number_scheduled": daemonset.status.current_number_scheduled,
-            "number_ready": daemonset.status.number_ready,
-            "number_available": daemonset.status.number_available,
-            "number_misscheduled": getattr(daemonset.status, "number_misscheduled", "N/A"), # Use getattr
-            "number_updated": getattr(daemonset.status, "number_updated", "N/A"), # Use getattr
-        },
-
+                "desired_number_scheduled": daemonset.status.desired_number_scheduled,
+                "current_number_scheduled": daemonset.status.current_number_scheduled,
+                "number_ready": daemonset.status.number_ready,
+                "number_available": daemonset.status.number_available,
+                "number_misscheduled": getattr(daemonset.status, "number_misscheduled", "N/A"),
+                "number_updated": getattr(daemonset.status, "number_updated", "N/A"),
+            },
         }
         return daemonset_info
     except client.exceptions.ApiException as e:

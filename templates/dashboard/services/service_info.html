@@ -35,17 +35,21 @@
                     <pre>
 <b>Name:</b> {{ service_info.describe.name }}
 <b>Namespace:</b> {{ service_info.describe.namespace }}
+<b>Labels</b>: {% for key, value in service_info.describe.labels.items %} {{ key }}={{ value }}{% if not loop.last %}{% endif %} 
+        {% endfor %}
+<b>Annotations</b>: {% for key, value in service_info.describe.annotations.items %}{{ key }}: {{ value }}{% if not loop.last %}{% endif %}
+        {% endfor %}
+<b>Selector:</b> {% if service_info.describe.selector %}{% for key, value in service_info.describe.selector.items %}{{ key }}={{ value }}{% endfor %}{% else %}N/A{% endif %}
 <b>Type:</b> {{ service_info.describe.type }}
+<b>IP Family Policy::</b> {{ service_info.describe.ip_family_policy }}
+<b>IP Families:</b> {% for ip in service_info.describe.ip_families %} {{ip}}, {% endfor %}
 <b>Cluster IP:</b> {{ service_info.describe.cluster_ip }}
-<b>Ports:</b>{% for port in service_info.describe.ports %}
-<b>Name:</b> {{ port.name }}
-<b>Protocol:</b> {{ port.protocol }}
+{% for port in service_info.describe.ports %}<b>Protocol:</b> {{ port.protocol }}
 <b>Port:</b> {{ port.port }}
-<b>Target Port:</b> {{ port.target_port }}
-<b>Node Port:</b> {% if port.node_port != "N/A" %}{{ port.node_port }}{% else %}N/A{% endif %}{% endfor %}
-<b>Selector:</b> {% if service_info.describe.selector %}{% for key, value in service_info.describe.selector.items %}{{ key }}: {{ value }}{% endfor %}{% else %}N/A{% endif %}
-<b>External IPs:</b> {% if service_info.describe.external_ips %} {% for ip in service_info.describe.external_ips %}{{ ip }}{% endfor %}{% else %}N/A{% endif %}
-<b>Load Balancer IP:</b> {% if service_info.describe.load_balancer_ip != "N/A" %}{{ service_info.describe.load_balancer_ip }}{% else %}N/A{% endif %}
+<b>Target Port:</b> {{ port.target_port }} / {{ port.protocol }}{% endfor %}
+<b>Endpoints:</b> {% for endpoint in service_info.describe.endpoints %}{% for address in endpoint.addresses %}{{ address }}, {% endfor %}{% endfor %}
+<b>Session Affinity:</b> {{ service_info.describe.session_affinity }}
+<b>Internal Traffic Policy:</b> {{ service_info.describe.internal_traffic_policy }}
                     </pre>
                 </div>
               </div>

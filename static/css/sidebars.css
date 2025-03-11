@@ -341,7 +341,6 @@ main {
 
 .dark-mode ul li a {
   color: #0dcaf0 !important;
-  background-color: transparent !important;
 }
 
 .dark-mode .table tbody tr:nth-child(even) {

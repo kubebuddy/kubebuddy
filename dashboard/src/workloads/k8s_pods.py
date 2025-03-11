@@ -105,9 +105,6 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
         
         # Get annotations
         annotations = pod.metadata.annotations or {}
-        
-        
-
         # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
         filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
         

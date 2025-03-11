@@ -154,7 +154,11 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
                             (attr for attr, value in volume.to_dict().items() 
                             if attr != "name" and value is not None),
                             None
-                        )
+                        ),
+                    "TokenExpirationSeconds": volume.secret.token_expiration_seconds if volume.secret else None,
+                    "ConfigMapName": volume.config_map.name if volume.config_map else None,
+                    "ConfigMapOptional": volume.config_map.optional if volume.config_map else None,
+                    "DownwardAPI": volume.downward_api.items if volume.downward_api else None,
                 }
                 for volume in pod.spec.volumes
             ],

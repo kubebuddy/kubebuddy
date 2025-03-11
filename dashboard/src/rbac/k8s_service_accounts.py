@@ -38,6 +38,11 @@ def get_sa_description(path=None, context=None, namespace=None, sa_name=None):
             'namespace': sa.metadata.namespace,
             'labels': sa.metadata.labels,
             'annotations': sa.metadata.annotations,
+            'metadata': sa.metadata,
+            'api_version': sa.api_version,
+            'kind': sa.kind,
+            'spec': sa.secrets,
+            'status': sa.image_pull_secrets,
             'image_pull_secrets': sa.image_pull_secrets,
             'mountable_secrets': sa.secrets,
         }

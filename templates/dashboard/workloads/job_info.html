@@ -32,53 +32,31 @@
                     <pre>
 <b>Name</b>: {{ job_info.describe.name }}
 <b>Namespace</b>: {{ job_info.describe.namespace }}
-<b>Selector</b>: {% if job_info.describe.selector %}{% for key, value in job_info.describe.selector %}
-  - {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %}{% else %}
-  <span>- None</span>{% endif %}
-
-<b>Labels</b>: {% for key, value in job_info.describe.labels.items %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
-
-<b>Annotations</b>: {% for key, value in job_info.describe.annotations.items %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}
-{% endfor %}
-
+<b>Selector</b>: {% if job_info.describe.selector %}{% for key, value in job_info.describe.selector %}{{ key }}={{ value }}{% if not loop.last %}<br>{% endif %} {% endfor %}{% else %}<span>None</span>{% endif %}
+<b>Labels</b>: {% for key, value in job_info.describe.labels.items %} {{ key }}={{ value }}{% if not loop.last %}{% endif %}<br>        {% endfor %}
+<b>Annotations</b>: {% for key, value in job_info.describe.annotations.items %}{{ key }}={{ value }}{% if not loop.last %}{% endif %}<br>        {% endfor %}
 <b>Parallelism</b>: {{ job_info.describe.parallelism }}
 <b>Completions</b>: {{ job_info.describe.completions }}
 <b>Completion Mode</b>: {{ job_info.describe.completion_mode }}
 <b>Suspend</b>: {{ job_info.describe.suspend }}
 <b>Backoff Limit</b>: {{ job_info.describe.backoff_limit }}
-
 <b>Start Time</b>: {{ job_info.describe.start_time|date:"r" }}
 <b>Completed At</b>: {{ job_info.describe.completion_time|date:"r" }}
 <b>Duration</b>: {{ job_info.describe.duration }} seconds
-
-<b>Pods Statuses</b>: 
-- Active: {{ job_info.describe.pods_status.active }} / Ready: {{ job_info.describe.pods_status.active }}
-- Succeeded: {{ job_info.describe.pods_status.succeeded }} 
-- Failed: {{ job_info.describe.pods_status.failed }}
-
+<b>Pods Statuses</b>: {{ job_info.describe.pods_status.active }} Active ({{ job_info.describe.pods_status.active }} Ready) / {{ job_info.describe.pods_status.succeeded }} Succeeded / {{ job_info.describe.pods_status.failed }} Failed
 <b>Pod Template</b>:
-  <strong>Labels:</strong>{% for key, value in job_info.describe.pod_template.labels.items %}
-  - {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %}
-
-<strong>Containers:</strong> {% for container in job_info.describe.pod_template.containers %}
-- <strong>Name:</strong> {{ container.name }}
-  <strong>Image:</strong> {{ container.image }}
-  <strong>Command:</strong> {% for cmd in container.command %}{{ cmd }}{% if not loop.last %}, {% endif %}{% endfor %}
-  <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
-  <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
-
-<strong>Volumes:</strong> {% for volume in job_info.describe.pod_template.volumes %}
-- <strong>Name:</strong> {{ volume.name }}
-    <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %}{% endfor %}
-
-<strong>Node Selectors:</strong> {% if job_info.describe.pod_template.node_selectors %}{% for key, value in job_info.describe.pod_template.node_selectors %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
-<span>- None</span>{% endif %}
-
-<strong>Tolerations:</strong> {% for toleration in job_info.describe.pod_template.tolerations %}
-- {{ toleration }}{% if not loop.last %}, {% endif %}{% endfor %}
+  <strong>Labels:</strong>{% for key, value in job_info.describe.pod_template.labels.items %}{{ key }}={{ value }}{% if not loop.last %}{% endif %}<br>         {% endfor %}
+  <strong>Containers:</strong> {% for container in job_info.describe.pod_template.containers %}
+  - {{ container.name }}
+    <strong>Image:</strong> {{ container.image }}
+    <strong>Command:</strong> {% for cmd in container.command %}{{ cmd }}{% if not loop.last %}, {% endif %}{% endfor %}
+    <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
+    <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
+  <strong>Volumes:</strong> {% for volume in job_info.describe.pod_template.volumes %}
+  - <strong>Name:</strong> {{ volume.name }}
+      <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %}{% endfor %}
+  <strong>Node Selectors:</strong> {% if job_info.describe.pod_template.node_selectors %}{% for key, value in job_info.describe.pod_template.node_selectors %} {{ key }}={{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}<span>- None</span>{% endif %}
+  <strong>Tolerations:</strong> {% for toleration in job_info.describe.pod_template.tolerations %}{{ toleration }}{% if not loop.last %}, {% endif %}{% endfor %}
                     </pre>
                 </div>
                 

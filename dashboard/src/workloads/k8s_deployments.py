@@ -80,6 +80,7 @@ def get_deployment_description(path=None, context=None, namespace=None, dep_name
             "creation_timestamp": dep.metadata.creation_timestamp,
             "labels": list(dep.metadata.labels.items()) if dep.metadata.labels else [],
             "annotations": list(dep.metadata.annotations.items()) if dep.metadata.annotations else [],
+            "selector": list(dep.spec.selector.match_labels.items()) if dep.spec.selector.match_labels else [],
             "replicas": {
                 "desired": dep.status.replicas,  # Desired number of replicas
                 "updated": dep.status.updated_replicas,  # Number of updated replicas

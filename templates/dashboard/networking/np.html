@@ -4,6 +4,7 @@
 
 {% block title %}Network Policy{% endblock %}
 
+
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/netpol-128.png?raw=true {% endblock %}
 
 {% block content %}
@@ -15,7 +16,12 @@
       <a href="/{{current_cluster}}/np?cluster_id={{cluster_id}}" class="btn btn-primary active" id="np-tab">NetworkPolicy</a>
     </div>
   </div>
-
+  {% if nps_count == 0 %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill mx-2"></i>
+      No Network Policy Found.
+    </div>
+  {% else %}
   <div class="tab-content">
     <div class="tab-pane fade show active" id="np">
       <div class="d-flex align-items-center justify-content-evenly">
@@ -115,6 +121,7 @@
       </tbody>
       </table>
   </div>
+  {% endif %}
 <script src="{% static 'js/namespaceFilter.js' %}"></script>
 <script src="{% static 'js/graph.js' %}"></script>
 <script>

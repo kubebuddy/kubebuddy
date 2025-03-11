@@ -34,16 +34,25 @@
                     <pre>
 <b>Name:</b> {{ resourcequota_info.describe.name }}
 <b>Namespace:</b> {{ resourcequota_info.describe.namespace }}
-<b>Spec:</b>
-    <b>Hard:</b>{% for k, v in resourcequota_info.describe.spec.hard.items %}
-            {{ k }}: {{ v }}{% endfor %}
-    <b>Scopes:</b>{% for scope in resourcequota_info.describe.spec.scopes %}
-            {{ scope }}{% endfor %}
-<b>Status:</b>
-    <b>Hard:</b>{% for k, v in resourcequota_info.describe.status.hard.items %}
-            {{ k }}: {{ v }}{% endfor %}
-    <b>Used:</b>{% for k, v in resourcequota_info.describe.status.used.items %}
-            {{ k }}: {{ v }}{% endfor %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Resource</th>
+            <th>Used</th>
+            <th>Hard</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for resource in resourcequota_info.describe.resources %}
+        <tr>
+            <td>{{ resource.resource }}</td>
+            <td>{{ resource.used }}</td>
+            <td>{{ resource.hard }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
                     </pre>
                 </div>
               </div>

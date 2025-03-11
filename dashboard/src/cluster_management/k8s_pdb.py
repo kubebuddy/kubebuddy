@@ -33,7 +33,7 @@ def get_pdb_description(path=None, context=None, namespace=None, pdb_name=None):
         pdb = v1.read_namespaced_pod_disruption_budget(name=pdb_name, namespace=namespace)
         pdb_info = {
             "name": pdb.metadata.name,
-            "namespace": pdb.metadata.name,
+            "namespace": pdb.metadata.namespace,
             "min": pdb.spec.min_available,
             "max": pdb.spec.max_unavailable,
             "selector": pdb.spec.selector.match_labels,

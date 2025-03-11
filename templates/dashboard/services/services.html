@@ -15,7 +15,12 @@
       <a href="/{{current_cluster}}/endpoints?cluster_id={{cluster_id}}" class="btn btn-primary" id="endpoints-tab">Endpoints</a>
     </div>
   </div>
-
+  {% if total_services == 0 %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill mx-2"></i>
+      No Services Found.
+    </div>
+  {% else %}
   <div class="tab-content">
     <div class="tab-pane fade show active" id="services">
       <div class="d-flex align-items-center justify-content-evenly">
@@ -140,6 +145,7 @@
       </tbody>
       </table>
   </div>
+  {% endif %}
 <script src="{% static 'js/namespaceFilter.js' %}"></script>
 <script src="{% static 'js/graph.js' %}"></script>
 <script>

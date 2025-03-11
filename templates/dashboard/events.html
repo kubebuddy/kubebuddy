@@ -9,6 +9,12 @@
 
 <div class="container">
   <div class="container">
+    {% if events is null %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill mx-2"></i>
+      No Event Found.
+    </div>
+  {% else %}
     <div class="mb-1 d-flex justify-content-between">
       <!-- New dropdown on the left -->
       <div class="d-flex">
@@ -70,7 +76,7 @@
         
         </div>
     </div>
-  
+
     <!-- Table -->
     <table class="table table-bordered">
       <thead class="table-dark">
@@ -104,6 +110,7 @@
   </table>
     
   </div>
+  {% endif %}
   <script src="{% static 'js/namespaceFilter.js' %}"></script>
 
 {% endblock %}

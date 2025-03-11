@@ -16,7 +16,12 @@
       <a href="/{{current_cluster}}/serviceAccount?cluster_id={{cluster_id}}" class="btn btn-primary" id="serviceaccount-tab">ServiceAccount</a>
     </div>
   </div>
-
+  {% if total_clusterrolebinding == 0 %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill mx-2"></i>
+      No Cluster Binding Found.
+    </div>
+  {% else %}
   <div class="tab-content">
     <div class="tab-pane fade show active" id="clusterrolebinding">
       <div class="d-flex align-items-center justify-content-evenly">
@@ -109,6 +114,7 @@
       </tbody>
       </table>
   </div>
+  {% endif %}
   <script src="{% static 'js/graph.js' %}"></script>
   <script>
       document.addEventListener("DOMContentLoaded", function() {

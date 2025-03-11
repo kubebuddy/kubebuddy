@@ -122,7 +122,12 @@
             </div>
         </div>
     </div>
-
+    {% if events is null %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill mx-2"></i>
+      No Event Found.
+    </div>
+  {% else %}
     <div class="container">
         <!-- Dropdown with checkboxes to select columns -->
         <div class="mb-3">
@@ -204,6 +209,7 @@
             More Events
         </a>
     </div>
+    {% endif %}
   <script src="{% static 'js/cluster_actions.js' %}"></script>
   <script>
     let current_cluster = "{{ current_cluster }}";  // Injected from Django template

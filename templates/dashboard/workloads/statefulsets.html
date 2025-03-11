@@ -20,7 +20,12 @@
       <a href="/{{current_cluster}}/cronjobs?cluster_id={{cluster_id}}" class="btn btn-primary" id="cronjobs-tab">CronJobs</a>
     </div>
   </div>
-
+  {% if statefulsets_status.Count == 0 %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill mx-2"></i>
+      No Statefulset Found.
+    </div>
+  {% else %}
   <div class="tab-content">
     <div class="tab-pane fade show active" id="statefulsets">
       <div class="container border border-3 rounded-2 border-secondary-subtle p-4 m-3">
@@ -145,6 +150,7 @@
       </tbody>
       </table>
   </div>
+  {% endif %}
 <script src="{% static 'js/namespaceFilter.js' %}"></script>
 <script src="{% static 'js/graph.js' %}"></script>
 <script>

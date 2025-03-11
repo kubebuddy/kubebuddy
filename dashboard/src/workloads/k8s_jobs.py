@@ -94,14 +94,15 @@ def get_job_description(path=None, context=None, namespace=None, job_name=None):
     try:
         # Fetch Job details
         job = batch_v1.read_namespaced_job(name=job_name, namespace=namespace)
-        
+        annotations = job.metadata.annotations or {}
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
         # Prepare Job information
         job_info = {
             "name": job.metadata.name,
             "namespace": job.metadata.namespace,
             "selector": list(job.spec.selector.match_labels.items()) if job.spec.selector and job.spec.selector.match_labels else [],
             "labels": job.metadata.labels if isinstance(job.metadata.labels, dict) else {},
-            "annotations": job.metadata.annotations if isinstance(job.metadata.annotations, dict) else {},
+            "annotations": filtered_annotations,
             "parallelism": job.spec.parallelism,
             "completions": job.spec.completions,
             "completion_mode": job.spec.completion_mode,

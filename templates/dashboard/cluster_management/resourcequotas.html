@@ -18,7 +18,12 @@
       <a href="/{{current_cluster}}/resourcequotas?cluster_id={{cluster_id}}" class="btn btn-primary active" id="resourcequotas-tab">Resource Quota</a>
     </div>
   </div>
-
+  {% if total_quotas == 0 %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill mx-2"></i>
+      No Resource quota Found.
+    </div>
+  {% else %}
   <div class="tab-content">
     <div class="tab-pane fade show active" id="resourcequotas">
       <div class="d-flex align-items-center justify-content-evenly">
@@ -103,7 +108,7 @@
                 {{ q.name }}
             </a>
           </td>
-          <td>{{ q.requests }}</td>
+          <td>{{q.pods}}, {{ q.requests }}</td>
           <td>{{ q.limits }}</td>
           <td>{{ q.age }}</td>
           <td id="actionElement">
@@ -123,6 +128,7 @@
       </tbody>
       </table>
   </div>
+  {% endif %}
 <script src="{% static 'js/namespaceFilter.js' %}"></script>
 <script src="{% static 'js/graph.js' %}"></script>
 <script>

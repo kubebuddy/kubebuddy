@@ -14,7 +14,12 @@
       <a href="/{{current_cluster}}/storageclass?cluster_id={{cluster_id}}" class="btn btn-primary" id="storageclass-tab">StorageClass</a>
     </div>
   </div>
-
+  {% if total_pvs == 0 %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill mx-2"></i>
+      No Persistent Volume Found.
+    </div>
+  {% else %}
   <div class="tab-content">
     <div class="tab-pane fade show active" id="pv">
       <div class="d-flex align-items-center justify-content-evenly">
@@ -138,6 +143,7 @@
       </tbody>
       </table>
   </div>
+  {% endif %}
   <script src="{% static 'js/graph.js' %}"></script>
   <script>
       document.addEventListener("DOMContentLoaded", function() {

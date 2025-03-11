@@ -79,6 +79,7 @@ def get_replicaset_description(path=None, context=None, namespace=None, rs_name=
         # Prepare ReplicaSet information
         rs_info = {
             "name": rs.metadata.name,
+            "selector": rs.spec.selector.match_labels if rs.spec.selector else [],
             "namespace": rs.metadata.namespace,
             "labels": list(rs.metadata.labels.items()) if rs.metadata.labels else [],
             "annotations": list(rs.metadata.annotations.items()) if rs.metadata.annotations else [],

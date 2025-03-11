@@ -37,46 +37,47 @@
         {% endfor %}
 <b>Annotations</b>: {% for key, value in deploy_info.describe.annotations %}{{ key }}: {{ value }}{% if not loop.last %}{% endif %}
         {% endfor %}
+<b>Selector</b>: {% for key, value in deploy_info.describe.selector %}{{ key }}={{ value }}{% if not loop.last %}{% endif %}<br>          {% endfor %}
 <b>Replicas</b>: {{ deploy_info.describe.replicas.desired }} desired | {{ deploy_info.describe.replicas.updated }} updated | {{ deploy_info.describe.replicas.total }} total | {{ deploy_info.describe.replicas.available }} available | {{ deploy_info.describe.replicas.unavailable }} unavailable
-<b>Strategy</b>: 
-- Type: {{ deploy_info.describe.strategy.type }}
-- Rolling Update: 
-    - Max Unavailable: {{ deploy_info.describe.strategy.rolling_update.max_unavailable }}
-    - Max Surge: {{ deploy_info.describe.strategy.rolling_update.max_surge }}
-- Min Ready Seconds: {{ deploy_info.describe.strategy.min_ready_seconds }}
+<b>Strategy Type</b>: {{ deploy_info.describe.strategy.type }}
+<b>RollingUpdateStrategy</b>: {{ deploy_info.describe.strategy.rolling_update.max_unavailable }} Max Unavailable, {{ deploy_info.describe.strategy.rolling_update.max_surge }} Max Surge: 
+<b>MinReadySeconds</b>: {{ deploy_info.describe.strategy.min_ready_seconds }}
 
 <b>Pod Template</b>:
-  <strong>Labels:</strong>{% for key, value in deploy_info.describe.pod_template.labels %}
-  {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
-
-<strong>Containers</strong>:{% for container in deploy_info.describe.pod_template.containers %}
-- <strong>Name:</strong> {{ container.name }}
-  <strong>Image:</strong> {{ container.image }}
-  <strong>Ports:</strong>{% for port in container.ports %} {{ port }}{% endfor %}
-  <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
-  <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
-
-<strong>Volumes:</strong>{% for volume in deploy_info.describe.pod_template.volumes %}
-- <strong>Name:</strong> {{ volume.name }}
+  <strong>Labels:</strong>{% for key, value in deploy_info.describe.pod_template.labels %} {{ key }}= {{ value }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+  <strong>Containers</strong>:{% for container in deploy_info.describe.pod_template.containers %}
+  - {{ container.name }}
+    <strong>Image:</strong> {{ container.image }}
+    <strong>Ports:</strong>{% for port in container.ports %} {{ port }}{% endfor %}
+    <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
+    <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
+                        
+  <strong>Volumes:</strong>{% for volume in deploy_info.describe.pod_template.volumes %}
+  - <strong>Name:</strong> {{ volume.name }}
   <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %} {% endfor %}
+                      
+  <strong>Node Selectors:</strong> {% if deploy_info.describe.pod_template.node_selectors %} {% for key, value in deploy_info.describe.pod_template.node_selectors %}
+  - {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %} {% else %} <span>None</span> {% endif %}
+                      
+  <strong>Tolerations:</strong>{% for toleration in deploy_info.describe.pod_template.tolerations %}
+  - {{ toleration }}{% endfor %}
 
-<strong>Node Selectors:</strong> {% if deploy_info.describe.pod_template.node_selectors %} {% for key, value in deploy_info.describe.pod_template.node_selectors %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %} {% else %} <span>- None</span> {% endif %}
-
-<strong>Tolerations:</strong>{% for toleration in deploy_info.describe.pod_template.tolerations %}
-- {{ toleration }}{% endfor %}
-
-<b>Conditions</b>:{% for condition in deploy_info.describe.conditions %}
-- <strong>Type:</strong> {{ condition.type }}
-  <strong>Status:</strong> {{ condition.status }}
-  <strong>Reason:</strong> {{ condition.reason }}{% endfor %}
-
-<b>Old ReplicaSets</b>: {% if deploy_info.describe.old_replicasets %}{% for rs in deploy_info.describe.old_replicasets %}
-- {{ rs }}{% endfor %}{% else %}
-<span>- None</span>{% endif %}
-
-<b>New ReplicaSet</b>: 
-- {{ deploy_info.describe.new_replicaset }}
+  <b>Conditions</b>:
+  <table>
+    <thead>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Reason</th>
+    </thead>
+    <tbody>
+        {% for condition in deploy_info.describe.conditions %}
+        <tr>
+            <td>{{ condition.type }}</td>
+            <td>{{ condition.status }}</td>
+            <td>{{ condition.reason }}</td>
+        </tr>{% endfor %}</tbody></table>
+<b>Old ReplicaSets</b>: {% if deploy_info.describe.old_replicasets %}{% for rs in deploy_info.describe.old_replicasets %} {{ rs }} <br> {% endfor %}{% else %} <span>None</span>{% endif %}
+<b>New ReplicaSet</b>: {{ deploy_info.describe.new_replicaset }}
                     </pre>
                 </div>
                 

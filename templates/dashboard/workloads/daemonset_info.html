@@ -34,20 +34,32 @@
                 <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
                     <pre>
 <b>Name:</b> {{ daemonset_info.describe.name }}
+<b>Selector:</b> {% for key, value in daemonset_info.describe.selector.items %}{{ key }}={{ value }}{% if not loop.last %}{% endif %}<br>          {% endfor %}
 <b>Namespace:</b> {{ daemonset_info.describe.namespace }}
-<b>Selector:</b> {{ daemonset_info.describe.selector }}
-<b>Template:</b>
-    <b>Containers:</b>        {% for container in daemonset_info.describe.template.containers %}
-            <b>Name:</b> {{ container.name }}
-            <b>Image:</b> {{ container.image }}
-            <b>Ports:</b> {% for port in container.ports %}{{ port }} {% endfor %}        {% endfor %}
-<b>Status:</b>
-    <b>Desired Scheduled:</b> {{ daemonset_info.describe.status.desired_number_scheduled }}
-    <b>Current Scheduled:</b> {{ daemonset_info.describe.status.current_number_scheduled }}
-    <b>Ready:</b> {{ daemonset_info.describe.status.number_ready }}
-    <b>Available:</b> {{ daemonset_info.describe.status.number_available }}
-    <b>Updated:</b> {% if daemonset_info.describe.status.number_updated != "N/A" %}{{ daemonset_info.describe.status.number_updated }}{% else %}N/A{% endif %}
-    <b>Misscheduled:</b> {% if daemonset_info.describe.status.number_misscheduled != "N/A" %}{{ daemonset_info.describe.status.number_misscheduled }}{% else %}N/A{% endif %}
+<b>Labels:</b> {% for key, value in daemonset_info.describe.labels.items %} {{ key }}={{ value }}{% if not loop.last %} {% endif %} 
+        {% endfor %}
+<b>Annotations:</b> {% for key, value in daemonset_info.describe.annotations.items %}{{ key }}: {{ value }}{% if not loop.last %} {% endif %}<br>       {% endfor %}
+<b>Desired Number of Nodes Scheduled:</b> {{ daemonset_info.describe.status.desired_number_scheduled }}
+<b>Current Number of Nodes Scheduled:</b> {{ daemonset_info.describe.status.current_number_scheduled }}
+<b>Number of Nodes Scheduled with Up-to-date Pods:</b> {{ daemonset_info.describe.status.number_ready }}
+<b>Number of Nodes Scheduled with Available Pods:</b> {{ daemonset_info.describe.status.number_available }}
+<b>Number of Nodes Misscheduled:</b> {% if daemonset_info.describe.status.number_misscheduled != "N/A" %}{{ daemonset_info.describe.status.number_misscheduled }}{% else %}N/A{% endif %}
+<b>Pods Status:</b>
+<b>Pod Template:</b>
+  <b>Labels:</b> {% for key, value in daemonset_info.describe.template.labels.items %} {{ key }}={{ value }}{% if not loop.last %} {% endif %} <br>       {% endfor %}
+  <b>Containers:</b>{% for container in daemonset_info.describe.template.containers %}
+    {{ container.name }}
+      <b>Image:</b> {{ container.image }}
+      <b>Port:</b> {% for port in container.ports %}{{ port }} {% endfor %} 
+      <b>Environment:</b> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
+      <b>Mounts:</b> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
+  <b>Volumes:</b> {% for volume in daemonset_info.describe.pod_template.volumes %}
+  - <b>Name:</b> {{ volume.name }}
+  <b>Type:</b> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %}{% endfor %}
+  <b>Node Selectors:</b> {% if daemonset_info.describe.pod_template.node_selectors %}{% for key, value in daemonset_info.describe.pod_template.node_selectors %}
+  - {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %} <span>None</span>{% endif %}
+  <b>Tolerations:</b> {% for toleration in daemonset_info.describe.pod_template.tolerations %}
+  - {{ toleration }}{% if not loop.last %}, {% endif %}{% endfor %}
 </pre>
                 </div>
               </div>

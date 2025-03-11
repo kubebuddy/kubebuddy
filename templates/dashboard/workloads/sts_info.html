@@ -33,53 +33,31 @@
 <b>Name</b>: {{ sts_info.describe.name }}
 <b>Namespace</b>: {{ sts_info.describe.namespace }}
 <b>Creation Timestamp</b>: {{ sts_info.describe.creation_timestamp }}
-<b>Selector</b>:{% if sts_info.describe.selector %}{% for key, value in sts_info.describe.selector.items %}
-    - {{ key }}: {{ value }}{% endfor %}{% else %}
-<span>- None</span>{% endif %}
+<b>Selector</b>:{% if sts_info.describe.selector %}{% for key, value in sts_info.describe.selector.items %}{{ key }}={{ value }}{% endfor %}{% else %}<span> None</span>{% endif %}
 <b>Labels</b>: {% for key, value in sts_info.describe.labels %}
 - {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% empty %} None {% endfor %}
-<b>Annotations:</b>{% if sts_info.describe.annotations %}{% for annotation, value in sts_info.describe.annotations %}
-    {{ annotation }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
-    None{% endif %}
-
-<b>Replicas</b>: 
-- Desired: {{ sts_info.describe.replicas.desired }}
-- Total: {{ sts_info.describe.replicas.total }}
-
-<b>Update Strategy</b>: 
-- Type: {{ sts_info.describe.update_strategy.type }}
-- Partition: {{ sts_info.describe.update_strategy.partition }}
-
-<b>Pods Status</b>:
-- Running: {{ sts_info.describe.pods_status.running }}
-- Waiting: {{ sts_info.describe.pods_status.waiting }}
-- Succeeded: {{ sts_info.describe.pods_status.succeeded }}
-- Failed: {{ sts_info.describe.pods_status.failed }}
-
+<b>Annotations:</b>{% if sts_info.describe.annotations %}{% for annotation, value in sts_info.describe.annotations %}{{ annotation }}: {{ value }}{% if not loop.last %}<br>{% endif %}{% endfor %}{% else %} None{% endif %}
+<b>Replicas</b>: {{ sts_info.describe.replicas.desired }} Desired | {{ sts_info.describe.replicas.total }} Total
+<b>Update Strategy</b>: {{ sts_info.describe.update_strategy.type }}
+  Partition: {{ sts_info.describe.update_strategy.partition }}
+<b>Pods Status</b>: {{ sts_info.describe.pods_status.running }} Running / {{ sts_info.describe.pods_status.waiting }} Waiting / {{ sts_info.describe.pods_status.succeeded }} Succeeded / {{ sts_info.describe.pods_status.failed }} Failed
 <b>Pod Template</b>:
-    <strong>Labels:</strong>{% for key, value in sts_info.describe.pod_template.labels %}
-    {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
-
-<strong>Containers</strong>:{% for container in sts_info.describe.pod_template.containers %}
-- <strong>Name:</strong> {{ container.name }}
-    <strong>Image:</strong> {{ container.image }}
-    <strong>Ports:</strong>{% for port in container.ports %} {{ port }}{% endfor %}
-    <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
-    <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
-
-<strong>Volumes:</strong>{% for volume in sts_info.describe.pod_template.volumes %}
-- <strong>Name:</strong> {{ volume.name }}
-    <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %} {% endfor %}
-
-<strong>Node Selectors:</strong> {% if sts_info.describe.pod_template.node_selectors %} {% for key, value in sts_info.describe.pod_template.node_selectors %}
-- {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %} {% else %} <span>- None</span> {% endif %}
-
-<strong>Tolerations:</strong>{% for toleration in sts_info.describe.pod_template.tolerations %}
-- {{ toleration }}{% endfor %}
-
-<b>Volume Claims</b>:
-{% for pvc in sts_info.describe.volume_claims %}
-- <strong>Name:</strong> {{ pvc.name }}
+    <strong>Labels:</strong>{% for key, value in sts_info.describe.pod_template.labels %}{{ key }}={{ value }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+    <strong>Containers</strong>:{% for container in sts_info.describe.pod_template.containers %}
+    - <strong>Name:</strong> {{ container.name }}
+        <strong>Image:</strong> {{ container.image }}
+        <strong>Ports:</strong>{% for port in container.ports %} {{ port }}{% endfor %}
+        <strong>Environment Variables:</strong> {% for env in container.env %}{{ env }}{% if not loop.last %}, {% endif %}{% endfor %}
+        <strong>Mounts:</strong> {% for mount in container.mounts %}{{ mount }}{% if not loop.last %}, {% endif %}{% endfor %}{% endfor %}
+    <strong>Volumes:</strong>{% for volume in sts_info.describe.pod_template.volumes %}
+    - <strong>Name:</strong> {{ volume.name }}
+        <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %} {% endfor %}
+    <strong>Node Selectors:</strong> {% if sts_info.describe.pod_template.node_selectors %} {% for key, value in sts_info.describe.pod_template.node_selectors %}
+    - {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %} {% else %} <span>- None</span> {% endif %}
+    <strong>Tolerations:</strong>{% for toleration in sts_info.describe.pod_template.tolerations %}
+    - {{ toleration }}{% endfor %}
+<b>Volume Claims</b>:{% for pvc in sts_info.describe.volume_claims %}
+  <strong>Name:</strong> {{ pvc.name }}
   <strong>Storage Class:</strong> {{ pvc.storage_class|default:"None" }}
   <strong>Labels:</strong> {% for key, value in pvc.labels %}{{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
   <strong>Annotations:</strong> {% for key, value in pvc.annotations %}{{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
@@ -89,10 +67,7 @@
 <span>- None</span>{% endfor %}
                     </pre>
                 </div>
-                
-                
               </div>
-              
             <div class="tab-pane fade" id="events">
                 <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
                     <pre>{{ sts_info.events }}</pre>

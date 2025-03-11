@@ -37,19 +37,11 @@
 <b>StorageClass:</b> {{ pvc_info.describe.StorageClass }}
 <b>Status:</b> {{ pvc_info.describe.Status }}
 <b>Volume:</b> {{ pvc_info.describe.Volume }}
-<b>Labels:</b>{% if pvc_info.describe.Labels %}{% for k, v in pvc_info.describe.Labels.items %}
-    {{ k }}={{ v }}{% endfor %}{% else %}
-    N/A{% endif %}
-<b>Annotations:</b>{% if pvc_info.describe.Annotations %}{% for k, v in pvc_info.describe.Annotations.items %}
-    {{ k }}: {{ v }}{% endfor %}{% else %}
-    N/A{% endif %}
-<b>Finalizers:</b>{% if pvc_info.describe.Finalizers %}{% for finalizer in pvc_info.describe.Finalizers %}
-    {{ finalizer }}{% endfor %}{% else %}
-    N/A{% endif %}
+<b>Labels:</b> {% if pvc_info.describe.Labels %}{% for k, v in pvc_info.describe.Labels.items %}{{ k }}={{ v }} <br>             {% endfor %}{% else %}&lt;none&gt;{% endif %}
+<b>Annotations:</b> {% if pvc_info.describe.Annotations %}{% for k, v in pvc_info.describe.Annotations.items %}{{ k }}: {{ v }} <br>             {% endfor %}{% else %}&lt;none&gt;{% endif %}
+<b>Finalizers:</b> {% if pvc_info.describe.Finalizers %}{{ pvc_info.describe.Finalizers }}{% else %} &lt;none&gt;{% endif %}
 <b>Capacity:</b> {{ pvc_info.describe.Capacity }}
-<b>Access Modes:</b> {% if pvc_info.describe.Access_Modes %}{% for mode in pvc_info.describe.Access_Modes %}
-    {{ mode }}{% endfor %}{% else %}
-    N/A{% endif %}
+<b>Access Modes:</b> {% if pvc_info.describe.Access_Modes %}{% for mode in pvc_info.describe.Access_Modes %}{{ mode }}{% endfor %}{% else %}&lt;none&gt;{% endif %}
 <b>VolumeMode:</b> {{ pvc_info.describe.VolumeMode }}
 <b>Used By:</b> {{ pvc_info.describe.Used_By }}
                     </pre>

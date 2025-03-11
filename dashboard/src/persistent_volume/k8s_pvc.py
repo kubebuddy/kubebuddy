@@ -56,9 +56,9 @@ def get_pvc_description(path=None, context=None, namespace=None, pvc_name=None):
         "Annotations": pvc.metadata.annotations,
         "Finalizers": pvc.metadata.finalizers,
         "Capacity": pvc.spec.resources.requests.get("storage"),  # Get storage capacity
-        "Access Modes": pvc.spec.access_modes,
+        "Access_Modes": pvc.spec.access_modes,
         "VolumeMode": pvc.spec.volume_mode,
-        "Used By": [],  # Initialize Used By list
+        "Used_By": [],  # Initialize Used By list
     }
 
     # Find Pods using this PVC (Used By) -  This requires iterating through pods
@@ -66,8 +66,8 @@ def get_pvc_description(path=None, context=None, namespace=None, pvc_name=None):
     for pod in pods:
         for volume in pod.spec.volumes:
             if volume.persistent_volume_claim and volume.persistent_volume_claim.claim_name == pvc_name:
-                pvc_info["Used By"].append(pod.metadata.name)
-    pvc_info["Used By"] = ", ".join(pvc_info["Used By"]) if pvc_info["Used By"] else "N/A" # Format Used By
+                pvc_info["Used_By"].append(pod.metadata.name)
+    pvc_info["Used_By"] = ", ".join(pvc_info["Used_By"]) if pvc_info["Used_By"] else "N/A" # Format Used By
 
     return pvc_info
 

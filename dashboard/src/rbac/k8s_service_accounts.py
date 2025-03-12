@@ -32,12 +32,14 @@ def get_sa_description(path=None, context=None, namespace=None, sa_name=None):
 
     try:
         sa = v1.read_namespaced_service_account(name=sa_name, namespace=namespace)
-        
+        annotations = sa.metadata.annotations or {}
+        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
         return {
             'name': sa.metadata.name,
             'namespace': sa.metadata.namespace,
             'labels': sa.metadata.labels,
-            'annotations': sa.metadata.annotations,
+            'annotations': filtered_annotations if filtered_annotations else None,
             'metadata': sa.metadata,
             'api_version': sa.api_version,
             'kind': sa.kind,

@@ -72,14 +72,16 @@ def get_deployment_description(path=None, context=None, namespace=None, dep_name
     try:
         # Fetch Deployment details
         dep = v1.read_namespaced_deployment(name=dep_name, namespace=namespace)
-
+        annotations = dep.metadata.annotations or {}
+        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
         # Prepare Deployment information
         dep_info = {
             "name": dep.metadata.name,
             "namespace": dep.metadata.namespace,
             "creation_timestamp": dep.metadata.creation_timestamp,
             "labels": list(dep.metadata.labels.items()) if dep.metadata.labels else [],
-            "annotations": list(dep.metadata.annotations.items()) if dep.metadata.annotations else [],
+            "annotations": filtered_annotations if filtered_annotations else None,
             "selector": list(dep.spec.selector.match_labels.items()) if dep.spec.selector.match_labels else [],
             "replicas": {
                 "desired": dep.status.replicas,  # Desired number of replicas

@@ -1,5 +1,5 @@
 {% extends 'dashboard/base.html' %}
-
+{% load static %}
 {% block title %}Jobs{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/job-128.png?raw=true{% endblock %}
@@ -55,7 +55,7 @@
   <strong>Volumes:</strong> {% for volume in job_info.describe.pod_template.volumes %}
   - <strong>Name:</strong> {{ volume.name }}
       <strong>Type:</strong> {% if volume.type %}{{ volume.type }}{% else %}Unknown{% endif %}{% endfor %}
-  <strong>Node Selectors:</strong> {% if job_info.describe.pod_template.node_selectors %}{% for key, value in job_info.describe.pod_template.node_selectors %} {{ key }}={{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}<span>- None</span>{% endif %}
+  <strong>Node Selectors:</strong> {% if job_info.describe.pod_template.node_selectors %}{% for key, value in job_info.describe.pod_template.node_selectors.items %} {{ key }}={{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}<span>- None</span>{% endif %}
   <strong>Tolerations:</strong> {% for toleration in job_info.describe.pod_template.tolerations %}{{ toleration }}{% if not loop.last %}, {% endif %}{% endfor %}
                     </pre>
                 </div>
@@ -82,10 +82,10 @@
             </div>
         </div>
 
-        <a href="/{{current_cluster}}/jobs={{cluster_id}}" class="btn btn-primary mt-3">Back to Jobs</a>
+        <a href="/{{current_cluster}}/jobs?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Jobs</a>
     </div>
     
-    {% load static%}
+
     <script src="{% static 'js/copyYAML.js' %}"></script>
 
 {% endblock %}

@@ -157,15 +157,15 @@
                 <!-- Cluster Cards -->
                 <div class="col-md-4 mb-4 ">
                     <a href="{% url 'integrate' %}">
-                    <div class="card shadow-sm d-flex justify-content-center align-items-center" style="min-height:17rem;">
+                    <div class="card shadow-sm d-flex justify-content-center align-items-center" style="min-height:18rem;">
                         <h1><i class="bi bi-plus-square"></i></h1>
                     </div>
                     </a>
                 </div>
                 {% for cluster in registered_clusters %}
                 <div class="col-md-4 mb-4 ">
-                    <div class="card shadow-sm" style="min-height:17rem;">
-                        <div class="card-header d-flex justify-content-between 
+                    <div class="card shadow-sm d-flex flex-column" style="min-height:17rem;">
+                        <div class="card-header d-flex justify-content-between
                             {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
                                 bg-success text-white
                             {% else %}
@@ -181,7 +181,7 @@
                         {% endif %}
                         " 
                         class="text-decoration-none" style="text-decoration: none;">
-                        <div class="card-body d-flex flex-column">
+                        <div class="card-body d-flex flex-column h-100">
                             <p class="card-text text-black lh-sm">
                                 <strong>Name:</strong>
                                 {% if cluster.cluster_name %}
@@ -240,11 +240,10 @@
                             </p>
                             <p class="card-text text-black lh-sm">
                                 <strong>Kube config:</strong>
-                                {% if cluster.kube_config.path %}
-                                    {{ cluster.kube_config.path }}
-                                {% else %}
-                                    <span class="text-wanring">Path not available</span>
-                                {% endif %}
+                                <span class="d-block text-truncate" style="max-width: 100%;" 
+                                      title="{{ cluster.kube_config.path }}">
+                                    {{ cluster.kube_config.path|default:"Path not available" }}
+                                </span>
                             </p>
                             <div class="mt-auto d-flex justify-content-end">
                                 <button class="btn btn-danger btn-sm " onclick="deleteCluster(event,'{{ cluster.id }}')"><i class="bi bi-trash"></i></button>

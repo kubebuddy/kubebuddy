@@ -67,7 +67,7 @@ def get_nodes_info(path: str, context: str):
             roles = "-"
 
         if node.spec.taints:
-            taints = [taint.key +"=" + taint.value + ":" + taint.effect for taint in node.spec.taints]
+            taints = [taint.key + "=" + (taint.value if taint.value else "") + ":" + taint.effect for taint in node.spec.taints]
         else:
             taints = "none"
 
@@ -100,9 +100,9 @@ def get_node_description(path=None, context=None, node_name=None):
         
         # Prepare node information
         if node.spec.taints:
-            taints = [taint.key +"=" + taint.value + ":" + taint.effect for taint in node.spec.taints]
+            taints = [taint.key + "=" + (taint.value if taint.value else "") + ":" + taint.effect for taint in node.spec.taints]
         else:
-            taints = ["none"]
+            taints = "none"
         
         # Get lease information
         try:

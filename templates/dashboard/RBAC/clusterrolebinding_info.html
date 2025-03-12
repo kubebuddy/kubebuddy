@@ -34,12 +34,14 @@
                     <pre>
 <b>Name:</b> {{ cluster_role_binding_info.describe.name }}
 <b>Labels:</b> {{ cluster_role_binding_info.describe.labels }}
-<b>Annotations:</b> {{ cluster_role_binding_info.describe.annotations }}
+<b>Annotations:</b> {% if  cluster_role_binding_info.describe.annotations %}{% for annotation, value in  cluster_role_binding_info.describe.annotations.items %}
+- {{ annotation }}: {{ value }}{% if not loop.last %}{% endif %}{% endfor %}{% else %} None {% endif %}
 <b>Role:</b>
     <b>Kind:</b> {{ cluster_role_binding_info.describe.role.kind }}
     <b>Name:</b> {{ cluster_role_binding_info.describe.role.name }}
 <b>Subjects:</b>
 </pre>
+{% if cluster_role_binding_info.describe.subjects %}
     <table class="text-center align-middle" style="border-collapse: separate; border-spacing: 0.4rem ;font-size: 0.9rem; ">
         <thead>
             <th>Kind</th>
@@ -47,6 +49,7 @@
             <th>Namespace</th>
         </thead>
         <tbody>
+            
             {% for rb in cluster_role_binding_info.describe.subjects %}
             <tr>
                 <td>{{rb.kind}}</td>
@@ -54,8 +57,10 @@
                 <td>{{rb.namespace}}</td>
             </tr>
             {% endfor %}
+
         </tbody>
     </table>
+    {% endif %}
                 </div>
               </div>
               

@@ -19,7 +19,7 @@ def get_registered_clusters():
         failed_dns_pods = []
         
         try:
-            config.load_kube_config(config_file=path, context=cluster_name)
+            config.load_kube_config(config_file=path, context=context.context_name)
         except Exception as e:
             print(f"Error loading kubeconfig for {cluster_name}: {e}")
             context.control_plane_status = "Unavailable"
@@ -57,7 +57,7 @@ def get_registered_clusters():
             context.failed_dns_pods = failed_dns_pods
 
         except urllib3.exceptions.MaxRetryError as e:
-            logger(f"Cluster {cluster_name} is unreachable: {e}")
+            print(f"Cluster {cluster_name} is unreachable: {e}")
             context.control_plane_status = "Unavailable"
             context.core_dns_status = "Unavailable"
             context.number_of_nodes = 0

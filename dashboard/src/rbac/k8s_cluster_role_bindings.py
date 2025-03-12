@@ -46,7 +46,7 @@ def get_cluster_role_binding_description(path=None, context=None, cluster_role_b
                 'kind': r.kind,
                 'name': r.name,
                 'namespace': r.namespace
-            } for r in cluster_role_binding.subjects]
+            } for r in cluster_role_binding.subjects or []]
         
         return {
             'name': cluster_role_binding.metadata.name,

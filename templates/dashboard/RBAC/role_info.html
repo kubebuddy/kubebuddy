@@ -34,7 +34,8 @@
                     <pre>
 <b>Name:</b> {{ role_info.describe.name }}
 <b>Labels:</b> {{ role_info.describe.labels }}
-<b>Annotations:</b> {{ role_info.describe.annotations }}
+<b>Annotations:</b> {% if role_info.describe.annotations %}{% for annotation, value in role_info.describe.annotations.items %}
+- {{ annotation }}: {{ value }}{% if not loop.last %}<br>{% endif %}{% endfor %}{% else %} None {% endif %}
 <b>PolicyRule:</b>
 </pre>
     <table class="text-center align-middle" style="border-collapse: separate; border-spacing: 0.4rem ;font-size: 0.9rem; ">

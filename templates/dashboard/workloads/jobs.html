@@ -128,18 +128,13 @@
 
       <tbody>
       {% for job in jobs_list %}
-        {% if job.status == "Failed" %}
-          <tr class="table-danger">
-        {% else %}
           <tr>
-        {% endif %}
           <td>{{ job.namespace }}</td>
           <td>
             <a href="/{{current_cluster}}/jobs/{{job.namespace}}/{{job.name}}?cluster_id={{cluster_id}}">
                 {{ job.name }}
             </a>
           </td>
-          <!-- <td  class="{% if job.status == "Completed" %} bg-success {% elif job.status == "Running" %} bg-warning {% else %} bg-danger {% endif %}">{{ job.status }}</td> -->
           <td><span class="{% if job.status == "Completed" %}running-pod{% elif job.status == "Running" %} pending-pod {% else %} failed-pod {% endif %}">{{ job.status }}</span></td>
           <td>{{ job.completions }}</td>
           <td>{{ job.duration }}</td>

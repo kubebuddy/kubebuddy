@@ -47,13 +47,15 @@ def get_namespace_description(path=None, context=None, namespace=None):
     try:
         # Fetch namespace details
         namespace = v1.read_namespace(name=namespace)
-
+        annotations = namespace.metadata.annotations or {}
+        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
         # Prepare namespace information
         namespace_info = {
             "name": namespace.metadata.name,
             "status": namespace.status.phase if namespace.status else "Unknown",
             "labels": list(namespace.metadata.labels.items()) if namespace.metadata.labels else [],
-            "annotations": list(namespace.metadata.annotations.items()) if namespace.metadata.annotations else [],
+            "annotations": filtered_annotations if filtered_annotations else None,
             "resource_quota": namespace.status.resource_quota if hasattr(namespace.status, 'resource_quota') else "None",
             "limit_range": namespace.status.limit_range if hasattr(namespace.status, 'limit_range') else "None",
         }

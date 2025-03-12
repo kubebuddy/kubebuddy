@@ -118,46 +118,39 @@ def integrate_with(request):
     })
 
 def save_clusters(kube_config, changes, path):
-    contexts, _ = config.list_kube_config_contexts(config_file = path)
+    contexts, _ = config.list_kube_config_contexts(config_file=path)
     if not contexts:
-        return # error handling
-    
-    # list of names present in file
-    cluster_names_in_kubeconfig = [context['context']['cluster'] for context in contexts]
-    
+        return  # error handling
+
+    # Extract cluster names and context names
+    cluster_context_mapping = {context['context']['cluster']: context['name'] for context in contexts}
+
     if not changes:
-        for context in contexts:
-            cluster_name = context['context']['cluster']
-            
+        for cluster_name, context_name in cluster_context_mapping.items():
             try:
                 # Set the current context to the specific context
-                config.load_kube_config(context=context['name'])
+                config.load_kube_config(context=context_name)
 
-                # this check might not be needed, but am keeping it here for now
+                # Check if the cluster already exists in the database
                 if not Cluster.objects.filter(cluster_name=cluster_name, kube_config=kube_config).exists():
-                    cluster = Cluster.objects.create(cluster_name=cluster_name, kube_config=kube_config)
-                    cluster.save()
-                else:
-                    pass
+                    Cluster.objects.create(cluster_name=cluster_name, context_name=context_name, kube_config=kube_config)
 
             except Exception as e:
-                print("exception caught:",e)
+                print("Exception caught:", e)
     else:
-        # file already exists (updated)
+        # Fetch existing clusters for this kube_config
         existing_clusters = Cluster.objects.filter(kube_config=kube_config)
         existing_cluster_names = [cluster.cluster_name for cluster in existing_clusters]
 
-        # create newly added clusters
-        for context in contexts:
-            cluster_name = context['context']['cluster']
-                
-            # If this cluster is not already in the database, add it
+        # Add newly found clusters
+        for cluster_name, context_name in cluster_context_mapping.items():
             if cluster_name not in existing_cluster_names:
-                Cluster.objects.create(cluster_name=cluster_name, kube_config=kube_config)
-        
-        clusters_to_delete = [cluster for cluster in existing_clusters if cluster.cluster_name not in cluster_names_in_kubeconfig]
+                Cluster.objects.create(cluster_name=cluster_name, context_name=context_name, kube_config=kube_config)
+
+        # Delete clusters that are no longer present in kubeconfig
+        clusters_to_delete = [cluster for cluster in existing_clusters if cluster.cluster_name not in cluster_context_mapping]
         for cluster in clusters_to_delete:
-                cluster.delete()
+            cluster.delete()
 
 @login_required
 def logout_view(request):

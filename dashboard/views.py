@@ -30,9 +30,11 @@ def get_utils_data(request, cluster_name):
     # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
     # get namespaces
-    namespaces = k8s_namespaces.get_namespace(path, cluster_name)
+    namespaces = k8s_namespaces.get_namespace(path, current_cluster.context_name)
     
-    return cluster_id, current_cluster, path, registered_clusters, namespaces
+    context_name = current_cluster.context_name
+
+    return cluster_id, current_cluster, path, registered_clusters, namespaces, context_name
 
 @server_down_handler
 @login_required
@@ -42,15 +44,16 @@ def dashboard(request, cluster_name):
         namespace="all"
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
+    context_name = current_cluster.context_name
     path = current_cluster.kube_config.path
     logger.info(f"kube config file path  : {path}")
 
-    config.load_kube_config(config_file=path, context = current_cluster.cluster_name)  # Load the kube config
+    config.load_kube_config(config_file=path, context = context_name)  # Load the kube config
 
     # get cluster name
     current_cluster = current_cluster.cluster_name
     
-    namespaces = k8s_namespaces.get_namespace(path, cluster_name)
+    namespaces = k8s_namespaces.get_namespace(path, context_name)
     namespaces_count = len(namespaces)
     logger.info(f"Namespaces  : {len(namespaces)}")
 
@@ -64,40 +67,40 @@ def dashboard(request, cluster_name):
     registered_clusters = clusters_DB.get_registered_clusters()
 
     # get nodes information
-    ready_nodes, not_ready_nodes, node_count = k8s_nodes.getNodesStatus(path, current_cluster)
+    ready_nodes, not_ready_nodes, node_count = k8s_nodes.getNodesStatus(path, context_name)
 
     # getting list of nodes
-    node_list, node_count = k8s_nodes.getnodes(path, current_cluster)
+    node_list, node_count = k8s_nodes.getnodes(path, context_name)
 
     # get pods status
-    status_count = k8s_pods.getPodsStatus(path,current_cluster, namespace)
+    status_count = k8s_pods.getPodsStatus(path,context_name, namespace)
 
     # get list of pods
-    pod_list, pode_count = k8s_pods.getpods(path, current_cluster, namespace)
+    pod_list, pode_count = k8s_pods.getpods(path, context_name, namespace)
 
     # get deployment count
-    deployments_status = k8s_deployments.getDeploymentsStatus(path, current_cluster, namespace)
+    deployments_status = k8s_deployments.getDeploymentsStatus(path, context_name, namespace)
 
     # get daemonset count
-    daemonset_status = k8s_daemonset.getDaemonsetStatus(path, current_cluster, namespace)
+    daemonset_status = k8s_daemonset.getDaemonsetStatus(path, context_name, namespace)
 
     # get replicaset count
-    replicaset_status = k8s_replicaset.getReplicasetStatus(path, current_cluster, namespace)
+    replicaset_status = k8s_replicaset.getReplicasetStatus(path, context_name, namespace)
 
     # get statefulset count
-    statefulset_status = k8s_statefulset.getStatefulsetStatus(path, current_cluster, namespace)
+    statefulset_status = k8s_statefulset.getStatefulsetStatus(path, context_name, namespace)
 
     # get jobs count
-    jobs_status = k8s_jobs.getJobsStatus(path, current_cluster, namespace)
+    jobs_status = k8s_jobs.getJobsStatus(path, context_name, namespace)
 
     # get cronjobs count
-    cronjob_status = k8s_cronjobs.getCronJobsStatus(path, current_cluster, namespace)
+    cronjob_status = k8s_cronjobs.getCronJobsStatus(path, context_name, namespace)
 
     # get cluster metrics 
-    metrics = k8s_cluster_metric.getMetrics(path, current_cluster)
+    metrics = k8s_cluster_metric.getMetrics(path, context_name)
 
     # get cluster events
-    events = k8s_events.get_events(path, current_cluster, True, namespace)
+    events = k8s_events.get_events(path, context_name, True, namespace)
 
     return render(request, 'dashboard/dashboard.html', {'warning': warning_message,
                                                         'ready_nodes': ready_nodes,
@@ -119,12 +122,14 @@ def dashboard(request, cluster_name):
                                                         'cluster_id': cluster_id,
                                                         'metrics' : metrics,
                                                         'registered_clusters': registered_clusters,
-                                                        'events': events,})
+                                                        'events': events,
+                                                        'context_name': context_name})
     
 def pods(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
+    context_name = current_cluster.context_name
 
     logger.info(f"kube config file path  : {path}")
     
@@ -132,13 +137,13 @@ def pods(request, cluster_name):
     registered_clusters = clusters_DB.get_registered_clusters()
 
     # get namespaces
-    namespaces = k8s_namespaces.get_namespace(path, cluster_name)
+    namespaces = k8s_namespaces.get_namespace(path, context_name)
     
-    pods, pc = k8s_pods.getpods(path, cluster_name)
-    pod_info_list = k8s_pods.get_pod_info(path, current_cluster.cluster_name)
+    pods, pc = k8s_pods.getpods(path, context_name)
+    pod_info_list = k8s_pods.get_pod_info(path, current_cluster.context_name)
 
     # get pods status
-    status_count = k8s_pods.getPodsStatus(path,current_cluster.cluster_name)
+    status_count = k8s_pods.getPodsStatus(path,current_cluster.context_name)
 
     logger.info(f"pods : {pods}")
     return render(request, 'dashboard/workloads/pods.html', { "pods": pods, 
@@ -153,13 +158,13 @@ def pods(request, cluster_name):
 
 def pod_info(request, cluster_name, namespace, pod_name):
 
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     pod_info = {
-        "describe": k8s_pods.get_pod_description(path, current_cluster.cluster_name, namespace, pod_name),
-        "logs": k8s_pods.get_pod_logs(path, current_cluster.cluster_name, namespace, pod_name),
-        "events": k8s_pods.get_pod_events(path, current_cluster.cluster_name, namespace, pod_name) or "< None >",
-        "yaml": k8s_pods.get_pod_yaml(path, current_cluster.cluster_name, namespace, pod_name)
+        "describe": k8s_pods.get_pod_description(path, context_name, namespace, pod_name),
+        "logs": k8s_pods.get_pod_logs(path, context_name, namespace, pod_name),
+        "events": k8s_pods.get_pod_events(path, context_name, namespace, pod_name) or "< None >",
+        "yaml": k8s_pods.get_pod_yaml(path, context_name, namespace, pod_name)
     }
 
     return render(request, 'dashboard/workloads/pod_info.html', {
@@ -172,10 +177,10 @@ def pod_info(request, cluster_name, namespace, pod_name):
 
 
 def replicasets(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    rs_status = k8s_replicaset.getReplicasetStatus(path, cluster_name)
-    replicaset_info_list = k8s_replicaset.getReplicaSetsInfo(path, cluster_name)
+    rs_status = k8s_replicaset.getReplicasetStatus(path, context_name)
+    replicaset_info_list = k8s_replicaset.getReplicaSetsInfo(path, context_name)
     
     return render(request, 'dashboard/workloads/replicasets.html', {"cluster_id": cluster_id, 
                                                           "replicaset_info_list": replicaset_info_list,
@@ -185,12 +190,12 @@ def replicasets(request, cluster_name):
                                                           'namespaces': namespaces})
 
 def rs_info(request, cluster_name, namespace, rs_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
     
     rs_info = {
-        "describe": k8s_replicaset.get_replicaset_description(path, current_cluster.cluster_name, namespace, rs_name),
-        "events": k8s_replicaset.get_replicaset_events(path, current_cluster.cluster_name, namespace, rs_name),
-        "yaml": k8s_replicaset.get_yaml_rs(path, current_cluster.cluster_name, namespace, rs_name)
+        "describe": k8s_replicaset.get_replicaset_description(path, context_name, namespace, rs_name),
+        "events": k8s_replicaset.get_replicaset_events(path, context_name, namespace, rs_name),
+        "yaml": k8s_replicaset.get_yaml_rs(path, context_name, namespace, rs_name)
     }
 
     return render(request, 'dashboard/workloads/rs_info.html', {
@@ -202,10 +207,10 @@ def rs_info(request, cluster_name, namespace, rs_name):
     })
 
 def deployments(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    dep_status = k8s_deployments.getDeploymentsStatus(path, cluster_name)
-    deployment_info_list = k8s_deployments.getDeploymentsInfo(path, cluster_name)
+    dep_status = k8s_deployments.getDeploymentsStatus(path, context_name)
+    deployment_info_list = k8s_deployments.getDeploymentsInfo(path, context_name)
     return render(request, 'dashboard/workloads/deployment.html', {"cluster_id": cluster_id, 
                                                          "dep_status": dep_status,
                                                          "deployment_info_list": deployment_info_list,
@@ -214,12 +219,12 @@ def deployments(request, cluster_name):
                                                          'namespaces': namespaces})
 
 def deploy_info(request, cluster_name, namespace, deploy_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     deploy_info = {
-        "describe": k8s_deployments.get_deployment_description(path, current_cluster.cluster_name, namespace, deploy_name),
-        "events": k8s_deployments.get_deploy_events(path, current_cluster.cluster_name, namespace, deploy_name),
-        "yaml": k8s_deployments.get_yaml_deploy(path, current_cluster.cluster_name, namespace, deploy_name)
+        "describe": k8s_deployments.get_deployment_description(path, context_name, namespace, deploy_name),
+        "events": k8s_deployments.get_deploy_events(path, context_name, namespace, deploy_name),
+        "yaml": k8s_deployments.get_yaml_deploy(path, context_name, namespace, deploy_name)
     }
 
     return render(request, 'dashboard/workloads/deploy_info.html', {
@@ -231,9 +236,9 @@ def deploy_info(request, cluster_name, namespace, deploy_name):
     })
 
 def events(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    events = k8s_events.get_events(path, cluster_name, False)
+    events = k8s_events.get_events(path, context_name, False)
     return render(request, 'dashboard/events.html', {"cluster_id": cluster_id, 
                                                      'events': events,
                                                      'current_cluster': cluster_name,
@@ -242,10 +247,10 @@ def events(request, cluster_name):
 
 
 def statefulsets(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    statefulsets_status = k8s_statefulset.getStatefulsetStatus(path, cluster_name)
-    statefulsets_list = k8s_statefulset.getStatefulsetList(path, cluster_name)
+    statefulsets_status = k8s_statefulset.getStatefulsetStatus(path, context_name)
+    statefulsets_list = k8s_statefulset.getStatefulsetList(path, context_name)
 
 
     return render(request, 'dashboard/workloads/statefulsets.html', {
@@ -258,12 +263,12 @@ def statefulsets(request, cluster_name):
     })
 
 def sts_info(request, cluster_name, namespace, sts_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     sts_info = {
-        "describe": k8s_statefulset.get_statefulset_description(path, current_cluster.cluster_name, namespace, sts_name),
-        "events": k8s_statefulset.get_sts_events(path, current_cluster.cluster_name, namespace, sts_name),
-        "yaml": k8s_statefulset.get_yaml_sts(path, current_cluster.cluster_name, namespace, sts_name)
+        "describe": k8s_statefulset.get_statefulset_description(path, context_name, namespace, sts_name),
+        "events": k8s_statefulset.get_sts_events(path, context_name, namespace, sts_name),
+        "yaml": k8s_statefulset.get_yaml_sts(path, context_name, namespace, sts_name)
     }
 
     return render(request, 'dashboard/workloads/sts_info.html', {
@@ -275,10 +280,10 @@ def sts_info(request, cluster_name, namespace, sts_name):
     })
 
 def daemonset(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    daemonset_status = k8s_daemonset.getDaemonsetStatus(path, cluster_name)
-    daemonset_list = k8s_daemonset.getDaemonsetList(path, cluster_name)
+    daemonset_status = k8s_daemonset.getDaemonsetStatus(path, context_name)
+    daemonset_list = k8s_daemonset.getDaemonsetList(path, context_name)
 
     return render(request, 'dashboard/workloads/daemonset.html',{
         'cluster_id': cluster_id,
@@ -290,12 +295,12 @@ def daemonset(request, cluster_name):
     })
 
 def daemonset_info(request, cluster_name, namespace, daemonset_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     daemonset_info = {
-        "describe": k8s_daemonset.get_daemonset_description(path, current_cluster.cluster_name, namespace, daemonset_name),
-        "events": k8s_daemonset.get_daemonset_events(path, current_cluster.cluster_name, namespace, daemonset_name),
-        "yaml": k8s_daemonset.get_daemonset_yaml(path, current_cluster.cluster_name, namespace, daemonset_name),
+        "describe": k8s_daemonset.get_daemonset_description(path, context_name, namespace, daemonset_name),
+        "events": k8s_daemonset.get_daemonset_events(path, context_name, namespace, daemonset_name),
+        "yaml": k8s_daemonset.get_daemonset_yaml(path, context_name, namespace, daemonset_name),
     }
 
     return render(request, 'dashboard/workloads/daemonset_info.html', {
@@ -308,10 +313,10 @@ def daemonset_info(request, cluster_name, namespace, daemonset_name):
 
 
 def jobs(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    jobs_status = k8s_jobs.getJobsStatus(path, cluster_name)
-    jobs_list = k8s_jobs.getJobsList(path, cluster_name)
+    jobs_status = k8s_jobs.getJobsStatus(path, context_name)
+    jobs_list = k8s_jobs.getJobsList(path, context_name)
 
     return render(request, 'dashboard/workloads/jobs.html',{
         'cluster_id': cluster_id,
@@ -323,12 +328,12 @@ def jobs(request, cluster_name):
     })
 
 def jobs_info(request, cluster_name, namespace, job_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     job_info = {
-        "describe": k8s_jobs.get_job_description(path, current_cluster.cluster_name, namespace, job_name),
-        "events": k8s_jobs.get_job_events(path, current_cluster.cluster_name, namespace, job_name),
-        "yaml": k8s_jobs.get_yaml_job(path, current_cluster.cluster_name, namespace, job_name)
+        "describe": k8s_jobs.get_job_description(path, context_name, namespace, job_name),
+        "events": k8s_jobs.get_job_events(path, context_name, namespace, job_name),
+        "yaml": k8s_jobs.get_yaml_job(path, context_name, namespace, job_name)
     }
     return render(request, 'dashboard/workloads/job_info.html', {
         "job_info": job_info,
@@ -341,10 +346,10 @@ def jobs_info(request, cluster_name, namespace, job_name):
 
 
 def cronjobs(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    cronjobs_status = k8s_cronjobs.getCronJobsStatus(path, cluster_name)
-    cronjobs_list = k8s_cronjobs.getCronJobsList(path, cluster_name)
+    cronjobs_status = k8s_cronjobs.getCronJobsStatus(path, context_name)
+    cronjobs_list = k8s_cronjobs.getCronJobsList(path, context_name)
 
     return render(request, 'dashboard/workloads/cronjobs.html', {
         'cluster_id': cluster_id,
@@ -356,12 +361,12 @@ def cronjobs(request, cluster_name):
     })
 
 def cronjob_info(request, cluster_name, namespace, cronjob_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     cronjob_info = {
-        "describe": k8s_cronjobs.get_cronjob_description(path, current_cluster.cluster_name, namespace, cronjob_name),
-        "events": k8s_cronjobs.get_cronjob_events(path, current_cluster.cluster_name, namespace, cronjob_name),
-        "yaml": k8s_cronjobs.get_yaml_cronjob(path, current_cluster.cluster_name, namespace, cronjob_name)
+        "describe": k8s_cronjobs.get_cronjob_description(path, context_name, namespace, cronjob_name),
+        "events": k8s_cronjobs.get_cronjob_events(path, context_name, namespace, cronjob_name),
+        "yaml": k8s_cronjobs.get_yaml_cronjob(path, context_name, namespace, cronjob_name)
     }
     return render(request, 'dashboard/workloads/cronjob_info.html', {
         "cronjob_info": cronjob_info,
@@ -378,7 +383,7 @@ def namespace(request, cluster_name):
 
     # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
-    namespaces = k8s_namespaces.namespaces_data(path, cluster_name)
+    namespaces = k8s_namespaces.namespaces_data(path, current_cluster.context_name)
     namespaces_count = len(namespaces)
 
     return render(request, 'dashboard/cluster_management/namespace.html',{
@@ -390,11 +395,11 @@ def namespace(request, cluster_name):
     })
 
 def ns_info(request, cluster_name, namespace):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     ns_info = {
-        "describe": k8s_namespaces.get_namespace_description(path, current_cluster.cluster_name, namespace),
-        "yaml": k8s_namespaces.get_namespace_yaml(path, current_cluster.cluster_name, namespace),
+        "describe": k8s_namespaces.get_namespace_description(path, context_name, namespace),
+        "yaml": k8s_namespaces.get_namespace_yaml(path, context_name, namespace),
     }
 
     return render(request, 'dashboard/cluster_management/ns_info.html', {
@@ -406,18 +411,18 @@ def ns_info(request, cluster_name, namespace):
     })
 
 def configmaps(request,cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    configmaps, total_count = k8s_configmaps.get_configmaps(path, cluster_name)
+    configmaps, total_count = k8s_configmaps.get_configmaps(path, context_name)
     return render(request, 'dashboard/config_secrets/configmaps.html', {"configmaps": configmaps, 'total_count':total_count, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters, 'namespaces': namespaces})
 
 def configmap_info(request, cluster_name, namespace, configmap_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     configmap_info = {
-        "describe": k8s_configmaps.get_configmap_description(path, current_cluster.cluster_name, namespace, configmap_name),
-        "events": k8s_configmaps.get_configmap_events(path, current_cluster.cluster_name, namespace, configmap_name),
-        "yaml": k8s_configmaps.get_configmap_yaml(path, current_cluster.cluster_name, namespace, configmap_name),
+        "describe": k8s_configmaps.get_configmap_description(path, context_name, namespace, configmap_name),
+        "events": k8s_configmaps.get_configmap_events(path, context_name, namespace, configmap_name),
+        "yaml": k8s_configmaps.get_configmap_yaml(path, context_name, namespace, configmap_name),
     }
 
     return render(request, 'dashboard/config_secrets/configmap_info.html', {
@@ -430,20 +435,20 @@ def configmap_info(request, cluster_name, namespace, configmap_name):
 
 
 def secrets(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    namespaces = k8s_namespaces.get_namespace(path, cluster_name)
-    secrets, total_secrets = k8s_secrets.list_secrets(path, cluster_name)
+    namespaces = k8s_namespaces.get_namespace(path, context_name)
+    secrets, total_secrets = k8s_secrets.list_secrets(path, context_name)
     return render(request, 'dashboard/config_secrets/secrets.html', {"secrets": secrets, "total_secrets": total_secrets, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters, 'namespaces': namespaces})
 
 
 def secret_info(request, cluster_name, namespace, secret_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     secret_info = {
-        "describe": k8s_secrets.get_secret_description(path, current_cluster.cluster_name, namespace, secret_name),
-        "events": k8s_secrets.get_secret_events(path, current_cluster.cluster_name, namespace, secret_name),
-        "yaml": k8s_secrets.get_secret_yaml(path, current_cluster.cluster_name, namespace, secret_name),
+        "describe": k8s_secrets.get_secret_description(path, context_name, namespace, secret_name),
+        "events": k8s_secrets.get_secret_events(path, context_name, namespace, secret_name),
+        "yaml": k8s_secrets.get_secret_yaml(path, context_name, namespace, secret_name),
     }
 
     return render(request, 'dashboard/config_secrets/secret_info.html', {
@@ -456,19 +461,19 @@ def secret_info(request, cluster_name, namespace, secret_name):
 
 
 def services(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    services = k8s_services.list_kubernetes_services(path, cluster_name)
+    services = k8s_services.list_kubernetes_services(path, context_name)
     total_services = len(services)
     return render(request, 'dashboard/services/services.html', {"services": services,"total_services": total_services, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters, 'namespaces': namespaces})
 
 def service_info(request, cluster_name, namespace, service_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     service_info = {
-        "describe": k8s_services.get_service_description(path, current_cluster.cluster_name, namespace, service_name),
-        "events": k8s_services.get_service_events(path, current_cluster.cluster_name, namespace, service_name),
-        "yaml": k8s_services.get_service_yaml(path, current_cluster.cluster_name, namespace, service_name),
+        "describe": k8s_services.get_service_description(path, context_name, namespace, service_name),
+        "events": k8s_services.get_service_events(path, context_name, namespace, service_name),
+        "yaml": k8s_services.get_service_yaml(path, context_name, namespace, service_name),
     }
 
     return render(request, 'dashboard/services/service_info.html', {
@@ -481,19 +486,19 @@ def service_info(request, cluster_name, namespace, service_name):
 
 
 def endpoints(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
     
-    endpoints = k8s_endpoints.get_endpoints(path, cluster_name)
+    endpoints = k8s_endpoints.get_endpoints(path, context_name)
     total_endpoints = len(endpoints)
     return render(request, 'dashboard/services/endpoints.html', {"endpoints": endpoints,"total_endpoints":total_endpoints, "cluster_id": cluster_id, 'current_cluster': cluster_name, 'registered_clusters': registered_clusters, 'namespaces': namespaces}) 
 
 def endpoint_info(request, cluster_name, namespace, endpoint_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     endpoint_info = {
-        "describe": k8s_endpoints.get_endpoint_description(path, current_cluster.cluster_name, namespace, endpoint_name),
-        "events": k8s_endpoints.get_endpoint_events(path, current_cluster.cluster_name, namespace, endpoint_name),
-        "yaml": k8s_endpoints.get_endpoint_yaml(path, current_cluster.cluster_name, namespace, endpoint_name),
+        "describe": k8s_endpoints.get_endpoint_description(path, context_name, namespace, endpoint_name),
+        "events": k8s_endpoints.get_endpoint_events(path, context_name, namespace, endpoint_name),
+        "yaml": k8s_endpoints.get_endpoint_yaml(path, context_name, namespace, endpoint_name),
     }
 
     return render(request, 'dashboard/services/endpoint_info.html', {
@@ -507,10 +512,10 @@ def endpoint_info(request, cluster_name, namespace, endpoint_name):
 
 
 def nodes(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    nodes = k8s_nodes.get_nodes_info(path, cluster_name)
-    ready_nodes, not_ready_nodes, total_nodes = k8s_nodes.getNodesStatus(path, cluster_name)
+    nodes = k8s_nodes.get_nodes_info(path, context_name)
+    ready_nodes, not_ready_nodes, total_nodes = k8s_nodes.getNodesStatus(path, context_name)
     
     return render(request, 'dashboard/cluster_management/nodes.html', { 
         'cluster_id': cluster_id,
@@ -523,12 +528,11 @@ def nodes(request, cluster_name):
     })
 
 def node_info(request, cluster_name, node_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     node_info = {
-        "describe": k8s_nodes.get_node_description(path, current_cluster.cluster_name, node_name),
-        # "events": k8s_endpoints.get_endpoint_events(path, current_cluster.cluster_name, node_name),
-        "yaml": k8s_nodes.get_node_yaml(path, current_cluster.cluster_name, node_name),
+        "describe": k8s_nodes.get_node_description(path, context_name, node_name),
+        "yaml": k8s_nodes.get_node_yaml(path, context_name, node_name),
     }
     return render(request, 'dashboard/cluster_management/node_info.html', {
         "node_info": node_info,
@@ -539,9 +543,9 @@ def node_info(request, cluster_name, node_name):
     })
 
 def limitrange(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    limitranges, total_limitranges = k8s_limit_range.get_limit_ranges(path, cluster_name)
+    limitranges, total_limitranges = k8s_limit_range.get_limit_ranges(path, context_name)
 
     return render(request, 'dashboard/cluster_management/limitrange.html',{
         'cluster_id': cluster_id,
@@ -554,12 +558,12 @@ def limitrange(request, cluster_name):
 
 
 def limitrange_info(request, cluster_name, namespace, limitrange_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     limitrange_info = {
-        "describe": k8s_limit_range.get_limitrange_description(path, current_cluster.cluster_name, namespace, limitrange_name),
-        "events": k8s_limit_range.get_limitrange_events(path, current_cluster.cluster_name, namespace, limitrange_name),
-        "yaml": k8s_limit_range.get_limitrange_yaml(path, current_cluster.cluster_name, namespace, limitrange_name),
+        "describe": k8s_limit_range.get_limitrange_description(path, context_name, namespace, limitrange_name),
+        "events": k8s_limit_range.get_limitrange_events(path, context_name, namespace, limitrange_name),
+        "yaml": k8s_limit_range.get_limitrange_yaml(path, context_name, namespace, limitrange_name),
     }
 
     return render(request, 'dashboard/cluster_management/limitrange_info.html', { 
@@ -571,9 +575,9 @@ def limitrange_info(request, cluster_name, namespace, limitrange_name):
     })
 
 def resourcequotas(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    resourcequotas, total_quotas = k8s_resource_quota.get_resource_quotas(path, cluster_name)
+    resourcequotas, total_quotas = k8s_resource_quota.get_resource_quotas(path, context_name)
 
     return render(request, 'dashboard/cluster_management/resourcequotas.html',{
         'cluster_id': cluster_id,
@@ -586,12 +590,12 @@ def resourcequotas(request, cluster_name):
 
 
 def resourcequota_info(request, cluster_name, namespace, resourcequota_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     resourcequota_info = {
-        "describe": k8s_resource_quota.get_resourcequota_description(path, current_cluster.cluster_name, namespace, resourcequota_name),
-        "events": k8s_resource_quota.get_resourcequota_events(path, current_cluster.cluster_name, namespace, resourcequota_name),
-        "yaml": k8s_resource_quota.get_resourcequota_yaml(path, current_cluster.cluster_name, namespace, resourcequota_name),
+        "describe": k8s_resource_quota.get_resourcequota_description(path, context_name, namespace, resourcequota_name),
+        "events": k8s_resource_quota.get_resourcequota_events(path, context_name, namespace, resourcequota_name),
+        "yaml": k8s_resource_quota.get_resourcequota_yaml(path, context_name, namespace, resourcequota_name),
     }
 
     return render(request, 'dashboard/cluster_management/resourcequota_info.html', {
@@ -603,9 +607,9 @@ def resourcequota_info(request, cluster_name, namespace, resourcequota_name):
     })
 
 def pdb(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    pdbs, pdbs_count = k8s_pdb.get_pdb(path, cluster_name)
+    pdbs, pdbs_count = k8s_pdb.get_pdb(path, context_name)
 
     return render(request, 'dashboard/cluster_management/pdb.html', {
         "cluster_id": cluster_id,
@@ -617,12 +621,12 @@ def pdb(request, cluster_name):
     })
 
 def pdb_info(request, cluster_name, namespace, pdb_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     pdb_info = {
-        "describe": k8s_pdb.get_pdb_description(path, cluster_name, namespace, pdb_name),
-        "events": k8s_pdb.get_pdb_events(path, cluster_name, namespace, pdb_name),
-        "yaml": k8s_pdb.get_pdb_yaml(path, cluster_name, namespace, pdb_name),
+        "describe": k8s_pdb.get_pdb_description(path, context_name, namespace, pdb_name),
+        "events": k8s_pdb.get_pdb_events(path, context_name, namespace, pdb_name),
+        "yaml": k8s_pdb.get_pdb_yaml(path, context_name, namespace, pdb_name),
     }
 
     return render(request, 'dashboard/cluster_management/pdb_info.html', {
@@ -633,9 +637,9 @@ def pdb_info(request, cluster_name, namespace, pdb_name):
     })
 
 def persistentvolume(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    pvs, total_pvs = k8s_pv.list_persistent_volumes(path, cluster_name)
+    pvs, total_pvs = k8s_pv.list_persistent_volumes(path, context_name)
 
     return render(request, 'dashboard/persistent_storage/persistentvolume.html', {
         'cluster_id': cluster_id,
@@ -646,11 +650,11 @@ def persistentvolume(request, cluster_name):
     })
 
 def pv_info(request, cluster_name, pv_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     pv_info = {
-        "describe": k8s_pv.get_pv_description(path, current_cluster.cluster_name, pv_name),
-        "yaml": k8s_pv.get_pv_yaml(path, current_cluster.cluster_name, pv_name),
+        "describe": k8s_pv.get_pv_description(path, context_name, pv_name),
+        "yaml": k8s_pv.get_pv_yaml(path, context_name, pv_name),
     }
 
     return render(request, 'dashboard/persistent_storage/pv_info.html', {
@@ -663,9 +667,9 @@ def pv_info(request, cluster_name, pv_name):
 
 
 def persistentvolumeclaim(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    pvc, total_pvc = k8s_pvc.list_pvc(path, cluster_name)
+    pvc, total_pvc = k8s_pvc.list_pvc(path, context_name)
 
     return render(request, 'dashboard/persistent_storage/persistentvolumeclaim.html', {
         'cluster_id': cluster_id,
@@ -677,12 +681,12 @@ def persistentvolumeclaim(request, cluster_name):
     })
 
 def pvc_info(request, cluster_name, namespace, pvc_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     pvc_info = {
-        "describe": k8s_pvc.get_pvc_description(path, current_cluster.cluster_name, namespace, pvc_name),
-        "events": k8s_pvc.get_pvc_events(path, current_cluster.cluster_name, namespace, pvc_name),
-        "yaml": k8s_pvc.get_pvc_yaml(path, current_cluster.cluster_name, namespace, pvc_name),
+        "describe": k8s_pvc.get_pvc_description(path, context_name, namespace, pvc_name),
+        "events": k8s_pvc.get_pvc_events(path, context_name, namespace, pvc_name),
+        "yaml": k8s_pvc.get_pvc_yaml(path, context_name, namespace, pvc_name),
     }
 
     return render(request, 'dashboard/persistent_storage/pvc_info.html', {
@@ -695,9 +699,9 @@ def pvc_info(request, cluster_name, namespace, pvc_name):
 
 
 def storageclass(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    sc, total_sc = k8s_storage_class.list_storage_classes(path, cluster_name)
+    sc, total_sc = k8s_storage_class.list_storage_classes(path, context_name)
 
     return render(request, 'dashboard/persistent_storage/storageclass.html', {
         'cluster_id': cluster_id,
@@ -708,12 +712,12 @@ def storageclass(request, cluster_name):
     })
 
 def storageclass_info(request, cluster_name, sc_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     sc_info = {
-        "describe": k8s_storage_class.get_storage_class_description(path, cluster_name, sc_name),
-        "events": k8s_storage_class.get_storage_class_events(path, cluster_name, sc_name),
-        "yaml": k8s_storage_class.get_sc_yaml(path, cluster_name, sc_name)
+        "describe": k8s_storage_class.get_storage_class_description(path, context_name, sc_name),
+        "events": k8s_storage_class.get_storage_class_events(path, context_name, sc_name),
+        "yaml": k8s_storage_class.get_sc_yaml(path, context_name, sc_name)
     }    
 
     return render(request, 'dashboard/persistent_storage/storageclass_info.html', {
@@ -732,9 +736,9 @@ def np(request, cluster_name):
     # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
     # get namespaces
-    namespaces = k8s_namespaces.get_namespace(path, cluster_name)
+    namespaces = k8s_namespaces.get_namespace(path, current_cluster.context_name)
     
-    nps, nps_count = k8s_np.get_np(path, cluster_name)
+    nps, nps_count = k8s_np.get_np(path, current_cluster.context_name)
 
     return render(request, 'dashboard/networking/np.html', {
         'cluster_id': cluster_id,
@@ -754,9 +758,9 @@ def np_info(request, cluster_name, namespace, np_name):
     registered_clusters = clusters_DB.get_registered_clusters()
 
     np_info = {
-        "describe": k8s_np.get_np_description(path, cluster_name, namespace, np_name),
-        "events": k8s_np.get_np_events(path, cluster_name, namespace, np_name),
-        "yaml": k8s_np.get_np_yaml(path, cluster_name, namespace, np_name)
+        "describe": k8s_np.get_np_description(path, current_cluster.context_name, namespace, np_name),
+        "events": k8s_np.get_np_events(path, current_cluster.context_name, namespace, np_name),
+        "yaml": k8s_np.get_np_yaml(path, current_cluster.context_name, namespace, np_name)
     }    
 
     return render(request, 'dashboard/networking/np_info.html', {
@@ -773,9 +777,9 @@ def ingress(request, cluster_name):
     # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
     # get namespaces
-    namespaces = k8s_namespaces.get_namespace(path, cluster_name)
+    namespaces = k8s_namespaces.get_namespace(path, current_cluster.context_name)
     
-    ingress, ingress_count = k8s_ingress.get_ingress(path, cluster_name)
+    ingress, ingress_count = k8s_ingress.get_ingress(path, current_cluster.context_name)
 
     return render(request, 'dashboard/networking/ingress.html', {
         'cluster_id': cluster_id,
@@ -793,9 +797,9 @@ def role(request, cluster_name):
     # get clusters in DB
     registered_clusters = clusters_DB.get_registered_clusters()
     # get namespaces
-    namespaces = k8s_namespaces.get_namespace(path, cluster_name)
+    namespaces = k8s_namespaces.get_namespace(path, current_cluster.context_name)
 
-    role, total_role = k8s_role.list_roles(path, cluster_name)
+    role, total_role = k8s_role.list_roles(path, current_cluster.context_name)
 
     return render(request, 'dashboard/RBAC/role.html', {
         'cluster_id': cluster_id,
@@ -807,12 +811,12 @@ def role(request, cluster_name):
     })
 
 def role_info(request, cluster_name, namespace, role_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     role_info = {
-        "describe": k8s_role.get_role_description(path, cluster_name, namespace, role_name),
-        "events": k8s_role.get_role_events(path, cluster_name, namespace, role_name),
-        "yaml": k8s_role.get_role_yaml(path, cluster_name, namespace, role_name)
+        "describe": k8s_role.get_role_description(path, context_name, namespace, role_name),
+        "events": k8s_role.get_role_events(path, context_name, namespace, role_name),
+        "yaml": k8s_role.get_role_yaml(path, context_name, namespace, role_name)
     }
 
     return render(request, 'dashboard/RBAC/role_info.html', {
@@ -823,9 +827,9 @@ def role_info(request, cluster_name, namespace, role_name):
     })
 
 def rolebinding(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    rolebinding, total_rolebinding = k8s_rolebindings.list_rolebindings(path, cluster_name)
+    rolebinding, total_rolebinding = k8s_rolebindings.list_rolebindings(path, context_name)
 
     return render(request, 'dashboard/RBAC/rolebinding.html', {
         'cluster_id': cluster_id,
@@ -837,12 +841,12 @@ def rolebinding(request, cluster_name):
     })
 
 def role_binding_info(request, cluster_name, namespace, role_binding_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     role_binding_info = {
-        "describe": k8s_rolebindings.get_role_binding_description(path, cluster_name, namespace, role_binding_name),
-        "events": k8s_rolebindings.get_role_binding_events(path, cluster_name, namespace, role_binding_name),
-        "yaml": k8s_rolebindings.get_role_binding_yaml(path, cluster_name, namespace, role_binding_name),
+        "describe": k8s_rolebindings.get_role_binding_description(path, context_name, namespace, role_binding_name),
+        "events": k8s_rolebindings.get_role_binding_events(path, context_name, namespace, role_binding_name),
+        "yaml": k8s_rolebindings.get_role_binding_yaml(path, context_name, namespace, role_binding_name),
     }
 
     return render(request, 'dashboard/RBAC/rolebinding_info.html', {
@@ -853,9 +857,9 @@ def role_binding_info(request, cluster_name, namespace, role_binding_name):
     })
 
 def clusterrole(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    clusterrole, total_clusterrole = k8s_cluster_roles.get_cluster_role(path, cluster_name)
+    clusterrole, total_clusterrole = k8s_cluster_roles.get_cluster_role(path, context_name)
 
     return render(request, 'dashboard/RBAC/clusterrole.html', {
         'cluster_id': cluster_id,
@@ -866,12 +870,12 @@ def clusterrole(request, cluster_name):
     })
 
 def clusterrole_info(request, cluster_name, cluster_role_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     cluster_role_info = {
-        "describe": k8s_cluster_roles.get_cluster_role_description(path, cluster_name, cluster_role_name),
-        "events": k8s_cluster_roles.get_cluster_role_events(path, cluster_name, cluster_role_name),
-        "yaml": k8s_cluster_roles.get_cluster_role_yaml(path, cluster_name, cluster_role_name)
+        "describe": k8s_cluster_roles.get_cluster_role_description(path, context_name, cluster_role_name),
+        "events": k8s_cluster_roles.get_cluster_role_events(path, context_name, cluster_role_name),
+        "yaml": k8s_cluster_roles.get_cluster_role_yaml(path, context_name, cluster_role_name)
     }
 
     return render(request, 'dashboard/RBAC/clusterrole_info.html', {
@@ -882,9 +886,9 @@ def clusterrole_info(request, cluster_name, cluster_role_name):
     })
 
 def clusterrolebinding(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    clusterrolebinding, total_clusterrolebinding = k8s_cluster_role_bindings.get_cluster_role_bindings(path, cluster_name)
+    clusterrolebinding, total_clusterrolebinding = k8s_cluster_role_bindings.get_cluster_role_bindings(path, context_name)
 
     return render(request, 'dashboard/RBAC/clusterrolebinding.html', {
         'cluster_id': cluster_id,
@@ -895,12 +899,12 @@ def clusterrolebinding(request, cluster_name):
     })
 
 def cluster_role_binding_info(request, cluster_name, cluster_role_binding_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     cluster_role_binding_info = {
-        "describe": k8s_cluster_role_bindings.get_cluster_role_binding_description(path, cluster_name, cluster_role_binding_name),
-        "events": k8s_cluster_role_bindings.get_cluster_role_binding_events(path, cluster_name, cluster_role_binding_name),
-        "yaml": k8s_cluster_role_bindings.get_cluster_role_binding_yaml(path, cluster_name, cluster_role_binding_name),
+        "describe": k8s_cluster_role_bindings.get_cluster_role_binding_description(path, context_name, cluster_role_binding_name),
+        "events": k8s_cluster_role_bindings.get_cluster_role_binding_events(path, context_name, cluster_role_binding_name),
+        "yaml": k8s_cluster_role_bindings.get_cluster_role_binding_yaml(path, context_name, cluster_role_binding_name),
     }
 
     return render(request, 'dashboard/RBAC/clusterrolebinding_info.html', {
@@ -911,9 +915,9 @@ def cluster_role_binding_info(request, cluster_name, cluster_role_binding_name):
     })
 
 def serviceAccount(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    serviceAccount, total_serviceAccount = k8s_service_accounts.get_service_accounts(path, cluster_name)
+    serviceAccount, total_serviceAccount = k8s_service_accounts.get_service_accounts(path, context_name)
 
     return render(request, 'dashboard/RBAC/serviceAccount.html', {
         'cluster_id': cluster_id,
@@ -925,12 +929,12 @@ def serviceAccount(request, cluster_name):
     })
 
 def serviceAccountInfo(request, cluster_name, namespace, sa_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     serviceAccountInfo = {
-        "describe": k8s_service_accounts.get_sa_description(path, cluster_name, namespace, sa_name),
-        "events": k8s_service_accounts.get_sa_events(path, cluster_name, namespace, sa_name),
-        "yaml": k8s_service_accounts.get_sa_yaml(path, cluster_name, namespace, sa_name),
+        "describe": k8s_service_accounts.get_sa_description(path, context_name, namespace, sa_name),
+        "events": k8s_service_accounts.get_sa_events(path, context_name, namespace, sa_name),
+        "yaml": k8s_service_accounts.get_sa_yaml(path, context_name, namespace, sa_name),
     }
 
     return render(request, 'dashboard/RBAC/serviceAccountInfo.html', {
@@ -942,9 +946,9 @@ def serviceAccountInfo(request, cluster_name, namespace, sa_name):
 
 
 def pod_metrics(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    result = k8s_pod_metrics.get_pod_metrics(path, current_cluster.cluster_name)
+    result = k8s_pod_metrics.get_pod_metrics(path, context_name)
     
     # Check if result is a tuple with 3 elements (indicating new format)
     if isinstance(result, tuple) and len(result) == 3:
@@ -972,9 +976,9 @@ def pod_metrics(request, cluster_name):
 
 
 def node_metrics(request, cluster_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
     
-    result = k8s_node_metrics.get_node_metrics(path, current_cluster.cluster_name)
+    result = k8s_node_metrics.get_node_metrics(path, context_name)
     
     # Check if result is a tuple with 3 elements (indicating new format)
     if isinstance(result, tuple) and len(result) == 3:

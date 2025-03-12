@@ -58,6 +58,9 @@ def get_role_binding_description(path=None, context=None, namespace=None, role_b
 
     try:
         role_binding = v1.read_namespaced_role_binding(name=role_binding_name, namespace=namespace)
+        annotations = role_binding.metadata.annotations or {}
+        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
         subjects = [{
                 'kind': r.kind,
                 'name': r.name,
@@ -67,7 +70,7 @@ def get_role_binding_description(path=None, context=None, namespace=None, role_b
         return {
             'name': role_binding.metadata.name,
             'labels': role_binding.metadata.labels,
-            'annotations': role_binding.metadata.annotations,
+            'annotations': filtered_annotations if filtered_annotations else None,
             'role': {
                 'kind': role_binding.role_ref.kind,
                 'name': role_binding.role_ref.name

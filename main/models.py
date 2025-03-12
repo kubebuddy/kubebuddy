@@ -25,7 +25,7 @@ class KubeConfig(models.Model):
 class Cluster(models.Model):
     cluster_name = models.CharField(max_length=255)
     kube_config = models.ForeignKey(KubeConfig, on_delete=models.CASCADE)
-
+    context_name = models.CharField(max_length=255)
     def __str__(self):
         return self.cluster_name
     

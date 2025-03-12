@@ -36,7 +36,8 @@
 <b>Selector</b>:{% if sts_info.describe.selector %}{% for key, value in sts_info.describe.selector.items %}{{ key }}={{ value }}{% endfor %}{% else %}<span> None</span>{% endif %}
 <b>Labels</b>: {% for key, value in sts_info.describe.labels %}
 - {{ key }}: {{ value }}{% if not loop.last %}, {% endif %}{% empty %} None {% endfor %}
-<b>Annotations:</b>{% if sts_info.describe.annotations %}{% for annotation, value in sts_info.describe.annotations %}{{ annotation }}: {{ value }}{% if not loop.last %}<br>{% endif %}{% endfor %}{% else %} None{% endif %}
+<b>Annotations:</b> {% if sts_info.describe.annotations %}{% for annotation, value in sts_info.describe.annotations.items %}
+- {{ annotation }}: {{ value }}{% if not loop.last %}{% endif %}{% endfor %}{% else %} None {% endif %}
 <b>Replicas</b>: {{ sts_info.describe.replicas.desired }} Desired | {{ sts_info.describe.replicas.total }} Total
 <b>Update Strategy</b>: {{ sts_info.describe.update_strategy.type }}
   Partition: {{ sts_info.describe.update_strategy.partition }}

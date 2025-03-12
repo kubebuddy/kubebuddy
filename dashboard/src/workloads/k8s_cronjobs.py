@@ -148,5 +148,4 @@ def get_yaml_cronjob(path, context, namespace, cronjob_name):
     config.load_kube_config(config_file=path, context=context)
     v1 = client.BatchV1Api()
     cronjob = v1.read_namespaced_cron_job(name=cronjob_name, namespace=namespace)
-    print(cronjob)
     return yaml.dump(cronjob.to_dict(), default_flow_style=False)

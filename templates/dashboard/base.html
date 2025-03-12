@@ -18,20 +18,27 @@
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{% static 'js/breadcrumb.js' %}"></script>
 
   <!-- Custom styles for this template -->
   <link rel="stylesheet" href="{% static 'css/sidebars.css' %}">
 </head>
 <body>
 
-  <nav class="navbar bg-body-tertiary navbar-expand-lg bg-light py-2">
+  <nav class="navbar border-bottom bg-body-tertiary navbar-expand-lg bg-light py-2">
     
-    <a href="/KubeBuddy" class="text-decoration-none">
+    <a href="/KubeBuddy" class="text-decoration-none" style="width: 18vw;">
       <div class="navbar-brand d-flex align-items-center p-4 gap-2">
         <img src="https://cdn-icons-png.flaticon.com/512/11231/11231852.png" width="30" height="30" alt="KubeBuddy Logo">
         <span class="fs-5 fw-semibold">KubeBuddy</span>
       </div>
     </a>
+
+    <nav aria-label="breadcrumb" class="m-2">
+      <ol class="breadcrumb m-1 p-1">
+        <!-- These will be populated dynamically with JavaScript -->
+      </ol>
+    </nav>
     
   
     <!-- Right Section (Cluster Dropdown + Button + Dropdown) -->

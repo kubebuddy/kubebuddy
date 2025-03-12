@@ -61,3 +61,40 @@ document.addEventListener("DOMContentLoaded", function () {
         document.dispatchEvent(new Event("darkModeChanged"));
     }
 });
+
+// section highlight on select
+document.addEventListener("DOMContentLoaded", function () {
+    let sidebarLinks = document.querySelectorAll(".sidebar a");
+    let currentUrl = window.location.pathname; // Get current path without query param
+
+      function updateLinkStyles() {
+          sidebarLinks.forEach(link => {
+              let linkHref = link.getAttribute("href").split('?')[0];
+              if (linkHref === currentUrl) {
+                  if (document.body.classList.contains("dark-mode")) {
+                      link.style.backgroundColor = "#007acc";
+                      link.style.color = "#ffffff";
+                  } else {
+                      link.style.backgroundColor = "#8ddbff";
+                      link.style.color = ""; // Reset color if not dark mode
+                  }
+                  link.style.borderRadius = "5px";
+                  link.style.padding = "5px 10px";
+                  link.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+          });
+      }
+
+      // Initial link style update
+      updateLinkStyles();
+
+      // Observer to watch for changes to dark mode
+      const observer = new MutationObserver(() => {
+          updateLinkStyles();
+      });
+
+      observer.observe(document.body, {
+          attributes: true,
+          attributeFilter: ['class'] 
+      });
+    });

@@ -17,64 +17,76 @@
 
   <div class="tab-content">
     <div class="tab-pane fade show active" id="podmetrics">
+      {% if metrics_available %}
       <div class="row text-center">
-        <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: {{ total_pods}}</i></b></div></div>
+        <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Pods: {{ total_pods }}</i></b></div></div>
       </div>
+      {% else %}
+      <div class="alert alert-warning" role="alert">
+        <h4 class="alert-heading">Metrics Not Available!</h4>
+        <p>The Kubernetes Metrics API is not available or not responding. Please ensure the metrics-server is installed and functioning in your cluster.</p>
+        {% if error_message %}
+        <hr>
+        <p class="mb-0">Error details: {{ error_message }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
   </div>
   
+  {% if metrics_available %}
   <div class="container">
     <div class="mb-1 d-flex justify-content-between">
       <!-- New dropdown on the left -->
       <div class="d-flex">
-      <div class="dropdown">
-        <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-          All Namespaces
-        </button>
-        <ul class="dropdown-menu p-2" aria-labelledby="newDropdown">
-        <li class="dropdown-item" onclick="namespaceHandler(event)">All Namespaces</li>
-        {% for ns in namespaces %}
-        <li class="dropdown-item" onclick="namespaceHandler(event)">{{ns}}</li>
-        {% endfor %}      
-        </ul>
-      </div>
-
-      <div class="mx-3">
-        <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search metrics...">
-      </div>
-    </div>
-
         <div class="dropdown">
-          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
-            Select Columns to Display
+          <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            All Namespaces
           </button>
-          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
-                <label class="form-check-label" for="All"> All</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
-                <label class="form-check-label" for="Namespace"> Namespace</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
-                <label class="form-check-label" for="Name"> Name</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="cpu" id="cpu" checked> 
-                <label class="form-check-label" for="cpu"> CPU</label>
-            </li>
-            <li>
-              <input class="form-check-input column-checkbox" type="checkbox" value="Memory" id="Memory" checked> 
-              <label class="form-check-label" for="Memory"> Memory</label>
+          <ul class="dropdown-menu p-2" aria-labelledby="newDropdown">
+            <li class="dropdown-item" onclick="namespaceHandler(event)">All Namespaces</li>
+            {% for ns in namespaces %}
+            <li class="dropdown-item" onclick="namespaceHandler(event)">{{ns}}</li>
+            {% endfor %}      
+          </ul>
+        </div>
+
+        <div class="mx-3">
+          <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search metrics...">
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+          Select Columns to Display
+        </button>
+        <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+          <li>
+            <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+            <label class="form-check-label" for="All"> All</label>
+          </li>
+          <li>
+            <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
+            <label class="form-check-label" for="Namespace"> Namespace</label>
+          </li>
+          <li>
+            <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
+            <label class="form-check-label" for="Name"> Name</label>
+          </li>
+          <li>
+            <input class="form-check-input column-checkbox" type="checkbox" value="cpu" id="cpu" checked> 
+            <label class="form-check-label" for="cpu"> CPU</label>
+          </li>
+          <li>
+            <input class="form-check-input column-checkbox" type="checkbox" value="Memory" id="Memory" checked> 
+            <label class="form-check-label" for="Memory"> Memory</label>
           </li>
           <li>
             <input class="form-check-input column-checkbox" type="checkbox" value="Error" id="Error"> 
             <label class="form-check-label" for="Error"> Error</label>
-        </li>
+          </li>
         </ul>
-        </div>
+      </div>
     </div>
   
     <!-- Table -->
@@ -97,11 +109,11 @@
         <td>{{ pod.cpu_usage_milli }} m</td>
         <td>{{ pod.memory_usage_mi }} Mi</td>
         <td>{{ pod.error }}</td>
-    </tr>
+      </tr>
       {% endfor %}
       </tbody>
-      </table>
+    </table>
   </div>
   <script src="{% static 'js/namespaceFilter.js' %}"></script>
-
+  {% endif %}
 {% endblock %}

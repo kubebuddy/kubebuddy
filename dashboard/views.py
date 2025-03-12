@@ -944,11 +944,26 @@ def serviceAccountInfo(request, cluster_name, namespace, sa_name):
 def pod_metrics(request, cluster_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
 
-    all_pod_metrics, total_pods = k8s_pod_metrics.get_pod_metrics(path, current_cluster.cluster_name)
+    result = k8s_pod_metrics.get_pod_metrics(path, current_cluster.cluster_name)
+    
+    # Check if result is a tuple with 3 elements (indicating new format)
+    if isinstance(result, tuple) and len(result) == 3:
+        all_pod_metrics, total_pods, metrics_available = result
+    else:
+        # Fallback for older format or error case
+        all_pod_metrics, total_pods = result
+        metrics_available = not isinstance(all_pod_metrics, dict) or 'error' not in all_pod_metrics
+    
+    error_message = None
+    if isinstance(all_pod_metrics, dict) and 'error' in all_pod_metrics:
+        error_message = all_pod_metrics['error']
+        metrics_available = False
 
     return render(request, 'dashboard/metrics/pod_metrics.html', {
-        'all_pod_metrics': all_pod_metrics,
+        'all_pod_metrics': all_pod_metrics if metrics_available else [],
         'total_pods': total_pods,
+        'metrics_available': metrics_available,
+        'error_message': error_message,
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
         'registered_clusters': registered_clusters,
@@ -958,11 +973,27 @@ def pod_metrics(request, cluster_name):
 
 def node_metrics(request, cluster_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces = get_utils_data(request, cluster_name)
-
-    node_metrics, total_nodes = k8s_node_metrics.get_node_metrics(path, current_cluster.cluster_name)
+    
+    result = k8s_node_metrics.get_node_metrics(path, current_cluster.cluster_name)
+    
+    # Check if result is a tuple with 3 elements (indicating new format)
+    if isinstance(result, tuple) and len(result) == 3:
+        node_metrics, total_nodes, metrics_available = result
+    else:
+        # Fallback for older format or error case
+        node_metrics, total_nodes = result
+        metrics_available = not isinstance(node_metrics, dict) or 'error' not in node_metrics
+    
+    error_message = None
+    if isinstance(node_metrics, dict) and 'error' in node_metrics:
+        error_message = node_metrics['error']
+        metrics_available = False
+    
     return render(request, 'dashboard/metrics/node_metrics.html', {
-        'node_metrics': node_metrics,
+        'node_metrics': node_metrics if metrics_available else [],
         'total_nodes': total_nodes,
+        'metrics_available': metrics_available,
+        'error_message': error_message,
         'cluster_id': cluster_id,
         'current_cluster': cluster_name,
         'registered_clusters': registered_clusters,

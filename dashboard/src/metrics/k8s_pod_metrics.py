@@ -7,8 +7,17 @@ def get_pod_metrics(path=None, context=None):
     metrics_api = client.CustomObjectsApi()
 
     try:
+        # Check if metrics API is available
+        try:
+            # Try to access metrics API
+            metrics_api.get_api_resources(group="metrics.k8s.io", version="v1beta1")
+        except ApiException:
+            # Metrics API not available
+            return {"error": "Metrics API not available"}, 0, False
+        
         all_namespaces = v1.list_namespace().items
         all_pod_metrics = []
+        metrics_available = True
 
         for namespace_obj in all_namespaces:
             namespace = namespace_obj.metadata.name
@@ -53,7 +62,7 @@ def get_pod_metrics(path=None, context=None):
                                 total_memory_usage_bytes += int(memory_str.replace('B',''))
 
                         cpu_usage_milli = int(total_cpu_usage_nano / 1000000)
-                        memory_usage_mi = round( total_memory_usage_bytes / (1024 * 1024), 2)
+                        memory_usage_mi = round(total_memory_usage_bytes / (1024 * 1024), 2)
 
                         all_pod_metrics.append({
                             "name": pod_name,
@@ -70,11 +79,12 @@ def get_pod_metrics(path=None, context=None):
                             "namespace": namespace,
                             "error": f"Failed to fetch metrics: {e.reason}"
                         })
+                        metrics_available = False
 
             except ApiException as e:
                 print(f"Error fetching pods in namespace {namespace}: {e}")
 
-        return all_pod_metrics, len(all_pod_metrics)
+        return all_pod_metrics, len(all_pod_metrics), metrics_available
 
     except ApiException as e:
-        return {"error": f"Failed to fetch namespace list: {e.reason}"}
+        return {"error": f"Failed to fetch namespace list: {e.reason}"}, 0, False

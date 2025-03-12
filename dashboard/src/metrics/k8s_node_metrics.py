@@ -10,6 +10,16 @@ def get_node_metrics(path=None, context=None):
         nodes = v1.list_node().items
         node_metrics = []
         total_nodes = len(nodes)
+        metrics_available = True
+        
+        # Check if metrics API is available
+        try:
+            # Try to access metrics API
+            metrics_api.get_api_resources(group="metrics.k8s.io", version="v1beta1")
+        except ApiException:
+            # Metrics API not available
+            return {"error": "Metrics API not available"}, 0, False
+            
         for node in nodes:
             node_name = node.metadata.name
             try:
@@ -47,8 +57,9 @@ def get_node_metrics(path=None, context=None):
                     "name": node_name,
                     "error": f"Failed to fetch metrics: {e.reason}"
                 })
+                metrics_available = False
 
-        return node_metrics, total_nodes
+        return node_metrics, total_nodes, metrics_available
 
     except ApiException as e:
-        return {"error": f"Failed to fetch node list: {e.reason}"}
+        return {"error": f"Failed to fetch node list: {e.reason}"}, 0, False

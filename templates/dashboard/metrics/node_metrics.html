@@ -17,12 +17,24 @@
 
   <div class="tab-content">
     <div class="tab-pane fade show active" id="nodemetrics">
+      {% if metrics_available %}
       <div class="row text-center">
         <div class="col-md-3"><div class="stats-card bg-primary"><b><i>Total Nodes: {{ total_nodes }}</i></b></div></div>
       </div>
+      {% else %}
+      <div class="alert alert-warning" role="alert">
+        <h4 class="alert-heading">Metrics Not Available!</h4>
+        <p>The Kubernetes Metrics API is not available or not responding. Please ensure the metrics-server is installed and functioning in your cluster.</p>
+        {% if error_message %}
+        <hr>
+        <p class="mb-0">Error details: {{ error_message }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
   </div>
   
+  {% if metrics_available %}
   <div class="container">
     <!-- Dropdown with checkboxes to select columns -->
     <div class="mb-3">
@@ -47,7 +59,7 @@
             <li>
               <input class="form-check-input column-checkbox" type="checkbox" value="cpu_cores" id="cpu_cores" checked> 
               <label class="form-check-label" for="cpu_cores"> CPU (cores)</label>
-          </li>
+            </li>
             <li>
               <input class="form-check-input column-checkbox" type="checkbox" value="cpu%" id="cpu%" checked> 
               <label class="form-check-label" for="cpu%"> CPU %</label>
@@ -64,9 +76,9 @@
               <input class="form-check-input column-checkbox" type="checkbox" value="Error" id="Error" checked> 
               <label class="form-check-label" for="Error"> Error</label>
             </li>
-
-        </ul>
+          </ul>
         </div>
+      </div>
     </div>
   
     <!-- Table -->
@@ -94,8 +106,8 @@
         </tr>
       {% endfor %}
       </tbody>
-      </table>
+    </table>
   </div>
   <script src="{% static 'js/namespaceFilter.js' %}"></script>
-
+  {% endif %}
 {% endblock %}

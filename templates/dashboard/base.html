@@ -122,7 +122,7 @@
               <li><a href="/{{current_cluster}}/statefulsets?cluster_id={{cluster_id}}" class="link-dark rounded">StatefulSets</a></li>
               <li><a href="/{{current_cluster}}/daemonset?cluster_id={{cluster_id}}" class="link-dark rounded">DaemonSets</a></li>
               <li><a href="/{{current_cluster}}/jobs?cluster_id={{cluster_id}}" class="link-dark rounded">Jobs</a></li>
-              <li><a href="/{{current_cluster}}/cronjobs?cluster_id={{cluster_id}}" class="link-dark rounded">CronJob</a></li>
+              <li><a href="/{{current_cluster}}/cronjobs?cluster_id={{cluster_id}}" class="link-dark rounded">CronJobs</a></li>
             </ul>
           </div>
         </li>
@@ -134,11 +134,11 @@
           </button>
           <div class="collapse show" id="cluster-mgmt-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{current_cluster}}/namespace?cluster_id={{cluster_id}}" class="link-dark rounded">Namespace</a></li>
+              <li><a href="/{{current_cluster}}/namespace?cluster_id={{cluster_id}}" class="link-dark rounded">Namespaces</a></li>
               <li><a href="/{{current_cluster}}/nodes?cluster_id={{cluster_id}}" class="link-dark rounded">Nodes</a></li>
-              <li><a href="/{{current_cluster}}/pdb?cluster_id={{cluster_id}}" class="link-dark rounded">PodDisruptionBudget</a></li>
-              <li><a href="/{{current_cluster}}/limitrange?cluster_id={{cluster_id}}" class="link-dark rounded">LimitRange</a></li>
-              <li><a href="/{{current_cluster}}/resourcequotas?cluster_id={{cluster_id}}" class="link-dark rounded">Resource Quota</a></li>
+              <li><a href="/{{current_cluster}}/pdb?cluster_id={{cluster_id}}" class="link-dark rounded">Pod Disruption Budgets</a></li>
+              <li><a href="/{{current_cluster}}/limitrange?cluster_id={{cluster_id}}" class="link-dark rounded">Limit Ranges</a></li>
+              <li><a href="/{{current_cluster}}/resourcequotas?cluster_id={{cluster_id}}" class="link-dark rounded">Resource Quotas</a></li>
             </ul>
           </div>
         </li>
@@ -150,7 +150,7 @@
           </button>
           <div class="collapse show" id="services-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{current_cluster}}/services?cluster_id={{cluster_id}}" class="link-dark rounded">Service</a></li>
+              <li><a href="/{{current_cluster}}/services?cluster_id={{cluster_id}}" class="link-dark rounded">Services</a></li>
               <li><a href="/{{current_cluster}}/endpoints?cluster_id={{cluster_id}}" class="link-dark rounded">Endpoints</a></li>
             </ul>
           </div>
@@ -159,7 +159,7 @@
         <!-- Config & Secrets Section -->
         <li class="mb-1">
           <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#config-secrets-collapse" aria-expanded="true">
-            Config & Secrets
+            ConfigMaps & Secrets
           </button>
           <div class="collapse show" id="config-secrets-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
@@ -176,9 +176,9 @@
           </button>
           <div class="collapse show" id="ps-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{current_cluster}}/pv?cluster_id={{cluster_id}}" class="link-dark rounded">PersistentVolume</a></li>
-              <li><a href="/{{current_cluster}}/pvc?cluster_id={{cluster_id}}" class="link-dark rounded">PersistentVolumeClaim</a></li>
-              <li><a href="/{{current_cluster}}/storageclass?cluster_id={{cluster_id}}" class="link-dark rounded">StorageClass</a></li>
+              <li><a href="/{{current_cluster}}/pv?cluster_id={{cluster_id}}" class="link-dark rounded">Persistent Volumes</a></li>
+              <li><a href="/{{current_cluster}}/pvc?cluster_id={{cluster_id}}" class="link-dark rounded">Persistent Volume Claims</a></li>
+              <li><a href="/{{current_cluster}}/storageclass?cluster_id={{cluster_id}}" class="link-dark rounded">Storage Classes</a></li>
             </ul>
           </div>
         </li>
@@ -191,7 +191,7 @@
           <div class="collapse show" id="networking-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
               <li><a href="/{{current_cluster}}/ingress?cluster_id={{cluster_id}}" class="link-dark rounded">Ingress</a></li>
-              <li><a href="/{{current_cluster}}/np?cluster_id={{cluster_id}}" class="link-dark rounded">NetworkPolicy</a></li>
+              <li><a href="/{{current_cluster}}/np?cluster_id={{cluster_id}}" class="link-dark rounded">Network Policies</a></li>
             </ul>
           </div>
         </li>
@@ -203,11 +203,11 @@
           </button>
           <div class="collapse show" id="rbac-collapse">
             <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{current_cluster}}/role?cluster_id={{cluster_id}}" class="link-dark rounded">Role</a></li>
-              <li><a href="/{{current_cluster}}/rolebinding?cluster_id={{cluster_id}}" class="link-dark rounded">RoleBinding</a></li>
-              <li><a href="/{{current_cluster}}/clusterrole?cluster_id={{cluster_id}}" class="link-dark rounded">ClusterRole</a></li>
-              <li><a href="/{{current_cluster}}/clusterrolebinding?cluster_id={{cluster_id}}" class="link-dark rounded">ClusterRoleBinding</a></li>
-              <li><a href="/{{current_cluster}}/serviceAccount?cluster_id={{cluster_id}}" class="link-dark rounded">ServiceAccount</a></li>
+              <li><a href="/{{current_cluster}}/role?cluster_id={{cluster_id}}" class="link-dark rounded">Roles</a></li>
+              <li><a href="/{{current_cluster}}/rolebinding?cluster_id={{cluster_id}}" class="link-dark rounded">Role Bindings</a></li>
+              <li><a href="/{{current_cluster}}/clusterrole?cluster_id={{cluster_id}}" class="link-dark rounded">Cluster Roles</a></li>
+              <li><a href="/{{current_cluster}}/clusterrolebinding?cluster_id={{cluster_id}}" class="link-dark rounded">Cluster Role Bindings</a></li>
+              <li><a href="/{{current_cluster}}/serviceAccount?cluster_id={{cluster_id}}" class="link-dark rounded">Service Accounts</a></li>
             </ul>
           </div>
         </li>

@@ -9,9 +9,9 @@
 <div class="container">
   <div class="d-flex justify-content-center mb-4">
     <div class="gap" role="group" aria-label="Persistent Storage Tabs">
-      <a href="/{{current_cluster}}/pv?cluster_id={{cluster_id}}" class="btn btn-primary active" id="pv-tab">PersistentVolume</a>
-      <a href="/{{current_cluster}}/pvc?cluster_id={{cluster_id}}" class="btn btn-primary" id="pvc-tab">PersistentVolumeClaim</a>
-      <a href="/{{current_cluster}}/storageclass?cluster_id={{cluster_id}}" class="btn btn-primary" id="storageclass-tab">StorageClass</a>
+      <a href="/{{current_cluster}}/pv?cluster_id={{cluster_id}}" class="btn btn-primary active" id="pv-tab">Persistent Volumes</a>
+      <a href="/{{current_cluster}}/pvc?cluster_id={{cluster_id}}" class="btn btn-primary" id="pvc-tab">Persistent Volume Claims</a>
+      <a href="/{{current_cluster}}/storageclass?cluster_id={{cluster_id}}" class="btn btn-primary" id="storageclass-tab">Storage Classes</a>
     </div>
   </div>
   {% if total_pvs == 0 %}

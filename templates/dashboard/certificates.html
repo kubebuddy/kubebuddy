@@ -1,0 +1,87 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Certificates{% endblock %}
+
+{% block favicon %}https://cdn-icons-png.flaticon.com/512/8124/8124748.png{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="container">
+    <!-- {% if certificate is null %} 
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill mx-2"></i>
+      No Certificates Found.
+    </div>
+  {% else %} -->
+    <div class="mb-1 d-flex justify-content-between">
+      <!-- New dropdown on the left -->
+      <div class="d-flex">
+      
+      <div class="">
+        <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search certificates...">
+      </div>
+    </div>
+  
+          <div class="dropdown">
+          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Columns to Display
+          </button>
+          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+                <label class="form-check-label" for="All"> All</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Certificate" id="Certificate" checked> 
+                <label class="form-check-label" for="Certificate"> Certificate</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="Expires" id="Expires" checked> 
+                <label class="form-check-label" for="Expires"> Expires</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="ResidualTime" id="ResidualTime" checked> 
+                <label class="form-check-label" for="ResidualTime"> Residual Time</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="CertificateAuthority" id="CertificateAuthority" checked> 
+                <label class="form-check-label" for="CertificateAuthority"> Certificate Authority</label>
+            </li>
+            <li>
+                <input class="form-check-input column-checkbox" type="checkbox" value="ExternallyManaged" id="ExternallyManaged" checked> 
+                <label class="form-check-label" for="ExternallyManaged"> Externally Managed</label>
+            </li>
+          </ul>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <table class="table table-bordered">
+      <thead class="table-dark">
+      <tr>
+        <th class="sortable" id="colCertificate">CERTIFICATE</th>
+        <th class="sortable" id="colExpires">EXPIRES</th>
+        <th class="sortable" id="colResidualTime">RESIDUAL TIME</th>
+        <th class="sortable" id="colCertificateAuthority">CERTIFICATE AUTHORITY</th>
+        <th class="sortable" id="colExternallyManaged">EXTERNALLY MANAGED</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for cert in certificates %}
+      <tr>
+          <td>{{cert.certificate }}</td>
+          <td>{{cert.expires}}</td>
+          <td>{{cert.residual_time}}</td>
+          <td>{{cert.cert_authority}}</td>
+          <td>{{cert.exernally_managed}}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+  </table>
+    
+  </div>
+  {% endif %}
+
+{% endblock %}

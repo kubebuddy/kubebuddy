@@ -14,7 +14,7 @@ from .src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
 from .src.rbac import k8s_role, k8s_cluster_role_bindings, k8s_cluster_roles, k8s_rolebindings, k8s_service_accounts
 from .src.metrics import k8s_pod_metrics, k8s_node_metrics
 from main.models import KubeConfig, Cluster
-from .src import k8s_cluster_metric
+from .src import k8s_cluster_metric, certificates
 from django.contrib.auth.decorators import login_required
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
@@ -1002,4 +1002,18 @@ def node_metrics(request, cluster_name):
         'current_cluster': cluster_name,
         'registered_clusters': registered_clusters,
         'namespaces': namespaces,
+    })
+
+
+def k8sCertificates(request, cluster_name):
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
+
+    k8s_certificates = certificates.get_certificate_details(path, context_name)
+
+    return render(request, 'dashboard/certificates.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'certificate': k8s_certificates,
+        'namespaces': namespaces
     })

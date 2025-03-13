@@ -1,27 +1,99 @@
-document.addEventListener("DOMContentLoaded", function () {
-    let pageKey = "selectedNamespace_" + window.location.pathname; // Unique key per page
-    let savedNamespace = sessionStorage.getItem(pageKey) || "All Namespaces";
+// document.addEventListener("DOMContentLoaded", function () {
+//     let pageKey = "selectedNamespace_" + window.location.pathname; // Unique key per page
+//     let savedNamespace = sessionStorage.getItem(pageKey) || "All Namespaces";
 
-    document.getElementById("newDropdown").innerText = savedNamespace;
-    filterTable(savedNamespace);
+//     document.getElementById("newDropdown").innerText = savedNamespace;
+//     filterTable(savedNamespace);
+// });
+
+// function namespaceHandler(event) {
+//     let pageKey = "selectedNamespace_" + window.location.pathname; // Unique key per page
+//     let selectedNamespace = event.target.innerText.trim();
+
+//     sessionStorage.setItem(pageKey, selectedNamespace); // Save per page
+//     filterTable(selectedNamespace);
+//     document.getElementById("newDropdown").innerText = selectedNamespace;
+// }
+
+// function filterTable(namespace) {
+//     let tableRows = document.querySelectorAll("tbody tr");
+//     tableRows.forEach(row => {
+//         let namespaceCell = row.querySelector("td:first-child");
+//         if (namespaceCell) {
+//             let rowNamespace = namespaceCell.innerText.trim();
+//             row.style.display = (namespace === "All Namespaces" || rowNamespace === namespace) ? "table-row" : "none";
+//         }
+//     });
+// }
+
+document.addEventListener("DOMContentLoaded", function () {
+    let pageKey = "selectedNamespaces_" + window.location.pathname;
+    let savedNamespaces = JSON.parse(sessionStorage.getItem(pageKey)) || ["All Namespaces"];
+
+    // Restore checkbox states
+    document.querySelectorAll(".namespace-checkbox").forEach(checkbox => {
+        if (savedNamespaces.includes(checkbox.value)) {
+            checkbox.checked = true;
+        }
+    });
+
+    // Handle "All Namespaces" selection
+    if (savedNamespaces.includes("All Namespaces")) {
+        document.getElementById("allNamespaces").checked = true;
+    }
+
+    updateDropdownText(savedNamespaces);
+    filterTable(savedNamespaces);
 });
 
-function namespaceHandler(event) {
-    let pageKey = "selectedNamespace_" + window.location.pathname; // Unique key per page
-    let selectedNamespace = event.target.innerText.trim();
+function namespaceHandler() {
+    let pageKey = "selectedNamespaces_" + window.location.pathname;
+    let selectedNamespaces = [];
 
-    sessionStorage.setItem(pageKey, selectedNamespace); // Save per page
-    filterTable(selectedNamespace);
-    document.getElementById("newDropdown").innerText = selectedNamespace;
+    document.querySelectorAll(".namespace-checkbox:checked").forEach(checkbox => {
+        selectedNamespaces.push(checkbox.value);
+    });
+
+    if (selectedNamespaces.length === 0) {
+        // Default back to "All Namespaces" if nothing is selected
+        selectedNamespaces = ["All Namespaces"];
+        document.getElementById("allNamespaces").checked = true;
+    } else {
+        document.getElementById("allNamespaces").checked = false;
+    }
+
+    sessionStorage.setItem(pageKey, JSON.stringify(selectedNamespaces));
+    updateDropdownText(selectedNamespaces);
+    filterTable(selectedNamespaces);
 }
 
-function filterTable(namespace) {
+function toggleAllNamespaces() {
+    let pageKey = "selectedNamespaces_" + window.location.pathname;
+    let allNamespacesChecked = document.getElementById("allNamespaces").checked;
+
+    if (allNamespacesChecked) {
+        // Uncheck all individual namespace checkboxes
+        document.querySelectorAll(".namespace-checkbox").forEach(checkbox => checkbox.checked = false);
+        sessionStorage.setItem(pageKey, JSON.stringify(["All Namespaces"]));
+        updateDropdownText(["All Namespaces"]);
+        filterTable(["All Namespaces"]);
+    }
+}
+
+function updateDropdownText(selectedNamespaces) {
+    let dropdownText = selectedNamespaces.includes("All Namespaces") ? "All Namespaces" : selectedNamespaces.join(", ");
+    document.getElementById("newDropdown").innerText = dropdownText || "Select Namespaces";
+}
+
+function filterTable(selectedNamespaces) {
     let tableRows = document.querySelectorAll("tbody tr");
+
     tableRows.forEach(row => {
         let namespaceCell = row.querySelector("td:first-child");
         if (namespaceCell) {
             let rowNamespace = namespaceCell.innerText.trim();
-            row.style.display = (namespace === "All Namespaces" || rowNamespace === namespace) ? "table-row" : "none";
+            let isVisible = selectedNamespaces.includes("All Namespaces") || selectedNamespaces.includes(rowNamespace);
+            row.style.display = isVisible ? "table-row" : "none";
         }
     });
 }

@@ -28,7 +28,7 @@ def get_utils_data(request, cluster_name):
     path = current_cluster.kube_config.path
     
     # get clusters in DB
-    registered_clusters = clusters_DB.get_cluster_names()
+    registered_clusters = clusters_DB.get_registered_clusters()
     # get namespaces
     namespaces = k8s_namespaces.get_namespace(path, current_cluster.context_name)
     
@@ -64,7 +64,7 @@ def dashboard(request, cluster_name):
         warning_message = None
 
     # get clusters in DB
-    registered_clusters = clusters_DB.get_cluster_names()
+    registered_clusters = clusters_DB.get_registered_clusters()
 
     # get nodes information
     ready_nodes, not_ready_nodes, node_count = k8s_nodes.getNodesStatus(path, context_name)
@@ -134,7 +134,7 @@ def pods(request, cluster_name):
     logger.info(f"kube config file path  : {path}")
     
     # get clusters in DB
-    registered_clusters = clusters_DB.get_cluster_names()
+    registered_clusters = clusters_DB.get_registered_clusters()
 
     # get namespaces
     namespaces = k8s_namespaces.get_namespace(path, context_name)
@@ -382,7 +382,7 @@ def namespace(request, cluster_name):
     path = current_cluster.kube_config.path
 
     # get clusters in DB
-    registered_clusters = clusters_DB.get_cluster_names()
+    registered_clusters = clusters_DB.get_registered_clusters()
     namespaces = k8s_namespaces.namespaces_data(path, current_cluster.context_name)
     namespaces_count = len(namespaces)
 
@@ -734,7 +734,7 @@ def np(request, cluster_name):
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
     # get clusters in DB
-    registered_clusters = clusters_DB.get_cluster_names()
+    registered_clusters = clusters_DB.get_registered_clusters()
     # get namespaces
     namespaces = k8s_namespaces.get_namespace(path, current_cluster.context_name)
     
@@ -755,7 +755,7 @@ def np_info(request, cluster_name, namespace, np_name):
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
     # get clusters in DB
-    registered_clusters = clusters_DB.get_cluster_names()
+    registered_clusters = clusters_DB.get_registered_clusters()
 
     np_info = {
         "describe": k8s_np.get_np_description(path, current_cluster.context_name, namespace, np_name),
@@ -775,7 +775,7 @@ def ingress(request, cluster_name):
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
     # get clusters in DB
-    registered_clusters = clusters_DB.get_cluster_names()    
+    registered_clusters = clusters_DB.get_registered_clusters()    
     # get namespaces
     namespaces = k8s_namespaces.get_namespace(path, current_cluster.context_name)
     
@@ -795,7 +795,7 @@ def role(request, cluster_name):
     current_cluster = Cluster.objects.get(id = cluster_id)
     path = current_cluster.kube_config.path
     # get clusters in DB
-    registered_clusters = clusters_DB.get_cluster_names()
+    registered_clusters = clusters_DB.get_registered_clusters()
     # get namespaces
     namespaces = k8s_namespaces.get_namespace(path, current_cluster.context_name)
 

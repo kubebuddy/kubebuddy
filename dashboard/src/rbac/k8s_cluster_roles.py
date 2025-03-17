@@ -28,6 +28,9 @@ def get_cluster_role_description(path=None, context=None, cluster_role_name=None
 
     try:
         cluster_role = v1.read_cluster_role(name=cluster_role_name)
+        # Annotations
+        annotations = cluster_role.metadata.annotations or {}
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
         policy_rule = [{
                 'resources': r.resources,
                 'non_resource_urls': r.non_resource_ur_ls,
@@ -38,7 +41,7 @@ def get_cluster_role_description(path=None, context=None, cluster_role_name=None
         return {
             'name': cluster_role.metadata.name,
             'labels': cluster_role.metadata.labels,
-            'annotations': cluster_role.metadata.annotations,
+            'annotations': filtered_annotations if filtered_annotations else "",
             'policy_rule': policy_rule
         }
     

@@ -40,8 +40,12 @@ def get_cluster_role_binding_description(path=None, context=None, cluster_role_b
     config.load_kube_config(path, context)
     v1 = client.RbacAuthorizationV1Api()
 
+    
     try:
         cluster_role_binding = v1.read_cluster_role_binding(name=cluster_role_binding)
+        # Annotations
+        annotations = cluster_role_binding.metadata.annotations or {}
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
         subjects = [{
                 'kind': r.kind,
                 'name': r.name,
@@ -51,7 +55,7 @@ def get_cluster_role_binding_description(path=None, context=None, cluster_role_b
         return {
             'name': cluster_role_binding.metadata.name,
             'labels': cluster_role_binding.metadata.labels,
-            'annotations': cluster_role_binding.metadata.annotations,
+            'annotations': filtered_annotations if filtered_annotations else "",
             'role': {
                 'kind': cluster_role_binding.role_ref.kind,
                 'name': cluster_role_binding.role_ref.name

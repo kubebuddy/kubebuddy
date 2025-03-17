@@ -18,63 +18,69 @@
     <div class="mb-1 d-flex justify-content-between">
       <!-- New dropdown on the left -->
       <div class="d-flex">
+        <div class="dropdown">
+          <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Namespaces
+          </button>
+          <ul class="dropdown-menu p-2" aria-labelledby="newDropdown">
+              <li>
+                  <input type="checkbox" id="allNamespaces" class="form-check-input" onclick="toggleAllNamespaces()">
+                  <label for="allNamespaces">All Namespaces</label>
+              </li>
+              <hr>
+              {% for ns in namespaces %}
+              <li>
+                  <input type="checkbox" class="namespace-checkbox form-check-input" value="{{ ns }}" onclick="namespaceHandler()">
+                  <label>{{ ns }}</label>
+              </li>
+              {% endfor %}
+          </ul>
+        </div>
+
+        <div class="mx-3">
+          <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search events...">
+        </div>
+      </div>
+  
       <div class="dropdown">
-        <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-          All Namespaces
+        <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+          Select Columns to Display
         </button>
-        <ul class="dropdown-menu p-2" aria-labelledby="newDropdown">
-        <li class="dropdown-item" onclick="namespaceHandler(event)">All Namespaces</li>
-        {% for ns in namespaces %}
-        <li class="dropdown-item" onclick="namespaceHandler(event)">{{ns}}</li>
-        {% endfor %}      
+        <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+              <label class="form-check-label" for="All"> All</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
+              <label class="form-check-label" for="Namespace"> Namespace</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Message" id="Message" checked> 
+              <label class="form-check-label" for="Message"> Message</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Object" id="Object" checked> 
+              <label class="form-check-label" for="Object"> Object</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Source" id="Source" checked> 
+              <label class="form-check-label" for="Source"> Source</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Count" id="Count" checked> 
+              <label class="form-check-label" for="Count"> Count</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Timestamp" id="Timestamp" checked> 
+              <label class="form-check-label" for="Timestamp"> Timestamp</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Type" id="Type" checked> 
+              <label class="form-check-label" for="Type"> Type</label>
+          </li>
         </ul>
       </div>
-
-      <div class="mx-3">
-        <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search events...">
-      </div>
-    </div>
-  
-          <div class="dropdown">
-          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
-            Select Columns to Display
-          </button>
-          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
-                <label class="form-check-label" for="All"> All</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
-                <label class="form-check-label" for="Namespace"> Namespace</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Message" id="Message" checked> 
-                <label class="form-check-label" for="Message"> Message</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Object" id="Object" checked> 
-                <label class="form-check-label" for="Object"> Object</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Source" id="Source" checked> 
-                <label class="form-check-label" for="Source"> Source</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Count" id="Count" checked> 
-                <label class="form-check-label" for="Count"> Count</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Timestamp" id="Timestamp" checked> 
-                <label class="form-check-label" for="Timestamp"> Timestamp</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Type" id="Type" checked> 
-                <label class="form-check-label" for="Type"> Type</label>
-            </li>
-          </ul>
-        
-        </div>
     </div>
 
     <!-- Table -->

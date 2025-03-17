@@ -1,0 +1,94 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Ingress{% endblock %}
+
+{% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ing-128.png?raw=true {% endblock %}
+
+{% block content %}
+
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-start">
+            <img src="https://cdn-icons-png.flaticon.com/512/18015/18015441.png" style="height: 5vh;" alt="ds">
+            <h2 class="mb-4 ps-3 text-primary">Ingress: {{ ingress_info.describe.name }}</h2>
+        </div>
+
+
+        <!-- Bootstrap Tabs -->
+        <ul class="nav nav-tabs" id="podTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="describe-tab" data-bs-toggle="tab" href="#describe">Describe</a>
+            </li> 
+            <li class="nav-item">
+                <a class="nav-link" id="events-tab" data-bs-toggle="tab" href="#events">Events</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="tab" href="#yaml">YAML</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="describe">
+                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                    <pre>
+
+<b>Name:</b> {{ ingress_info.describe.name }}
+<b>Labels:</b> {% for key, value in ingress_info.describe.labels.items %} {{ key }}={{ value }}{% if not loop.last %}{% endif %} 
+        {% endfor %}
+<b>Namespace:</b> {{ ingress_info.describe.namespace }}
+<b>Address:</b> {{ ingress_info.describe.address }}
+<b>Ingress Class:</b> {{ ingress_info.describe.ingress_class }}
+<b>Annotations:</b>{% if ingress_info.describe.annotations %} {% for key, value in ingress_info.describe.annotations.items %} {{ key }}={{ value }}{% if not loop.last %}{% endif %} {% endfor %}
+        {% else %}&lt;none&gt;{% endif %}
+
+<b>Rules:</b>{% if ingress_info.describe.rules %}
+<table class="text-center align-middle" style="border-collapse: separate; border-spacing: 0.4rem ;font-size: 0.9rem; ">
+    <thead>
+        <th>Host</th>
+        <th>Path</th>
+        <th>Backends</th>
+    </thead>
+    <tbody>
+        
+        {% for rule in ingress_info.describe.rules %}
+        <tr>
+            <td>{{rule.host}}</td>
+            <td>{{rule.path}}</td>
+            <td>{{rule.backend}}</td>
+        </tr>{% endfor %}
+    </tbody>
+</table>{% endif %}</pre>
+                </div>
+              </div>
+              
+
+            <div class="tab-pane fade" id="events">
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
+                    <pre>
+{% if ingress_info.events %}{{ ingress_info.events }}
+{% else %} &lt; None &gt; {% endif %}
+                    </pre>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="yaml">
+                <!-- <h4>Pod YAML</h4> -->
+                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                    <!-- Copy Button inside the div -->
+                    <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
+                        Copy YAML
+                    </button>
+                    
+                
+                    <pre id="yamlContent">{{ ingress_info.yaml }}</pre>
+                </div>
+            </div>
+            
+        </div>
+
+        <a href="/{{current_cluster}}/ingress={{cluster_id}}" class="btn btn-primary mt-3">Back to Ingress</a>
+    </div>
+    
+    {% load static%}
+    <script src="{% static 'js/copyYAML.js' %}"></script>
+{% endblock %}

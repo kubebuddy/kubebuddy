@@ -40,7 +40,6 @@ function initBreadcrumbNavigation() {
       'rolebinding': 'Role Bindings',
       'clusterrole': 'Cluster Roles',
       'clusterrolebinding': 'Cluster Role Bindings',
-      'serviceAccount': 'Service Accounts',
       'sa': 'Service Accounts',
       'pod_metrics': 'Pod Metrics',
       'node_metrics': 'Node Metrics',

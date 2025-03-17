@@ -91,7 +91,7 @@ urlpatterns = [
     path('<str:cluster_name>/rolebinding', rolebinding, name="rolebinding"),
     path('<str:cluster_name>/clusterrole', clusterrole, name="clusterrole"),
     path('<str:cluster_name>/clusterrolebinding', clusterrolebinding, name="clusterrolebinding"),
-    path('<str:cluster_name>/serviceAccount', serviceAccount, name="serviceAccount"),
+    path('<str:cluster_name>/sa', serviceAccount, name="serviceAccount"),
     
     path('<str:cluster_name>/role/<str:namespace>/<str:role_name>/', role_info, name='role_info'),
     path('<str:cluster_name>/clusterrole/<str:cluster_role_name>/', clusterrole_info, name='clusterrole_info'),

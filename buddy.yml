@@ -248,3 +248,43 @@ spec:
   policyTypes:
   - Ingress
   - Egress
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: my-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: my-app
+
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: my-limit-range
+spec:
+  limits:
+  - max:
+      memory: 512Mi
+      cpu: 1
+    min:
+      memory: 32Mi
+      cpu: 100m
+    type: Container
+
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: my-resource-quota
+spec:
+  hard:
+    requests.cpu: "5"
+    requests.memory: 5Gi
+    limits.cpu: "10"
+    limits.memory: 10Gi
+    pods: "5"
+    services: "3"
+    persistentvolumeclaims: "3"

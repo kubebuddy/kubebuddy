@@ -29,11 +29,11 @@ python -m venv kubebuddy_env
 
 - On Windows:
   ```sh
-  .\k8s_env\Scripts\activate
+  .\kubebuddy_env\Scripts\activate
   ```
 - On Linux/Mac:
   ```sh
-  source k8s_env/bin/activate
+  source kubebuddy_env/bin/activate
   ```
 
 ### 4. Install Dependencies

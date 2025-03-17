@@ -35,6 +35,10 @@ main {
   transition: width .5s ease-in-out; 
 }
 
+#search-bar::placeholder {
+  color: white;
+}
+
 /* Main content should be scrollable */
 .main-content {
   flex-grow: 1;

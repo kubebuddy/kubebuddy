@@ -35,50 +35,57 @@
     <div class="mb-1 d-flex justify-content-between">
       <!-- New dropdown on the left -->
       <div class="d-flex">
-      <div class="dropdown">
-        <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-          All Namespaces
-        </button>
-        <ul class="dropdown-menu p-2" aria-labelledby="newDropdown">
-        <li class="dropdown-item" onclick="namespaceHandler(event)">All Namespaces</li>
-        {% for ns in namespaces %}
-        <li class="dropdown-item" onclick="namespaceHandler(event)">{{ns}}</li>
-        {% endfor %}      
-        </ul>
-      </div>
-
-      <div class="mx-3">
-        <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search policies...">
-      </div>
-    </div>
-
         <div class="dropdown">
-          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
-            Select Columns to Display
+          <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Namespaces
           </button>
-          <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
-                <label class="form-check-label" for="All"> All</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
-                <label class="form-check-label" for="Namespace"> Namespace</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
-                <label class="form-check-label" for="Name"> Name</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="PodSelector" id="PodSelector" checked> 
-                <label class="form-check-label" for="PodSelector"> Pod Selector</label>
-            </li>
-            <li>
-                <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
-                <label class="form-check-label" for="age"> Age</label>
-            </li>
-        </ul>
+          <ul class="dropdown-menu p-2" aria-labelledby="newDropdown">
+              <li>
+                  <input type="checkbox" id="allNamespaces" class="form-check-input" onclick="toggleAllNamespaces()">
+                  <label for="allNamespaces">All Namespaces</label>
+              </li>
+              <hr>
+              {% for ns in namespaces %}
+              <li>
+                  <input type="checkbox" class="namespace-checkbox form-check-input" value="{{ ns }}" onclick="namespaceHandler()">
+                  <label>{{ ns }}</label>
+              </li>
+              {% endfor %}
+          </ul>
         </div>
+
+        <div class="mx-3">
+          <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search policies...">
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+          Select Columns to Display
+        </button>
+        <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="All" id="All"> 
+              <label class="form-check-label" for="All"> All</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Namespace" id="Namespace" checked> 
+              <label class="form-check-label" for="Namespace"> Namespace</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="Name" id="Name" checked> 
+              <label class="form-check-label" for="Name"> Name</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="PodSelector" id="PodSelector" checked> 
+              <label class="form-check-label" for="PodSelector"> Pod Selector</label>
+          </li>
+          <li>
+              <input class="form-check-input column-checkbox" type="checkbox" value="age" id="age" checked> 
+              <label class="form-check-label" for="age"> Age</label>
+          </li>
+        </ul>
+      </div>
     </div>
   
     <!-- Table -->

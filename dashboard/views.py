@@ -790,6 +790,26 @@ def ingress(request, cluster_name):
         'namespaces': namespaces
     })
 
+def ingress_info(request, cluster_name, namespace, ingress_name):
+    cluster_id = request.GET.get('cluster_id')
+    current_cluster = Cluster.objects.get(id = cluster_id)
+    path = current_cluster.kube_config.path
+    # get clusters in DB
+    registered_clusters = clusters_DB.get_registered_clusters()
+
+    ingress_info = {
+        "describe": k8s_ingress.get_ingress_description(path, current_cluster.context_name, namespace, ingress_name),
+        "events": k8s_ingress.get_ingress_events(path, current_cluster.context_name, namespace, ingress_name),
+        "yaml": k8s_ingress.get_ingress_yaml(path, current_cluster.context_name, namespace, ingress_name)
+    }    
+
+    return render(request, 'dashboard/networking/ingress_info.html', {
+        'cluster_id': cluster_id,
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'ingress_info': ingress_info,
+    })
+
 def role(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)

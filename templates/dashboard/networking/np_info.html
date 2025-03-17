@@ -32,18 +32,14 @@
             <div class="tab-pane fade show active" id="describe">
                 <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
                     <pre>
-<b>Name:</b> {{ pdb_info.describe.name }}
+<b>Name:</b> {{ np_info.describe.name }}
 <b>Namespace:</b> {{ np_info.describe.namespace }}
 <b>Selector</b> {{np_info.describe.selector}}
 <b>Spec:</b>
-    PodSelector: {{ np_info.describe.spec.pod_selector }}{% if np_info.describe.spec.ingress %}
-    Allowing ingress traffic:
-        {{np_info.describe.spec.ingress}}
-        {% endif %}{% if np_info.describe.spec.egress %}
-    Allowing egress traffic:
-        {{np_info.describe.spec.egress}}
-        {% endif %}
-
+    PodSelector: {{ np_info.describe.spec.pod_selector }}
+    Allowing ingress traffic:{% if np_info.describe.spec.ingress %} {{np_info.describe.spec.ingress}} {% else %} &lt;none&gt; {% endif %}
+    Allowing egress traffic:{% if np_info.describe.spec.egress %} {{np_info.describe.spec.egress}} {% else %} &lt;none&gt; {% endif %}
+    Policy Types:{% if np_info.describe.spec.policy_types %} {{np_info.describe.spec.policy_types}} {% else %} &lt;none&gt; {% endif %}
                     </pre>
                 </div>
               </div>
@@ -51,7 +47,7 @@
 
             <div class="tab-pane fade" id="events">
                 <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
-                    <pre>{{ resourcequota_info.events }}</pre>
+                    <pre>{{ np_info.events }}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">

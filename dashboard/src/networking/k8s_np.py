@@ -43,7 +43,8 @@ def get_np_description(path=None, context=None, namespace=None, np_name=None):
             "spec":{
                 "pod_selector": np.spec.pod_selector.match_labels,
                 "ingress": np.spec.ingress,
-                "egress": np.spec.egress
+                "egress": np.spec.egress,
+                "policy_types": np.spec.policy_types
             }
         }
         return np_info

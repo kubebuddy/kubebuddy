@@ -11,7 +11,7 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 secret_info, role_info, pv_info, storageclass_info, role_binding_info, \
                                 clusterrole_info, cluster_role_binding_info, serviceAccountInfo, \
                                 pod_metrics, node_metrics, pdb, pdb_info, np, np_info, ingress, \
-                                k8sCertificates
+                                k8sCertificates, ingress_info
                                 
 
 
@@ -84,6 +84,7 @@ urlpatterns = [
     path('<str:cluster_name>/ingress', ingress, name="ingress"),
     
     path('<str:cluster_name>/np/<str:namespace>/<str:np_name>/', np_info, name='np_info'),
+    path('<str:cluster_name>/ingress/<str:namespace>/<str:ingress_name>/', ingress_info, name='ingress_info'),
 
 
     # RBAC

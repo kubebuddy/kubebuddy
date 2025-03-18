@@ -79,7 +79,7 @@ def get_pod_metrics(path=None, context=None):
                             "namespace": namespace,
                             "error": f"Failed to fetch metrics: {e.reason}"
                         })
-                        metrics_available = False
+                        # metrics_available = False
 
             except ApiException as e:
                 print(f"Error fetching pods in namespace {namespace}: {e}")

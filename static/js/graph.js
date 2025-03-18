@@ -56,26 +56,8 @@ function renderGaugeChart(canvasId, chartData, object_name) {
               }
           }
       },
-      plugins: [{
-          beforeDraw: function (chart) {
-              let { width, height, ctx } = chart;
-              ctx.save();
-
-              // Set font size based on chart size
-              let fontSize = (height / 10).toFixed(2); // Adjusted for better scaling
-              ctx.font = fontSize + "px sans-serif";
-              ctx.textAlign = "center"; // Center text horizontally
-              ctx.textBaseline = "middle"; // Center text vertically
-
-              let text = "KB";
-              let textX = width / 2; // Middle of the canvas
-              let textY = height / 2.25; // Middle of the canvas
-
-              ctx.fillText(text, textX, textY);
-              ctx.restore();
-          }
-      }]
   });
+  
   document.addEventListener("darkModeChanged", function () {
       gaugeChart.options.plugins.title.color = getTitleColor();
       gaugeChart.update();

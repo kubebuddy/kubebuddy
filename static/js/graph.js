@@ -13,7 +13,7 @@ function renderGaugeChart(canvasId, chartData, object_name) {
       "Succeeded": "#0dcaf0",
       "Completed": "#0dcaf0",
       "Total": "#007bff",
-      "Ready": "#198754",
+      "Ready": "RGB(50, 205, 50)",
       "Not Ready": "#dc3545"
   };
 

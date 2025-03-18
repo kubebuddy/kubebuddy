@@ -83,12 +83,15 @@ def get_daemonset_description(path=None, context=None, namespace=None, daemonset
     try:
         daemonset = v1.read_namespaced_daemon_set(name=daemonset_name, namespace=namespace)
         
+        annotations = daemonset.metadata.annotations or {}
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
+        
         daemonset_info = {
             "name": daemonset.metadata.name,
             "namespace": daemonset.metadata.namespace,
             "selector": daemonset.spec.selector.match_labels, # Add selector info
             "labels": daemonset.metadata.labels,
-            "annotations": daemonset.metadata.annotations,
+            "annotations": filtered_annotations if filtered_annotations else None,
             "pod_status": daemonset.status.conditions,
             "template": { # Expanded pod template structure
                 "labels": daemonset.spec.template.metadata.labels,

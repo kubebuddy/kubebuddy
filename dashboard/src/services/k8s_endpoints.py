@@ -72,11 +72,17 @@ def get_endpoint_description(path=None, context=None, namespace=None, endpoint_n
                 break
         if target_endpoint is None:
             return {"error": f"Endpoint {endpoint_name} not found in namespace {namespace}"}
+        
+        # Get annotations
+        annotations = target_endpoint.metadata.annotations or {}
+        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "control-plane.alpha.kubernetes.io/leader"}        
+
         endpoint_info = {
             "name": target_endpoint.metadata.name,
             "namespace": target_endpoint.metadata.namespace,
             "labels": target_endpoint.metadata.labels,
-            "annotations": target_endpoint.metadata.annotations,
+            "annotations": filtered_annotations if filtered_annotations else "",
             "subsets": [
                 {
                     "addresses": [

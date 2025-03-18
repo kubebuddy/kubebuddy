@@ -56,15 +56,13 @@
                     <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
                         Copy YAML
                     </button>
-                    
-                
                     <pre id="yamlContent">{{ pdb_info.yaml }}</pre>
                 </div>
             </div>
             
         </div>
 
-        <a href="/{{current_cluster}}/pdbs?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Pod Disruption Budget</a>
+        <a href="/{{current_cluster}}/pdb?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Pod Disruption Budget</a>
     </div>
     
     {% load static%}

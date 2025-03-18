@@ -41,8 +41,7 @@
     {{ annotation }}: {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
     None{% endif %}
 <b>Creation Timestamp:</b> {{ node_info.describe.creation_timestamp }}
-<b>Taints:</b>{% if node_info.describe.taints %}{% for taint in node_info.describe.taints %}
-    {{ taint }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}
+<b>Taints:</b>{% if node_info.describe.taints %} {{ node_info.describe.taints }}{% else %}
     None{% endif %}
 <b>Unschedulable:</b> {{ node_info.describe.unschedulable }}
 <b>Addresses:</b>{% for type, address in node_info.describe.addresses.items %}
@@ -72,7 +71,6 @@
     <b>CPU Limits:</b> {{ node_info.describe.allocated_resources.cpu_limits }}
     <b>Memory Limits:</b> {{ node_info.describe.allocated_resources.memory_limits }}
     <b>Ephemeral Storage Limits:</b> {{ node_info.describe.allocated_resources.ephemeral_storage_limits }}
-
                     </pre>
                 </div>
             </div>

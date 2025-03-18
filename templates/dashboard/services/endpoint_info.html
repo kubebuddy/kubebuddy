@@ -34,10 +34,10 @@
                     <pre>
 <b>Name:</b> {{ endpoint_info.describe.name }}
 <b>Namespace:</b> {{ endpoint_info.describe.namespace }}
-<b>Labels</b>: {% for key, value in endpoint_info.describe.labels.items %} {{ key }}={{ value }}{% if not loop.last %}{% endif %} 
-        {% endfor %}
-<b>Annotations</b>: {% for key, value in endpoint_info.describe.annotations.items %}{{ key }}: {{ value }}{% if not loop.last %}{% endif %}
-        {% endfor %}
+<b>Labels</b>: {% if endpoint_info.describe.labels %} {% for key, value in endpoint_info.describe.labels.items %} {{ key }}={{ value }}{% if not loop.last %}{% endif %} {% endfor %}
+        {% else %}&lt;none&gt;{% endif %}
+<b>Annotations</b>: {% if endpoint_info.describe.annotations %} {% for key, value in endpoint_info.describe.annotations.items %} {{ key }}={{ value }}{% if not loop.last %}{% endif %} {% endfor %}
+        {% else %}&lt;none&gt;{% endif %}
 <b>Subsets:</b>{% for subset in endpoint_info.describe.subsets %}
     <b>Addresses:</b>{% for address in subset.addresses %} {{address.ip}},{% endfor %}
     <b>Not Ready Addresses:</b>{% for address in subset.not_ready_addresses %} {{address}} {% endfor %}
@@ -61,7 +61,7 @@
               
             <div class="tab-pane fade" id="events">
                 <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
-                    <pre>{{ endpoint.events }}</pre>
+                    <pre>{% if endpoint.events %}{{ endpoint.events }}{% else %}&lt;none&gt;{% endif %}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">

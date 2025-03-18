@@ -10,7 +10,7 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-start">
             <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/cm-128.png?raw=true" style="height: 5vh;" alt="ds">
-            <h2 class="mb-4 ps-3 text-primary">Configmaps: {{ configmap_info.describe.name }}</h2>
+            <h2 class="mb-4 ps-3 text-primary">ConfigMap: {{ configmap_info.describe.name }}</h2>
         </div>
         
 
@@ -43,7 +43,7 @@
 
             <div class="tab-pane fade" id="events">
                 <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
-                    <pre>{{ configmap_info.events }}</pre>
+                    <pre>{% if configmap_info.events %}{{ configmap_info.events }}{% else %}&lt;none&gt;{% endif %}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">
@@ -53,15 +53,13 @@
                     <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
                         Copy YAML
                     </button>
-                    
-                
                     <pre id="yamlContent">{{ configmap_info.yaml }}</pre>
                 </div>
             </div>
             
         </div>
 
-        <a href="/{{current_cluster}}/configmaps?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to configmaps</a>
+        <a href="/{{current_cluster}}/configmaps?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to ConfigMaps</a>
     </div>
     
     {% load static%}

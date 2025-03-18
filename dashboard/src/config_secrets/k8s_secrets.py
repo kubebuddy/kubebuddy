@@ -16,7 +16,10 @@ def list_secrets(path, context):
         # Calculate age of the secret
         now = datetime.now(timezone.utc)
         age = now - secret.metadata.creation_timestamp
-        data = len(secret.data)
+        if secret.data:
+            data = len(secret.data)
+        else:
+            data = 0
         # Prepare secret data
         secret_data = {
             "name": secret.metadata.name,

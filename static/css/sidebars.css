@@ -760,3 +760,114 @@ table th, td {
 .dark-mode .navbar .breadcrumb-item.active {
   color: #e9ecef; /* Light gray for active item in dark mode */
 }
+
+/* Terminal Icon */
+#terminal-icon {
+  position: fixed;
+  bottom: 100px;
+  right: 25px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 1000;
+  transition: transform 0.2s;
+  background-color: #333; /* Original background color */
+  border-radius: 50%; /* Original circular shape */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); /* Original shadow */
+}
+
+#terminal-icon:hover {
+  transform: scale(1.1);
+}
+
+#terminal-icon i.bi-terminal {
+  font-size: 1.5em; /* Adjust to match the original size */
+  color: lime; /* Original icon color */
+}
+
+/* Terminal Window */
+#terminal-window {
+  position: fixed;
+  bottom: 100px;
+  right: 40px;
+  width: 1100px;
+  height: 530px;
+  background-color: black;
+  color: rgb(255, 255, 255);
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+  display: none;
+  flex-direction: column;
+  z-index: 999;
+  overflow: hidden;
+}
+
+#terminal-header {
+  background-color: #333;
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+#terminal-title {
+  color: rgb(255, 255, 255);
+  font-size: 14px;
+}
+
+#close-terminal {
+  background: none;
+  border: none;
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 0 5px;
+}
+
+#terminal-output {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  white-space: pre-wrap; /* Preserve whitespace and line breaks */
+  font-family: monospace; /* Use a monospace font */
+  font-size: 14px;
+  color: rgb(255, 255, 255); /* Terminal text color */
+  background-color: black; /* Terminal background color */
+}
+#terminal-input {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-top: 1px solid rgb(255, 255, 255);
+}
+
+.prompt {
+  color: rgb(255, 255, 255); /* Prompt color */
+  margin-right: 10px;
+  font-family: monospace; /* Use a monospace font */
+}
+
+#input {
+  background-color: black;
+  color: rgb(255, 255, 255); /* Input text color */
+  border: none;
+  outline: none;
+  font-family: monospace; /* Use a monospace font */
+  flex: 1;
+  font-size: 15px;
+}
+
+/* Animation for opening */
+@keyframes popup {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.popup-animation {
+  animation: popup 0.2s ease-out;
+}

@@ -11,13 +11,14 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 secret_info, role_info, pv_info, storageclass_info, role_binding_info, \
                                 clusterrole_info, cluster_role_binding_info, serviceAccountInfo, \
                                 pod_metrics, node_metrics, pdb, pdb_info, np, np_info, ingress, \
-                                k8sCertificates, ingress_info
+                                k8sCertificates, ingress_info, execute_command
                                 
 
 
 urlpatterns = [
     # Dashboard
     path('<str:cluster_name>/dashboard/', dashboard, name='dashboard'),
+    path('<str:cluster_name>/execute/', execute_command, name='execute_command'),
 
     # Workloads
     path('<str:cluster_name>/pods', pods, name='pods'),

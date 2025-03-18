@@ -21,6 +21,11 @@ from kubernetes import config, client
 from dashboard.src import clusters_DB
 from .decorators import server_down_handler
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import subprocess
+import shlex
+import os
 
 def get_utils_data(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
@@ -1037,3 +1042,43 @@ def k8sCertificates(request, cluster_name):
         'certificate': k8s_certificates,
         'namespaces': namespaces
     })
+
+@csrf_exempt
+@csrf_exempt
+def execute_command(request, cluster_name):
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+        command = data.get('command', '')
+
+        try:
+            # Determine the shell based on the OS
+            if os.name == 'nt':  # Windows
+                shell = 'C:\\Windows\\System32\\cmd.exe'  # Full path to cmd.exe
+                if command.strip() == 'ls':
+                    command = 'dir'  # Replace 'ls' with 'dir' on Windows
+                elif command.strip() == 'pwd':
+                    command = 'cd'  # Replace 'pwd' with 'cd' on Windows
+            else:  # Unix-like systems (Linux, macOS)
+                shell = '/bin/bash'  # Full path to bash
+
+            # Execute the command
+            result = subprocess.run(
+                command,
+                shell=True,
+                executable=shell,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                env=os.environ  # Pass the current environment variables
+            )
+
+            if result.returncode == 0:
+                output = result.stdout
+            else:
+                output = result.stderr
+        except Exception as e:
+            output = f"Error: {str(e)}"
+
+        return JsonResponse({'output': output})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)

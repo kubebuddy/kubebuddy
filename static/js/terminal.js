@@ -76,3 +76,35 @@ input.addEventListener('keydown', async (event) => {
         }
     }
 });
+
+let terScreen = false; // Flag to check if the window is in fullscreen mode
+
+function terminalFullscreen() {
+    const terminalWindow = document.querySelector('#terminal-window');
+    const fullscreenIcon = document.querySelector('.bi-fullscreen'); // Fullscreen icon
+    const exitFullscreenIcon = document.querySelector('.bi-fullscreen-exit'); // Exit fullscreen icon
+
+    // Toggle fullscreen state
+    if (!terScreen) {
+        // Maximize the chat window to fullscreen
+        terminalWindow.style.width = '80vw'; // Full width
+        terminalWindow.style.height = '73vh'; // Full height
+        terminalWindow.style.right = '20px'; // Stick to right
+
+        // Show exit fullscreen icon, hide fullscreen icon
+        fullscreenIcon.classList.add('d-none'); // Hide fullscreen icon
+        exitFullscreenIcon.classList.remove('d-none'); // Show exit fullscreen icon
+    } else {
+        // Minimize the chat window to original size
+        terminalWindow.style.width = '50vw'; // Original width
+        terminalWindow.style.height = '60vh'; // Original height
+        terminalWindow.style.right = '20px'; // Reset right margin
+
+        // Show fullscreen icon, hide exit fullscreen icon
+        fullscreenIcon.classList.remove('d-none'); // Show fullscreen icon
+        exitFullscreenIcon.classList.add('d-none'); // Hide exit fullscreen icon
+    }
+
+    // Toggle the fullscreen state
+    terScreen = !terScreen;
+}

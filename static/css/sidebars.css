@@ -669,7 +669,6 @@ table th, td {
   color: #c62828;
 }
 
-
 .clear-chat-btn:hover {
   opacity: 0.7;
 }
@@ -727,20 +726,21 @@ table th, td {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
-/* Custom styling for breadcrumb in navbar */
+/* <---------------------- Custom styling for breadcrumb in navbar ----------------------> */
+
 .navbar .breadcrumb {
   display: flex;
   align-items: center;
   margin-bottom: 0;
   background: transparent;
-  font-size: 1.2rem; /* This is roughly h4 size in Bootstrap */
+  font-size: 1.2rem;
 }
 
 .navbar .breadcrumb-item + .breadcrumb-item::before {
   content: ">";
   color: var(--bs-dark);
   font-weight: 500;
-  padding: 0 0.75rem; /* Add more spacing around the divider */
+  padding: 0 0.75rem; 
 }
 
 .navbar .breadcrumb-item a {
@@ -795,19 +795,20 @@ table th, td {
 
 /* Terminal Window */
 #terminal-window {
-  position: fixed;
+  position: absolute;
   bottom: 140px;
   right: 20px;
-  width: 1100px;
-  height: 530px;
+  width: 50vw;
+  height: 60vh;
   background-color: black;
   color: rgb(255, 255, 255);
-  border-radius: 8px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-  display: none;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  display: flex;
   flex-direction: column;
   z-index: 999;
   overflow: hidden;
+
 }
 
 #terminal-header {
@@ -820,19 +821,6 @@ table th, td {
   border-top-right-radius: 8px;
 }
 
-#terminal-title {
-  color: rgb(255, 255, 255);
-  font-size: 14px;
-}
-
-#close-terminal {
-  background: none;
-  border: none;
-  color: rgb(255, 255, 255);
-  cursor: pointer;
-  font-size: 20px;
-  padding: 0 5px;
-}
 
 #terminal-output {
   flex: 1;

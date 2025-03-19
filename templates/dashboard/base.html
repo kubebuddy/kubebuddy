@@ -264,8 +264,14 @@
     <!-- Terminal Window -->
     <div id="terminal-window">
         <div id="terminal-header">
-            <div id="terminal-title">Buddy Terminal 💻</div>
-            <button id="close-terminal"><i class="bi bi-x"></i></button>
+            Buddy Terminal 💻
+            <div class="chat-header-buttons">
+              <button class="clear-chat-btn" onclick="terminalFullscreen()">
+                <i class="bi bi-fullscreen"></i> <!-- Fullscreen icon initially visible -->
+                <i class="bi bi-fullscreen-exit d-none"></i> <!-- Exit fullscreen icon initially hidden -->
+              </button>
+              <button id="close-terminal" class="clear-chat-btn"><i class="bi bi-x-lg"></i></button>
+            </div>
         </div>
         <div id="terminal-output"></div>
         <div id="terminal-input">
@@ -286,7 +292,7 @@
                 </button>
                 <button class="clear-chat-btn" onclick="clearChatHistory()"><i class="bi bi-trash"></i></button>
                 <button class="close-chat-btn" onclick="toggleChat()"><i class="bi bi-dash-lg"></i></button>
-            </div>
+              </div>
           </div>
           <div class="chat-body" id="chatBody"></div>
           <div class="chat-input">

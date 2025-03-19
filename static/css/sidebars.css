@@ -568,21 +568,25 @@ table th, td {
   z-index: 1000;
 }
 .chatbot-button {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 30px;
   background-color: #6247aa;
   background-image: linear-gradient(316deg, #6247aa 0%, #a594f9 74%);
   color: white;
   border: none;
   cursor: pointer;
-  font-size: 24px;
+  font-size: 1.5em;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.chatbot-button:hover {
+  transform: scale(1.1);
 }
 
 .chatbot-window {
   position: absolute;
-  bottom: 70px;
+  bottom: 60px;
   right: 0;
   width: 40vw;
   height: 60vh;
@@ -761,11 +765,12 @@ table th, td {
   color: #e9ecef; /* Light gray for active item in dark mode */
 }
 
-/* Terminal Icon */
+/* <------------------------- Terminal css -------------------------> */
+
 #terminal-icon {
   position: fixed;
-  bottom: 100px;
-  right: 25px;
+  bottom: 80px;
+  right: 20px;
   width: 50px;
   height: 50px;
   display: flex;
@@ -774,9 +779,9 @@ table th, td {
   cursor: pointer;
   z-index: 1000;
   transition: transform 0.2s;
+  border: 1px solid #fff;
   background-color: #333; /* Original background color */
-  border-radius: 50%; /* Original circular shape */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); /* Original shadow */
+  border-radius: 50%;
 }
 
 #terminal-icon:hover {
@@ -791,8 +796,8 @@ table th, td {
 /* Terminal Window */
 #terminal-window {
   position: fixed;
-  bottom: 100px;
-  right: 40px;
+  bottom: 140px;
+  right: 20px;
   width: 1100px;
   height: 530px;
   background-color: black;

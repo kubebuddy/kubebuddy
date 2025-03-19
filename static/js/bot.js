@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function toggleChat() {
     var chatWindow = document.getElementById("chatbotWindow");
     chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
+    chatWindow.classList.add('popup-animation');
 
     if (chatWindow.style.display === "flex") {
         checkAPIKey();

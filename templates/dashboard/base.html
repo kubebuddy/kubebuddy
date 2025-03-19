@@ -259,20 +259,20 @@
 
     <div id="terminal-icon">
       <i class="bi bi-terminal terminal-icon"></i>
-  </div>
+    </div>
 
-  <!-- Terminal Window -->
-  <div id="terminal-window">
-      <div id="terminal-header">
-          <div id="terminal-title">Terminal</div>
-          <button id="close-terminal">×</button>
-      </div>
-      <div id="terminal-output"></div>
-      <div id="terminal-input">
-          <span style="font-size: 14px;" class="prompt">user@host:~$</span>
-          <input type="text" id="input" autofocus>
-      </div>
-  </div>
+    <!-- Terminal Window -->
+    <div id="terminal-window">
+        <div id="terminal-header">
+            <div id="terminal-title">Buddy Terminal 💻</div>
+            <button id="close-terminal"><i class="bi bi-x"></i></button>
+        </div>
+        <div id="terminal-output"></div>
+        <div id="terminal-input">
+            <span style="font-size: 14px;" class="prompt">user@host:~$</span>
+            <input type="text" id="input" autofocus>
+        </div>
+    </div>
 
     <div class="chatbot-container">
       <button class="chatbot-button" onclick="toggleChat()"><i class="bi bi-robot"></i></button>
@@ -287,7 +287,6 @@
                 <button class="clear-chat-btn" onclick="clearChatHistory()"><i class="bi bi-trash"></i></button>
                 <button class="close-chat-btn" onclick="toggleChat()"><i class="bi bi-dash-lg"></i></button>
             </div>
-            
           </div>
           <div class="chat-body" id="chatBody"></div>
           <div class="chat-input">
@@ -296,98 +295,21 @@
               <button onclick="sendMessage()">Send</button>
           </div>
       </div>
-  </div>
+    </div>
   
 </main>
 <!-- Include Bootstrap JS and dependencies -->
 <script src="{% static 'js/dark_mode.js' %}" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{% static 'js/sidebars.js' %}"></script>
-  <script src="{% static 'js/toggleTable.js' %}"></script>
-  <script src="{% static 'js/bot.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/sidebars.js' %}"></script>
+<script src="{% static 'js/toggleTable.js' %}"></script>
+<script src="{% static 'js/bot.js' %}"></script>
+<script src="{% static 'js/terminal.js' %}"></script>
   <script src="{% static 'js/css.js' %}"></script>
   <script src="{% static 'js/actionRedirect.js' %}"></script>
   <script src="{% static 'js/tableSearch.js' %}"></script>
   <script>
-const terminalIcon = document.getElementById('terminal-icon');
-const terminalWindow = document.getElementById('terminal-window');
-const closeTerminal = document.getElementById('close-terminal');
-const terminalOutput = document.getElementById('terminal-output');
-const input = document.getElementById('input');
-
-// Toggle terminal visibility
-terminalIcon.addEventListener('click', toggleTerminal);
-closeTerminal.addEventListener('click', hideTerminal);
-
-function toggleTerminal() {
-    if (terminalWindow.style.display === 'flex') {
-        hideTerminal();
-    } else {
-        showTerminal();
-    }
-}
-
-function showTerminal() {
-    terminalWindow.style.display = 'flex';
-    terminalWindow.classList.add('popup-animation');
-    input.focus();
-}
-
-function hideTerminal() {
-    terminalWindow.style.display = 'none';
-}
-
-// Handle input
-input.addEventListener('keydown', async (event) => {
-    if (event.key === 'Enter') {
-        const command = input.value.trim();
-        if (command) {
-            // Display the command
-            const commandLine = document.createElement('div');
-            commandLine.innerHTML = `<span class="prompt">user@host:~$</span> ${command}`;
-            terminalOutput.appendChild(commandLine);
-
-            // Handle clear/cls command
-            if (command === 'clear' || command === 'cls') {
-                terminalOutput.innerHTML = ''; // Clear the terminal output
-            } else {
-                // Send the command to the backend
-                try {
-                    const response = await fetch(`/cluster_name/execute/`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCookie('csrftoken'), // Ensure CSRF token is included
-                        },
-                        body: JSON.stringify({ command: command }),
-                    });
-
-                    const data = await response.json();
-                    if (data.output) {
-                        const outputLine = document.createElement('div');
-                        outputLine.textContent = data.output;
-                        terminalOutput.appendChild(outputLine);
-                    } else if (data.error) {
-                        const errorLine = document.createElement('div');
-                        errorLine.textContent = data.error;
-                        terminalOutput.appendChild(errorLine);
-                    }
-                } catch (error) {
-                    const errorLine = document.createElement('div');
-                    errorLine.textContent = `Error: ${error.message}`;
-                    terminalOutput.appendChild(errorLine);
-                }
-            }
-
-            // Clear the input
-            input.value = '';
-
-            // Scroll to the bottom
-            terminalOutput.scrollTop = terminalOutput.scrollHeight;
-        }
-    }
-});
 
 // Function to get CSRF token from cookies
 function getCookie(name) {

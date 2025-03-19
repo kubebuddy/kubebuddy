@@ -239,10 +239,22 @@ Format your responses in a clean, human-readable way:
 - Prefer plain text formatting over symbols, asterisks, backticks, or other markdown formatting within paragraphs
 """
 
+
 def render_markdown(response_text):
-    """Convert Markdown to safe HTML."""
-    html_output = markdown.markdown(response_text)  # Convert Markdown to HTML
-    safe_html = bleach.clean(html_output, tags=["p", "strong", "em", "code", "ul", "ol", "li", "a", "br"])  # Sanitize
+    html_output = markdown.markdown(
+        response_text,
+        extensions=["fenced_code", "codehilite"]  # Enable fenced code blocks
+    )
+
+    allowed_tags = [
+        "p", "strong", "em", "code", "ul", "ol", "li", "a", "br", "pre", "blockquote"
+    ]
+    safe_html = bleach.clean(html_output, tags=allowed_tags)
+
+    safe_html = safe_html.replace("<pre>", '<pre style="background:#f5f5f5; border:1px solid #ccc; padding:10px; border-radius:5px; margin:10px 0; color:#333; font-family:monospace;">').replace("</pre>", '</pre>')
+
+    safe_html = safe_html.replace('<pre ','<pre style="background:#1e1e1e; border:1px solid #444; padding:10px; border-radius:5px; margin:10px 0; color:#f8f8f2; font-family:monospace;" class="dark-mode" ')
+
     return safe_html
 
 # ChatBot Views
@@ -251,8 +263,7 @@ def gemini_response(api_key, user_message):
     try:
         client = genai.Client(api_key=api_key)
         
-        # For Gemini, we need to combine the system prompt and user message 
-        # in a specific format depending on the API version
+        # For Gemini, we need to combine the system prompt and user message in a specific format depending on the API version
         try:
             # Newer method with system prompt support
             response = client.models.generate_content(

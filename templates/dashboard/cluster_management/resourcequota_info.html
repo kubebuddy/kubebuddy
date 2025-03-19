@@ -10,7 +10,7 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-start">
             <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/quota-128.png?raw=true" style="height: 5vh;" alt="ds">
-            <h2 class="mb-4 ps-3 text-primary">ResourceQuota: {{ resourcequota_name }}</h2>
+            <h2 class="mb-4 ps-3 text-primary">Resource Quota: {{ resourcequota_name }}</h2>
         </div>
         
 
@@ -30,7 +30,7 @@
         <!-- Tab Content -->
         <div class="tab-content mt-3">
             <div class="tab-pane fade show active" id="describe">
-                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                <div class="overflow-auto describe">
                     <pre>
 <b>Name:</b> {{ resourcequota_info.describe.name }}
 <b>Namespace:</b> {{ resourcequota_info.describe.namespace }}
@@ -59,26 +59,24 @@
               
 
             <div class="tab-pane fade" id="events">
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
-                    <pre>{{ resourcequota_info.events }}</pre>
+                <div class="overflow-auto describe">
+                    <pre>{% if resourcequota_info.events %}{{ resourcequota_info.events }}{% else %}&lt;none&gt;{% endif %}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">
                 <!-- <h4>Pod YAML</h4> -->
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                <div class="overflow-auto describe">
                     <!-- Copy Button inside the div -->
                     <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
                         Copy YAML
                     </button>
-                    
-                
                     <pre id="yamlContent">{{ resourcequota_info.yaml }}</pre>
                 </div>
             </div>
             
         </div>
 
-        <a href="/{{current_cluster}}/resourcequotas?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to ResourceQuota</a>
+        <a href="/{{current_cluster}}/resourcequotas?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Resource Quotas</a>
     </div>
     
     {% load static%}

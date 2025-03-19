@@ -397,6 +397,9 @@ def settings(request):
     username = request.user.username
     error_message = None
     success_message = None
+    active_tab = request.GET.get('tab', 'general')  # Default to general tab
+    
+    # Get existing AI configuration if available
     ai_configs = {}
     for config in AIConfig.objects.all():
         ai_configs[config.provider] = {
@@ -416,7 +419,7 @@ def settings(request):
                 provider=provider,
                 defaults={'api_key': api_key}
             )
-            return redirect('settings?ai_config_success=true')
+            return redirect('/settings?ai_config_success=true&tab=ai-config')
             
     # Add this block for handling API key deletion
     if request.method == 'POST' and 'delete_api_key' in request.POST:
@@ -424,7 +427,7 @@ def settings(request):
         if provider:
             try:
                 AIConfig.objects.filter(provider=provider).delete()
-                return redirect('settings?ai_config_deleted=true')
+                return redirect('/settings?ai_config_deleted=true&tab=ai-config')
             except Exception as e:
                 # Handle exception
                 pass
@@ -451,33 +454,13 @@ def settings(request):
             update_session_auth_hash(request, user)
             
             success_message = "Password updated successfully."
-    # Get existing AI configuration if available
-    ai_configs = {}
-    for config in AIConfig.objects.all():
-        ai_configs[config.provider] = {
-            'provider': config.provider,
-            'api_key': config.api_key,
-            'display_name': config.get_provider_display()
-        }
-    
-    # Handle form submission for AI configuration
-    if request.method == 'POST' and 'save_ai_config' in request.POST:
-        provider = request.POST.get('aiModel')
-        api_key = request.POST.get('apiKey')
-        
-        if provider and api_key:
-            # Update or create AI configuration
-            obj, created = AIConfig.objects.update_or_create(
-                provider=provider,
-                defaults={'api_key': api_key}
-            )
-            return redirect('settings?ai_config_success=true')
     
     return render(request, 'main/settings.html', {
         'username': username,
         'error_message': error_message,
         'success_message': success_message,
         'ai_configs': ai_configs,
+        'active_tab': active_tab,  # Pass the active tab to the template
     })
 
 def profile(request):

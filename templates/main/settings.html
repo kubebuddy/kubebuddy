@@ -42,6 +42,12 @@
             color: #fff !important;
         }
 
+        [data-bs-theme="light"] .btn-primary {
+            background-color: #0db5fd !important;
+            border-color: #0db5fd !important;
+            color: #fff !important;
+        }
+
         [data-bs-theme="dark"] .nav-link.active{
             background-color: #0db5fd !important;
             border-color: #0db5fd !important;
@@ -149,7 +155,7 @@
                 <div id="section-title" class="h4">General Settings</div>
                 <div class="ms-auto">
                     <!-- Added Back Button -->
-                    <button id="back-btn" class="btn btn-outline-secondary me-2" onclick="goBack()">
+                    <button id="back-btn" class="btn-primary btn btn-outline-secondary me-2" onclick="goBack()">
                         <i class="bi bi-arrow-left"></i>
                         Back
                     </button>
@@ -179,15 +185,15 @@
                 <!-- Default Kubeconfig Card -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header">
-                        Kubeconfig Settings
+                        General settings
                     </div>
                     <div class="card-body">
                         <form>
                             <div class="mb-3">
-                                <label for="defaultKubeconfig" class="form-label">Default Kubeconfig Path</label>
-                                <input type="text" class="form-control" id="defaultKubeconfig" value="~/.kube/config">
+                                <label for="logged-in" class="form-label">Logged In As: </label>
+                                <a href="/profile">{{username}}</a>
                             </div>
-                            <button type="submit" class="btn btn-primary">Save Kubeconfig Path</button>
+                            <a href="/profile" class="btn btn-primary">Got to Profile</a>
                         </form>
                     </div>
                 </div>
@@ -202,7 +208,7 @@
                             <button type="button" class="btn btn-outline-primary">
                                 <i class="bi bi-cloud-download me-2"></i>Check for Updates
                             </button>
-                        </div>
+                        </div>✅ KubeBuddy is Updated. No Updates Available.
                     </div>
                 </div>
             </div>
@@ -308,7 +314,7 @@
                             <div class="mb-3">
                                 <label for="newPassword" class="form-label">New Password</label>
                                 <input type="password" class="form-control" id="newPassword" name="newPassword" required>
-                                <div class="form-text">Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.</div>
+                                <div class="form-text">Password should be 8 characters long and include uppercase, lowercase, numbers, and special characters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="confirmPassword" class="form-label">Confirm New Password</label>
@@ -554,6 +560,20 @@
                 }
             }
         });
+        document.addEventListener('DOMContentLoaded', function() {
+    // Get the active tab from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+    
+    if (activeTab) {
+      // Find the tab element
+      const tabElement = document.getElementById(activeTab + '-tab');
+      if (tabElement) {
+        // Simulate a click on the tab
+        tabElement.click();
+      }
+    }
+  });
         
         // Initialize tooltips
         document.addEventListener("DOMContentLoaded", function () {

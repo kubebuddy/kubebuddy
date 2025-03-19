@@ -36,7 +36,7 @@
     <div class="mb-3">
       <div class="mb-1 d-flex justify-content-between align-items-center">
         <div class="d-flex">
-          <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search roles...">
+          <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search cluster roles...">
         </div>
         <div class="dropdown d-flex justify-content-end">
           <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
@@ -97,7 +97,7 @@
       document.addEventListener("DOMContentLoaded", function() {
             renderGaugeChart("gaugeChart", {
               "Total": {{total_clusterrole}}
-            }, 'ClusterRole');
+            }, 'Cluster Roles');
     });
   </script>
 {% endblock %}

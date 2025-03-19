@@ -17,7 +17,7 @@
   {% if total_sc == 0 %}
     <div class="alert alert-warning d-flex align-items-center" role="alert">
       <i class="bi bi-exclamation-triangle-fill mx-2"></i>
-      No Storageclass Found.
+      No Storage Classes Found.
     </div>
   {% else %}
   <div class="tab-content">
@@ -33,8 +33,8 @@
     <!-- Dropdown with checkboxes to select columns -->
     <div class="mb-3">
       <div class="mb-1 d-flex justify-content-between align-items-center">
-        <div class="d-flex">
-          <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search classes...">
+        <div class="col-md-3">
+          <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search storage classes...">
         </div>
         <div class="dropdown d-flex justify-content-end">
           <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">

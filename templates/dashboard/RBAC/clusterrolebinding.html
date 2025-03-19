@@ -19,13 +19,13 @@
   {% if total_clusterrolebinding == 0 %}
     <div class="alert alert-warning d-flex align-items-center" role="alert">
       <i class="bi bi-exclamation-triangle-fill mx-2"></i>
-      No Cluster Binding Found.
+      No Cluster Bindings Found.
     </div>
   {% else %}
   <div class="tab-content">
     <div class="tab-pane fade show active" id="clusterrolebinding">
       <div class="d-flex align-items-center justify-content-evenly">
-        <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Cluster Roles: {{total_clusterrolebinding}}</i></b></div>
+        <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Cluster Role Bindings: {{total_clusterrolebinding}}</i></b></div>
         <div><canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas></div>
       </div>
     </div>
@@ -34,7 +34,7 @@
   <div class="container">
     <div class="mb-3">
       <div class="mb-1 d-flex justify-content-between">
-        <div class="d-flex">
+        <div class="col-md-3">
           <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search cluster role bindings...">
         </div>
         <div class="dropdown d-flex justify-content-end align-items-center">

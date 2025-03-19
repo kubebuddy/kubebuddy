@@ -22,7 +22,7 @@
       No Cluster Roles Found.
     </div>
   {% else %}
-  <div class="tab-content">
+  <div class="tab-content border border-3 rounded-2 border-secondary-subtle p-4 m-3">
     <div class="tab-pane fade show active" id="clusterrole">
       <div class="d-flex align-items-center justify-content-evenly">
         <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Cluster Roles: {{total_clusterrole}}</i></b></div>
@@ -39,7 +39,7 @@
           <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search cluster roles...">
         </div>
         <div class="dropdown d-flex justify-content-end">
-          <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
+          <button class="btn btn-custom dropdown-toggle mb-3" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
             Select Columns to Display
           </button>
           <ul class="dropdown-menu p-2" aria-labelledby="columnSelector">

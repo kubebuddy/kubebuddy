@@ -24,10 +24,10 @@
       No Pod Disruption Budgets Found.
     </div>
   {% else %}
-  <div class="tab-content pdb">
+  <div class="tab-content pdb border border-3 rounded-2 border-secondary-subtle p-4 m-3">
     <div class="tab-pane fade show active" id="nodes">
       <div class="d-flex align-items-center justify-content-evenly">
-        <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Pod Disruption Budgets: {{pdbs_count}}</i></b></div>
+        <div class="stats-card bg-primary p-3 col-md-4"><b><i>Total Pod Disruption Budgets: {{pdbs_count}}</i></b></div>
         <div><canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas></div>
       </div>
     </div>  

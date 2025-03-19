@@ -9,10 +9,9 @@
 
     <div class="container mt-4">
         <div class="d-flex justify-content-start">
-            <img src="https://cdn-icons-png.flaticon.com/512/18015/18015441.png" style="height: 5vh;" alt="ds">
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/ing-128.png?raw=true" style="height: 5vh;" alt="ds">
             <h2 class="mb-4 ps-3 text-primary">Ingress: {{ ingress_info.describe.name }}</h2>
         </div>
-
 
         <!-- Bootstrap Tabs -->
         <ul class="nav nav-tabs" id="podTabs">
@@ -30,7 +29,7 @@
         <!-- Tab Content -->
         <div class="tab-content mt-3">
             <div class="tab-pane fade show active" id="describe">
-                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                <div class="overflow-auto describe">
                     <pre>
 
 <b>Name:</b> {{ ingress_info.describe.name }}
@@ -64,22 +63,19 @@
               
 
             <div class="tab-pane fade" id="events">
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
+                <div class="overflow-auto describe">
                     <pre>
-{% if ingress_info.events %}{{ ingress_info.events }}
-{% else %} &lt; None &gt; {% endif %}
+{% if ingress_info.events %}{{ ingress_info.events }}{% else %} &lt;none&gt; {% endif %}
                     </pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">
                 <!-- <h4>Pod YAML</h4> -->
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                <div class="overflow-auto describe">
                     <!-- Copy Button inside the div -->
                     <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
                         Copy YAML
                     </button>
-                    
-                
                     <pre id="yamlContent">{{ ingress_info.yaml }}</pre>
                 </div>
             </div>

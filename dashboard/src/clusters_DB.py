@@ -30,11 +30,7 @@ def get_registered_clusters():
             continue  # Skip further checks for this cluster
         
         try:
-            configuration = client.Configuration()
-            configuration.host = client.Configuration().host
-            configuration.retries = 1
-            api_client = client.ApiClient(configuration)
-            v1 = client.CoreV1Api(api_client)
+            v1 = client.CoreV1Api()
             nodes = v1.list_node().items
             context.number_of_nodes = len(nodes)
             context.control_plane_status = "Running"

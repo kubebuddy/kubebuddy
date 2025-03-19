@@ -129,7 +129,7 @@ def save_clusters(kube_config, changes, path):
         for cluster_name, context_name in cluster_context_mapping.items():
             try:
                 # Set the current context to the specific context
-                config.load_kube_config(context=context_name)
+                config.load_kube_config(config_file = path, context=context_name)
 
                 # Check if the cluster already exists in the database
                 if not Cluster.objects.filter(cluster_name=cluster_name, kube_config=kube_config).exists():

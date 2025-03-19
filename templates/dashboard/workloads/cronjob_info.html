@@ -28,7 +28,7 @@
         <!-- Tab Content -->
         <div class="tab-content mt-3">
             <div class="tab-pane fade show active" id="describe">
-                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                <div class="overflow-auto describe">
                     <pre>
 <b>Name</b>: {{ cronjob_info.describe.name }}
 <b>Namespace</b>: {{ cronjob_info.describe.namespace }}
@@ -68,13 +68,13 @@
               </div>
               
             <div class="tab-pane fade" id="events">
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
-                    <pre>{{ cronjob_info.events }}</pre>
+                <div class="overflow-auto describe">
+                    <pre>{% if cronjob_info.events %}{{ cronjob_info.events }}{% else %}&lt;none&gt;{% endif %}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">
                 <!-- <h4>CronJob YAML</h4> -->
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                <div class="overflow-auto describe">
                     <!-- Copy Button inside the div -->
                     <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
                         Copy YAML
@@ -86,7 +86,7 @@
             
         </div>
 
-        <a href="/{{current_cluster}}/cronjobs?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to CronJob</a>
+        <a href="/{{current_cluster}}/cronjobs?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to CronJobs</a>
     </div>
     
     {% load static%}

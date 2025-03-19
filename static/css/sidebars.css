@@ -871,3 +871,12 @@ table th, td {
 .popup-animation {
   animation: popup 0.2s ease-out;
 }
+
+/* Describe Pages */
+
+.describe {
+  max-height: 60vh; 
+  border: 1px solid #ddd; 
+  border-radius: 5px; 
+  padding: 15px;
+}

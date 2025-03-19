@@ -33,7 +33,7 @@
         <!-- Tab Content -->
         <div class="tab-content mt-3">
             <div class="tab-pane fade show active" id="describe">
-                <div class="overflow-auto" style="max-height: 70vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                <div class="overflow-auto describe">
                     <pre>
 <b>Name</b>: {{ pod_info.describe.name }}
 <b>Namespace</b>: {{ pod_info.describe.namespace }}
@@ -68,18 +68,18 @@
             </div>
               
             <div class="tab-pane fade" id="logs">
-                <div class="overflow-auto" style="max-height: 70vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
-                    <pre>{{ pod_info.logs }}</pre>
+                <div class="overflow-auto describe">
+                    <pre>{% if pod_info.events %}{{ pod_info.events }}{% else %}&lt;none&gt;{% endif %}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="events">
-                <div class="overflow-auto" style="max-height: 70vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px;">
+                <div class="overflow-auto describe">
                     <pre>{{ pod_info.events }}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">
                 <!-- <h4>Pod YAML</h4> -->
-                <div class="overflow-auto" style="max-height: 70vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                <div class="overflow-auto describe">
                     <!-- Copy Button inside the div -->
                     <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
                         Copy YAML

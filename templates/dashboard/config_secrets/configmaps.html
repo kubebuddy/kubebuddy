@@ -1,7 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}Configmaps{% endblock %}
+{% block title %}ConfigMaps{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/cm-128.png?raw=true{% endblock %}
 
@@ -132,7 +132,7 @@
       document.addEventListener("DOMContentLoaded", function() {
             renderGaugeChart("gaugeChart", {
               "Total": {{total_count}}
-            }, 'ConfigMap');
+            }, 'ConfigMaps');
     });
   </script>
 {% endblock %}

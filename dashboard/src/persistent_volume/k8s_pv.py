@@ -42,10 +42,15 @@ def get_pv_description(path=None, context=None, pv_name=None):
     v1 = client.CoreV1Api()
     pv = v1.read_persistent_volume(name=pv_name)
 
+    # Get annotations
+    annotations = pv.metadata.annotations or {}
+    # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
+    filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
+    
     pv_info = {
         "Name": pv.metadata.name,
         "Labels": pv.metadata.labels,
-        "Annotations": pv.metadata.annotations,
+        "Annotations": filtered_annotations if filtered_annotations else None,
         "Finalizers": pv.metadata.finalizers,
         "StorageClass": pv.spec.storage_class_name,
         "Status": pv.status.phase,

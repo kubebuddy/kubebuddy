@@ -1,6 +1,6 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
-{% block title %}Persistent Volume{% endblock %}
+{% block title %}Persistent Volumes{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pv-128.png?raw=true{% endblock %}
 
@@ -34,7 +34,7 @@
     <div class="mb-3">
       <div class="mb-1 d-flex justify-content-between">
         <div class="d-flex">
-          <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search volumes...">
+          <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search pv...">
         </div>
         <div class="dropdown d-flex justify-content-end align-items-center">
           <button class="btn btn-custom dropdown-toggle" type="button" id="columnSelector" data-bs-toggle="dropdown" aria-expanded="false">
@@ -149,7 +149,7 @@
       document.addEventListener("DOMContentLoaded", function() {
             renderGaugeChart("gaugeChart", {
               "Total": {{total_pvs}}
-            }, 'PersistentVolume');
+            }, 'Persistent Volumes');
     });
   </script>
 {% endblock %}

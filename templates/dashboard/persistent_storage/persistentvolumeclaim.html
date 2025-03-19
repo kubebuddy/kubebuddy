@@ -1,7 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}Persistent Volume Claim{% endblock %}
+{% block title %}Persistent Volume Claims{% endblock %}
 
 {% block favicon %}https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pvc-128.png?raw=true{% endblock %}
 
@@ -24,7 +24,7 @@
   <div class="tab-content">
     <div class="tab-pane fade show active" id="pvc">
       <div class="d-flex align-items-center justify-content-evenly">
-        <div class="stats-card bg-primary p-3 col-md-3"><b><i>Total Persistent Volume Claims: {{total_pvc}}</i></b></div>
+        <div class="stats-card bg-primary p-3 col-md-4"><b><i>Total Persistent Volume Claims: {{total_pvc}}</i></b></div>
         <div><canvas id="gaugeChart" style="max-width: 100%; max-height: 100%;"></canvas></div>
       </div>
     </div>
@@ -46,7 +46,7 @@
       </div>
 
       <div class="mx-3">
-        <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search claims...">
+        <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search pvc...">
       </div>
     </div>
 
@@ -166,7 +166,7 @@
       document.addEventListener("DOMContentLoaded", function() {
             renderGaugeChart("gaugeChart", {
               "Total": {{total_pvc}}
-            }, 'PersistentVolumeClaim');
+            }, 'Persistent Volume Claims');
     });
   </script>
 {% endblock %}

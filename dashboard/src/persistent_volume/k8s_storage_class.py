@@ -41,10 +41,15 @@ def get_storage_class_description(path=None, context=None, sc_name=None):
         else:
             is_default = "No"
 
+        # Get annotations
+        annotations = sc.metadata.annotations or {}
+        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
+        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
+
         return {
             'name': sc.metadata.name,
             'is_default_class': is_default,
-            'annotations': sc.metadata.annotations,
+            'annotations': filtered_annotations if filtered_annotations else None,
             'provisioner': sc.provisioner,
             'parameters': sc.parameters,
             'allow_volume_expansion': sc.allow_volume_expansion,

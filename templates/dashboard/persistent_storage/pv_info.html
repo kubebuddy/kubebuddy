@@ -10,7 +10,7 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-start">
             <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/pvc-128.png?raw=true" style="height: 5vh;" alt="ds">
-            <h2 class="mb-4 ps-3 text-primary">Persistent Volume : {{ pv_name }}</h2>
+            <h2 class="mb-4 ps-3 text-primary">Persistent Volume: {{ pv_name }}</h2>
         </div>
         
 
@@ -20,6 +20,9 @@
                 <a class="nav-link active" id="describe-tab" data-bs-toggle="tab" href="#describe">Describe</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" id="events-tab" data-bs-toggle="tab" href="#events">Events</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" id="yaml-tab" data-bs-toggle="tab" href="#yaml">YAML</a>
             </li>
         </ul>
@@ -27,13 +30,11 @@
         <!-- Tab Content -->
         <div class="tab-content mt-3">
             <div class="tab-pane fade show active" id="describe">
-                <div class="overflow-auto" style="max-height: 60vh; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                <div class="overflow-auto describe">
                     <pre>
 <b>Name:</b> {{ pv_info.describe.Name }}
-<b>Labels:</b>{% if pv_info.describe.Labels %}{% for k, v in pv_info.describe.Labels.items %}{{ k }}={{ v }} <br>   {% endfor %}{% else %} &lt;none&gt; {% endif %}
-<b>Annotations:</b>{% if pv_info.describe.Annotations %}{% for k, v in pv_info.describe.Annotations.items %}
-    {{ k }}: {{ v }}{% endfor %}{% else %}
-    &lt;none&gt;{% endif %}
+<b>Labels:</b>{% if pv_info.describe.Labels %}{% for k, v in pv_info.describe.Labels.items %}{{ k }}={{ v }} <br>       {% endfor %}{% else %} &lt;none&gt; {% endif %}
+<b>Annotations:</b>{% if pv_info.describe.Annotations %}{% for k, v in pv_info.describe.Annotations.items %}{{ k }}: {{ v }} <br>            {% endfor %}{% else %}&lt;none&gt;{% endif %}
 <b>Finalizers:</b>{% if pv_info.describe.Finalizers %}{{ pv_info.describe.Finalizers }}{% else %}&lt;none&gt;{% endif %}
 <b>StorageClass:</b> {{ pv_info.describe.StorageClass }}
 <b>Status:</b> {{ pv_info.describe.Status }}
@@ -50,24 +51,24 @@
                     </pre>
                 </div>
               </div>
-              
-
+            
+            <div class="tab-pane fade" id="events">
+                <div class="overflow-auto describe">
+                    <pre>{% if pv_info.events %}{{ pv_info.events }}{% else %}&lt;none&gt;{% endif %}</pre>
+                </div>
+            </div>
             <div class="tab-pane fade" id="yaml">
                 <!-- <h4>Pod YAML</h4> -->
-                <div class="overflow-auto" style="max-height: 60vh; max-width: 100%; border: 1px solid #ddd; border-radius: 5px; padding: 10px; position: relative;">
+                <div class="overflow-auto describe">
                     <!-- Copy Button inside the div -->
                     <button id="copyButton" onclick="copyToClipboard()" class="btn btn-info text-white position-absolute top-0 end-0 m-3">
                         Copy YAML
                     </button>
-                    
-                
-                    <pre id="yamlContent">{{ pv_info.yaml }}</pre>
+                <pre id="yamlContent">{{ pv_info.yaml }}</pre>
                 </div>
             </div>
-            
         </div>
-
-        <a href="/{{current_cluster}}/pv?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to PV</a>
+        <a href="/{{current_cluster}}/pv?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to PVs</a>
     </div>
     
     {% load static%}

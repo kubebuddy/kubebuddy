@@ -804,7 +804,7 @@ table th, td {
   color: rgb(255, 255, 255);
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  display: flex;
+  display: none;
   flex-direction: column;
   z-index: 999;
   overflow: hidden;

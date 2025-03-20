@@ -141,7 +141,7 @@ def get_statefulset_description(path=None, context=None, namespace=None, sts_nam
                     "capacity": pvc.spec.resources.requests.get("storage") if pvc.spec.resources.requests else None,
                     "access_modes": pvc.spec.access_modes,
                 }
-                for pvc in sts.spec.volume_claim_templates if sts.spec.volume_claim_templates
+                for pvc in (sts.spec.volume_claim_templates or [])
             ]
         }
 

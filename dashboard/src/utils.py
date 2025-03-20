@@ -10,3 +10,12 @@ def calculateAge(timedelta_obj):
         return str(int(total_seconds/3600)) + "h"
     else:
         return str(timedelta_obj.days) + "d"
+    
+
+def filter_annotations(annotations):
+
+    if not annotations:
+        return None
+    filtered_annotations = {k: v for k, v in annotations.items() if "env" in k} 
+
+    return filtered_annotations if filtered_annotations else None

@@ -1,6 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 import yaml
 
 def getStatefulsetCount():
@@ -160,5 +160,13 @@ def get_sts_events(path, context, namespace, statefulset_name):
 def get_yaml_sts(path, context, namespace, statefulset_name):
     config.load_kube_config(config_file=path, context=context)
     v1 = client.AppsV1Api()
+    
+    # Get the StatefulSet object
     statefulset = v1.read_namespaced_stateful_set(name=statefulset_name, namespace=namespace)
+    
+    if statefulset.metadata:
+        statefulset.metadata.annotations = filter_annotations(statefulset.metadata.annotations)
+    
+    
+    # Convert to YAML
     return yaml.dump(statefulset.to_dict(), default_flow_style=False)

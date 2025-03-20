@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from .src.cluster_management import k8s_namespaces, k8s_nodes, k8s_limit_range, k8s_resource_quota, k8s_pdb
 
 from .src.services import k8s_endpoints, k8s_services
@@ -240,16 +240,42 @@ def deploy_info(request, cluster_name, namespace, deploy_name):
         'registered_clusters': registered_clusters
     })
 
-def events(request, cluster_name):
+def events(request, cluster_name=None):
+    # Get cluster_name from query parameters if not in URL path
+    cluster_name = cluster_name or request.GET.get('cluster_name')
+    if not cluster_name:
+        # Handle the case where cluster_name is missing
+        return HttpResponseBadRequest("Cluster name is required.")
+
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
+    # Fetch events
     events = k8s_events.get_events(path, context_name, False)
-    return render(request, 'dashboard/events.html', {"cluster_id": cluster_id, 
-                                                     'events': events,
-                                                     'current_cluster': cluster_name,
-                                                     'registered_clusters': registered_clusters,
-                                                     'namespaces': namespaces})
 
+    # Ensure events is a list
+    if not isinstance(events, list):
+        events = []
+
+    # Paginate events
+    paginator = Paginator(events, 50)  # Show 50 events per page
+    page_number = request.GET.get('page')  # Get the current page number from the request
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver the first page
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g., 9999), deliver the last page
+        page_obj = paginator.page(paginator.num_pages)
+
+    return render(request, 'dashboard/events.html', {
+        "cluster_id": cluster_id,
+        'events': page_obj,  # Pass the paginated events to the template
+        'current_cluster': cluster_name,
+        'registered_clusters': registered_clusters,
+        'namespaces': namespaces,
+        'page_obj': page_obj  # Pass the page object for pagination controls
+    })
 
 def statefulsets(request, cluster_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)

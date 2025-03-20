@@ -6,7 +6,34 @@
 {% block favicon %}https://cdn-icons-png.flaticon.com/128/18621/18621795.png{% endblock %}
 
 {% block content %}
+<style>
+  .pagination {
+    margin-top: 20px;
+    text-align: center;
+    padding-bottom: 20px;
+}
 
+.pagination a {
+    margin: 0 5px;
+    padding: 5px 10px;
+    text-decoration: none;
+    color: #ffffff;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    background-color: #007bff;
+}
+
+.pagination a:hover {
+    background-color: #0568d1;
+    color: white;
+}
+
+.pagination .current {
+    margin: 0 5px;
+    padding: 5px 10px;
+    font-weight: bold;
+}
+</style>
 <div class="container">
   <div class="container">
     {% if events is null %}
@@ -113,7 +140,26 @@
       </tr>
       {% endfor %}
       </tbody>
-  </table>
+    </table>
+
+    <!-- Pagination controls -->
+<div class="pagination">
+  <span class="step-links">
+      {% if page_obj.has_previous %}
+          <a href="/{{ current_cluster }}/events?cluster_id={{cluster_id}}&page=1">&laquo; First</a>
+          <a href="/{{ current_cluster }}/events?cluster_id={{cluster_id}}&page={{ page_obj.previous_page_number }}">Previous</a>
+      {% endif %}
+
+      <span class="current">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+      </span>
+
+      {% if page_obj.has_next %}
+          <a href="/{{ current_cluster }}/events?cluster_id={{cluster_id}}&page={{ page_obj.next_page_number }}">Next</a>
+          <a href="/{{ current_cluster }}/events?cluster_id={{cluster_id}}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+      {% endif %}
+  </span>
+</div>
     
   </div>
   {% endif %}

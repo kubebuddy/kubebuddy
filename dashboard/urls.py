@@ -40,6 +40,7 @@ urlpatterns = [
     
     # Events
     path('<str:cluster_name>/events', events, name='events'),
+    path('events/', events, name='events'),
     
     # ConfigMap & Secrets
     path('<str:cluster_name>/configmaps', configmaps, name='configmaps'),

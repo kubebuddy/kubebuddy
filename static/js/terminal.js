@@ -3,10 +3,15 @@ const terminalWindow = document.getElementById('terminal-window');
 const closeTerminal = document.getElementById('close-terminal');
 const terminalOutput = document.getElementById('terminal-output');
 const input = document.getElementById('input');
+const fullscreenButton = document.getElementById('fullscreen-terminal'); // Add this line to get the fullscreen button
 
 // Toggle terminal visibility
 terminalIcon.addEventListener('click', toggleTerminal);
 closeTerminal.addEventListener('click', hideTerminal);
+// Add fullscreen button event listener
+if (fullscreenButton) {
+    fullscreenButton.addEventListener('click', terminalFullscreen);
+}
 
 function toggleTerminal() {
     if (terminalWindow.style.display === 'flex') {
@@ -80,7 +85,6 @@ input.addEventListener('keydown', async (event) => {
 let terScreen = false; // Flag to check if the window is in fullscreen mode
 
 function terminalFullscreen() {
-    const terminalWindow = document.querySelector('#terminal-window');
     const fullscreenIcon = document.querySelector('.bi-fullscreen'); // Fullscreen icon
     const exitFullscreenIcon = document.querySelector('.bi-fullscreen-exit'); // Exit fullscreen icon
 
@@ -92,8 +96,8 @@ function terminalFullscreen() {
         terminalWindow.style.right = '20px'; // Stick to right
 
         // Show exit fullscreen icon, hide fullscreen icon
-        fullscreenIcon.classList.add('d-none'); // Hide fullscreen icon
-        exitFullscreenIcon.classList.remove('d-none'); // Show exit fullscreen icon
+        if (fullscreenIcon) fullscreenIcon.classList.add('d-none'); // Hide fullscreen icon
+        if (exitFullscreenIcon) exitFullscreenIcon.classList.remove('d-none'); // Show exit fullscreen icon
     } else {
         // Minimize the chat window to original size
         terminalWindow.style.width = '50vw'; // Original width
@@ -101,10 +105,26 @@ function terminalFullscreen() {
         terminalWindow.style.right = '20px'; // Reset right margin
 
         // Show fullscreen icon, hide exit fullscreen icon
-        fullscreenIcon.classList.remove('d-none'); // Show fullscreen icon
-        exitFullscreenIcon.classList.add('d-none'); // Hide exit fullscreen icon
+        if (fullscreenIcon) fullscreenIcon.classList.remove('d-none'); // Show fullscreen icon
+        if (exitFullscreenIcon) exitFullscreenIcon.classList.add('d-none'); // Hide exit fullscreen icon
     }
 
     // Toggle the fullscreen state
     terScreen = !terScreen;
+}
+
+// Helper function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }

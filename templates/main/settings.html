@@ -243,7 +243,7 @@
                                 <label for="apiKey" class="form-label">API Key</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="apiKey" name="apiKey" 
-                                           value="{% if 'openai' in ai_configs %}{{ ai_configs.openai.api_key }}{% elif 'gemini' in ai_configs %}{{ ai_configs.gemini.api_key }}{% endif %}">
+                                           value="{% if 'openai' in ai_configs %}{{ ai_configs.openai.api_key }}{% elif 'gemini' in ai_configs %}{{ ai_configs.gemini.api_key }}{% endif %}" required>
                                     <button class="btn btn-outline-secondary" type="button" id="showApiKey">
                                         <i class="bi bi-eye"></i>
                                     </button>

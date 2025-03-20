@@ -1044,13 +1044,18 @@ def k8sCertificates(request, cluster_name):
     })
 
 @csrf_exempt
-@csrf_exempt
 def execute_command(request, cluster_name):
     if request.method == 'POST':
         import json
         data = json.loads(request.body)
         command = data.get('command', '')
-
+        
+        # Get the user's home directory based on OS
+        if os.name == 'nt':  # Windows
+            home_dir = os.path.expanduser('~')
+        else:  # Unix-like systems
+            home_dir = os.path.expanduser('~')
+        
         try:
             # Determine the shell based on the OS
             if os.name == 'nt':  # Windows
@@ -1070,6 +1075,7 @@ def execute_command(request, cluster_name):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                cwd=home_dir,  # Set the current working directory to home
                 env=os.environ  # Pass the current environment variables
             )
 

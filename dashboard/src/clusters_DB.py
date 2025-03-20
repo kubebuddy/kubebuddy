@@ -56,15 +56,13 @@ def get_registered_clusters():
             context.failed_control_pods = failed_control_pods
             context.failed_dns_pods = failed_dns_pods
 
-        except urllib3.exceptions.MaxRetryError as e:
+        except Exception as e:
             print(f"Cluster {cluster_name} is unreachable: {e}")
             context.control_plane_status = "Unavailable"
             context.core_dns_status = "Unavailable"
             context.number_of_nodes = 0
             context.failed_control_pods = []
             context.failed_dns_pods = []
-        except Exception as e:
-            print(f"Unexpected error for {cluster_name}: {e}")
 
     return registered_clusters
 

@@ -10,6 +10,6 @@ def server_down_handler(view_func):
             return view_func(request, *args, **kwargs)
         except MaxRetryError as e:
             # logger.error(e)
-            return HttpResponseServerError(render(request, '500.html'))
+            return HttpResponseServerError(render(request, 'cluster_error.html'))
 
     return _wrapped_view_func

@@ -70,4 +70,4 @@ def get_registered_clusters():
 
 def get_cluster_names():
     clusters = Cluster.objects.all()
-    return [{"cluster_name": cluster.cluster_name} for cluster in clusters]
+    return [{"cluster_name": cluster.cluster_name, "id": cluster.id} for cluster in clusters]

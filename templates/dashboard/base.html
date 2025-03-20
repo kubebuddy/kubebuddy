@@ -51,13 +51,14 @@
           <i class="bi bi-caret-down-fill position-absolute" style="right: 15px; top: 50%; transform: translateY(-50%); color: white; pointer-events: none;"></i>
           <ul class="dropdown-menu" id="cluster-list" style="width: 15vw;">
             {% for cluster in registered_clusters %}
-            <a href="
+            <a href="/{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}" class="text-decoration-none">
+            <!-- <a href="
             {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
             /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
             {% else %}
             {% url 'cluster_error' cluster.cluster_name %}
             {% endif %}
-            " class="text-decoration-none">
+            " class="text-decoration-none"> -->
               <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
             </a>
             {% empty %}

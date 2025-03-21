@@ -60,7 +60,7 @@ def getDeploymentsStatus(path, context, namespace="all"):
         return deployment_status
     
     except client.exceptions.ApiException as e:
-        logger(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger.error(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
         return []
     except Exception as e:  # Catch other potential errors (e.g., config issues)
         logger(f"An error occurred: {e}")  # Print other errors to stderr

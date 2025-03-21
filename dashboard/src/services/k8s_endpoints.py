@@ -52,12 +52,12 @@ def get_endpoints(path, context):
                     }
                     endpoint_data.append(endpoint_info)
                 except Exception as e:
-                    logger(f"Error processing endpoint '{ep.metadata.name}' in namespace '{namespace}': {e}")
+                    logger.error(f"Error processing endpoint '{ep.metadata.name}' in namespace '{namespace}': {e}")
         
         return endpoint_data
     
     except Exception as e:
-        logger(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error: {e}")
         return []
 
 

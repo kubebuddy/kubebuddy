@@ -22,7 +22,7 @@ def get_pdb(path, context):
            })
         
     except Exception as e:
-        logger(f"Error fetching PDB: {e}")
+        logger.error(f"Error fetching PDB: {e}")
     
     return pdb_list, len(pdb_list)
         

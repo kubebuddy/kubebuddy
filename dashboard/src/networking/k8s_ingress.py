@@ -1,5 +1,6 @@
 from kubernetes import client, config
 import yaml
+from kubebuddy.appLogs import logger
 from datetime import datetime, timezone
 from ..utils import calculateAge
 
@@ -27,7 +28,7 @@ def get_ingress(path, context):
             })
         
     except Exception as e:
-        print(f"Error fetching np: {e}")
+        logger.error(f"Error fetching np: {e}")
     
     return ingress_list, len(ingress_list)
 

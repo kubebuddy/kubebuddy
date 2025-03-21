@@ -38,10 +38,10 @@ def getJobsStatus(path, context, namespace="all"):
         return jobs_status
     
     except client.exceptions.ApiException as e:
-        logger(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger.error(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
         return []
     except Exception as e:  # Catch other potential errors (e.g., config issues)
-        logger(f"An error occurred: {e}")  # Print other errors to stderr
+        logger.error(f"An error occurred: {e}")  # Print other errors to stderr
         return []
     
 def getJobsList(path, context, namespace="all"):

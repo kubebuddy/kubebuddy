@@ -53,7 +53,7 @@ def get_node_metrics(path=None, context=None):
                 })
 
             except ApiException as e:
-                logger(f"Error fetching metrics for node {node_name}: {e}")
+                logger.error(f"Error fetching metrics for node {node_name}: {e}")
                 node_metrics.append({
                     "name": node_name,
                     "error": f"Failed to fetch metrics: {e.reason}"

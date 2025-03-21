@@ -62,8 +62,8 @@ def get_events(config_file, context, limit, namespace = "all"):
         return events
 
     except client.exceptions.ApiException as e:
-        logger(f"Kubernetes API Exception: {e}")
+        logger.error(f"Kubernetes API Exception: {e}")
         return []
     except Exception as e:
-        logger(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
         return []

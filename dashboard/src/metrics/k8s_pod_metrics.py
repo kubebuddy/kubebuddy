@@ -74,7 +74,7 @@ def get_pod_metrics(path=None, context=None):
                         })
 
                     except ApiException as e:
-                        logger(f"Error fetching metrics for pod {pod_name} in namespace {namespace}: {e}")
+                        logger.error(f"Error fetching metrics for pod {pod_name} in namespace {namespace}: {e}")
                         all_pod_metrics.append({
                             "name": pod_name,
                             "namespace": namespace,
@@ -83,7 +83,7 @@ def get_pod_metrics(path=None, context=None):
                         # metrics_available = False
 
             except ApiException as e:
-                logger(f"Error fetching pods in namespace {namespace}: {e}")
+                logger.error(f"Error fetching pods in namespace {namespace}: {e}")
 
         return all_pod_metrics, len(all_pod_metrics), metrics_available
 

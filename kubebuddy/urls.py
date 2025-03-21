@@ -17,12 +17,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.conf.urls import handler500
 from main.views import login_view, integrate_with, logout_view, change_pass, cluster_select, delete_cluster, cluster_error, \
                         check_api_key, set_api_key, chatbot_response, validate_api_key, settings, \
-                        profile, custom_error_view
-
-handler500 = custom_error_view
+                        profile
 
 urlpatterns = [
     path('admin/', admin.site.urls),

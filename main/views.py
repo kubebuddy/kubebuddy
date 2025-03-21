@@ -32,8 +32,6 @@ import markdown
 import bleach
 from google import genai
 
-import traceback
-
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -215,17 +213,6 @@ def delete_cluster(request, pk):
     cluster = Cluster.objects.get(pk=pk)
     cluster.delete()
     return JsonResponse({'status': 'deleted'})
-
-@login_required
-
-def custom_error_view(request, exception=None):
-    error_message = str(exception) if exception else "An unknown error occurred."
-    error_trace = traceback.format_exc() if exception else ""
-
-    return render(request, "error.html", {
-        "error": error_message,
-        "traceback": error_trace
-    })
 
 # System prompt to focus responses on technical topics
 SYSTEM_PROMPT = """You are Buddy AI, a technical assistant specializing in:

@@ -1,24 +1,10 @@
 from kubernetes import client, config
 from datetime import datetime
 from dateutil.tz import tzutc
+from kubebuddy.appLogs import logger
 from dateutil.relativedelta import relativedelta
 
 def get_events(config_file, context, limit, namespace = "all"):
-    """
-    Retrieves events for a particular namesapce.
-
-    Args:
-        config_file (str, required): The path of config file to use for cluster selection.
-
-        context (str, required): The context to use for API call.
-
-        namespace (str, optional): The namespace to query. Defaults to "all" to query all namespaces.
-
-    Returns:
-        list: A 
-
-    """
-
     try:
         config.load_kube_config(config_file, context)
 
@@ -76,8 +62,8 @@ def get_events(config_file, context, limit, namespace = "all"):
         return events
 
     except client.exceptions.ApiException as e:
-        print(f"Kubernetes API Exception: {e}")
+        logger(f"Kubernetes API Exception: {e}")
         return []
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger(f"An error occurred: {e}")
         return []

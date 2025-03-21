@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
 import yaml
+from kubebuddy.appLogs import logger
 from ..utils import calculateAge
 
 def get_endpoints(path, context):
@@ -51,12 +52,12 @@ def get_endpoints(path, context):
                     }
                     endpoint_data.append(endpoint_info)
                 except Exception as e:
-                    print(f"Error processing endpoint '{ep.metadata.name}' in namespace '{namespace}': {e}")
+                    logger(f"Error processing endpoint '{ep.metadata.name}' in namespace '{namespace}': {e}")
         
         return endpoint_data
     
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logger(f"Unexpected error: {e}")
         return []
 
 

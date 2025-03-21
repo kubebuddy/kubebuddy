@@ -1,6 +1,7 @@
 from kubernetes import client, config
 import yaml
 from datetime import datetime, timezone
+from kubebuddy.appLogs import logger
 from ..utils import calculateAge
 
 def get_pdb(path, context):
@@ -21,7 +22,7 @@ def get_pdb(path, context):
            })
         
     except Exception as e:
-        print(f"Error fetching PDB: {e}")
+        logger(f"Error fetching PDB: {e}")
     
     return pdb_list, len(pdb_list)
         

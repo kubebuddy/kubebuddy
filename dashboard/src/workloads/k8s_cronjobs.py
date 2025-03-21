@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from ..utils import calculateAge
 from datetime import datetime, timezone
+from kubebuddy.appLogs import logger
 import yaml
 
 def getCronJobCount():
@@ -33,10 +34,10 @@ def getCronJobsStatus(path, context, namespace="all"):
         return cronjobs_status
     
     except client.exceptions.ApiException as e:
-        print(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
         return []
     except Exception as e:  # Catch other potential errors (e.g., config issues)
-        print(f"An error occurred: {e}")  # Print other errors to stderr
+        logger(f"An error occurred: {e}")  # Print other errors to stderr
         return []
 
 def getCronJobsList(path, context, namespace="all"):
@@ -72,10 +73,10 @@ def getCronJobsList(path, context, namespace="all"):
         return cronjobs_list
 
     except client.exceptions.ApiException as e:
-        print(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
         return []
     except Exception as e:  # Catch other potential errors (e.g., config issues)
-        print(f"An error occurred: {e}")  # Print other errors to stderr
+        logger(f"An error occurred: {e}")  # Print other errors to stderr
         return []
 
 def get_cronjob_description(path=None, context=None, namespace=None, cronjob_name=None):

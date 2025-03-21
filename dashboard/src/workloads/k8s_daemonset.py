@@ -1,6 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-
+from kubebuddy.appLogs import logger
 import yaml
 from ..utils import calculateAge
 
@@ -34,10 +34,10 @@ def getDaemonsetStatus(path, context, namespace="all"):
         return daemonset_status
     
     except client.exceptions.ApiException as e:
-        print(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
         return []
     except Exception as e:  # Catch other potential errors (e.g., config issues)
-        print(f"An error occurred: {e}")  # Print other errors to stderr
+        logger(f"An error occurred: {e}")  # Print other errors to stderr
         return []
     
 def getDaemonsetList(path, context, namespace="all"):
@@ -68,10 +68,10 @@ def getDaemonsetList(path, context, namespace="all"):
         return daemonset_info_list
     
     except client.exceptions.ApiException as e:
-        print(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
         return []
     except Exception as e:  # Catch other potential errors (e.g., config issues)
-        print(f"An error occurred: {e}")  # Print other errors to stderr
+        logger(f"An error occurred: {e}")  # Print other errors to stderr
         return []
 
 

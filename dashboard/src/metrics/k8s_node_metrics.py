@@ -1,4 +1,5 @@
 from kubernetes import config, client
+from kubebuddy.appLogs import logger
 from kubernetes.client.rest import ApiException
 
 def get_node_metrics(path=None, context=None):
@@ -52,7 +53,7 @@ def get_node_metrics(path=None, context=None):
                 })
 
             except ApiException as e:
-                print(f"Error fetching metrics for node {node_name}: {e}")
+                logger(f"Error fetching metrics for node {node_name}: {e}")
                 node_metrics.append({
                     "name": node_name,
                     "error": f"Failed to fetch metrics: {e.reason}"

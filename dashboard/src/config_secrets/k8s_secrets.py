@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
+from kubebuddy.appLogs import logger
 import yaml
 import base64
 from ..utils import calculateAge

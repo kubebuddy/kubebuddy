@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
 from ..utils import calculateAge, filter_annotations
+from kubebuddy.appLogs import logger
 import yaml
 
 def getStatefulsetCount():
@@ -33,10 +34,10 @@ def getStatefulsetStatus(path, context, namespace="all"):
         return statefulset_status
     
     except client.exceptions.ApiException as e:
-        print(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
         return []
     except Exception as e:  # Catch other potential errors (e.g., config issues)
-        print(f"An error occurred: {e}")  # Print other errors to stderr
+        logger(f"An error occurred: {e}")  # Print other errors to stderr
         return []
     
 def getStatefulsetList(path, context, namespace="all"):
@@ -70,10 +71,10 @@ def getStatefulsetList(path, context, namespace="all"):
 
 
     except client.exceptions.ApiException as e:
-        print(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
         return []
     except Exception as e:  # Catch other potential errors (e.g., config issues)
-        print(f"An error occurred: {e}")  # Print other errors to stderr
+        logger(f"An error occurred: {e}")  # Print other errors to stderr
         return []
     
 

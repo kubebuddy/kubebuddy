@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
+from kubebuddy.appLogs import logger
 from datetime import datetime, timezone
 from ..utils import calculateAge
 import yaml

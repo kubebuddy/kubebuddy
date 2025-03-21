@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const cardHeader = clusterElement.querySelector("#card-head");
         if (cardHeader) {
-            cardHeader.classList.remove("bg-secondary");
+            cardHeader.classList.remove("bg-light-subtle");
 
             if (clusterData.core_dns_status === 'Running' && clusterData.control_plane_status === 'Running') {
                 cardHeader.classList.add("bg-success", "text-white"); // Green background for healthy clusters
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // tooltip for statuses
-        
+
     }
 
     clusters.forEach((cluster) => {

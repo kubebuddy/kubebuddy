@@ -93,26 +93,6 @@
                 </a>
             </div>
             <div class="card-body d-flex flex-column">
-                <div class="container my-4">
-                    <div class="dropdown">
-                        <input type="text" id="search-bar" class="form-control" placeholder="Search for clusters..." onkeyup="searchClusters()">
-                        <ul class="dropdown-menu" id="cluster-list" style="width:100%;">
-                            {% for cluster in registered_clusters %}
-                            <a href="
-                            {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
-                            /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
-                            {% else %}
-                            {% url 'cluster_error' cluster.cluster_name %}
-                            {% endif %}
-                            " class="text-decoration-none">
-                            <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
-                            </a>
-                            {% empty %}
-                                <li class="list-group-item">No clusters found.</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
             </div>
             
             <!-- Bottom sidebar links -->
@@ -163,24 +143,12 @@
                     </a>
                 </div>
                 {% for cluster in registered_clusters %}
-                <div class="col-md-4 mb-4 ">
+                <div class="col-md-4 mb-2" id="{{ cluster.id }}">
                     <div class="card shadow-sm d-flex flex-column" style="min-height:17rem;">
-                        <div class="card-header d-flex justify-content-between
-                            {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
-                                bg-success text-white
-                            {% else %}
-                                bg-danger text-white
-                            {% endif %}">
+                        <div class="card-header d-flex justify-content-between bg-secondary" id="card-head">
                         <span id="cluster_tag" class="w-100">{{ cluster.cluster_name }}</span>
                         </div>
-                        <a href="
-                        {% if cluster.control_plane_status == 'Running' and cluster.core_dns_status == 'Running' %}
-                        /{{cluster.cluster_name}}/dashboard?cluster_id={{cluster.id}}
-                        {% else %}
-                        {% url 'cluster_error' cluster.cluster_name %}
-                        {% endif %}
-                        " 
-                        class="text-decoration-none" style="text-decoration: none;">
+                        <a href="#" class="text-decoration-none" style="text-decoration: none; pointer-events: none; cursor: default;">
                         <div class="card-body d-flex flex-column h-100">
                             <p class="card-text text-black lh-sm">
                                 <strong>Name:</strong>
@@ -192,57 +160,27 @@
                             </p>
                             <p class="card-text text-black lh-sm">
                                 <strong>Nodes:</strong>
-                                {% if cluster.number_of_nodes %}
-                                    {{ cluster.number_of_nodes }}
-                                {% else %}
-                                    -
-                                {% endif %}
+                                <span id="cluster_nodes">
+                                    {% if cluster.number_of_nodes %}
+                                        {{ cluster.number_of_nodes }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </span>
                             </p>
                             <p class="card-text text-black lh-sm">
                                 <strong>Control Plane : </strong>
-                                {% if cluster.control_plane_status == "Running" %}
-                                   <span class="text-success">Running</span>
-                                {% elif cluster.control_plane_status == "Unhealthy" %}
-                                    <span class="text-danger">Unhealthy</span>
-                                    <i class="bi bi-exclamation-triangle-fill text-danger"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    title="Problematic Pods: {% for pod in cluster.failed_control_pods %}{{ pod }} not working {% if not forloop.last %}, {% endif %}{% endfor %}">
-                                    </i>
-                                {% else %}
-                                    <span class="text-danger">Unavailable</span>
-                                    <i class="bi bi-exclamation-triangle-fill text-danger"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    title="Could not connect to cluster {{cluster.cluster_name}}">
-                                    </i>
-                                {% endif %}
+                                <span class="text-primary">Checking...</span>
                             </p>
                             <p class="card-text text-black lh-sm">
-                                <strong>CoreDNS : </strong>
-                                {% if cluster.core_dns_status == "Running" %}
-                                    <span class="text-success">Running</span>
-                                {% elif cluster.core_dns_status == "Unhealthy" %}
-                                    <span class="text-danger">Unhealthy</span>
-                                    <i class="bi bi-exclamation-triangle-fill text-danger"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    title="Problematic Pods: {% for pod in cluster.failed_dns_pods %}{{ pod }} not working {% if not forloop.last %}, {% endif %}{% endfor %}">
-                                    </i>
-                                {% else %}
-                                    <span class="text-danger">Unavailable</span>
-                                    <i class="bi bi-exclamation-triangle-fill text-danger"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    title="Could not connect to cluster {{cluster.cluster_name}}">
-                                    </i>
-                                {% endif %}
+                                <strong>CoreDNS : </strong>        
+                                    <span class="text-primary">Checking...</span>
                             </p>
                             <p class="card-text text-black lh-sm">
                                 <strong>Kube config:</strong>
                                 <span class="d-block text-truncate" style="max-width: 100%;" 
                                       title="{{ cluster.kube_config.path }}">
-                                    {{ cluster.kube_config.path|default:"Path not available" }}
+                                    {{ cluster.kube_config__path|default:"Path not available" }}
                                 </span>
                             </p>
                             <div class="mt-auto d-flex justify-content-end">
@@ -252,16 +190,16 @@
                         </a>
                     </div>
                 </div>
-                {% if forloop.counter|divisibleby:3 and not forloop.last %}
-                {% endif %}
                 {% endfor %}
             </div>
         </div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/cluster_actions.js' %}"></script>
+    <script src="{% static 'js/clusterStatus.js' %}"></script>
     <script>
+        const clusters = {{ registered_clusters|safe }};
         // Theme toggle functionality
         document.addEventListener("DOMContentLoaded", function() {
             // Check for saved theme preference or use preferred color scheme

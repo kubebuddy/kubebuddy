@@ -199,14 +199,12 @@ def change_pass(request):
 
 @login_required
 def cluster_select(request):
-
     registered_clusters = clusters_DB.get_registered_clusters()
 
     return render(request, 'main/cluster_select.html', {'registered_clusters' : registered_clusters})
 
 def cluster_error(request, cluster_name):
-    pass
-    return render(request, 'cluster_error.html')
+    return render(request, 'cluster_error.html', {'cluster_name': cluster_name})
 
 @login_required
 def delete_cluster(request, pk):

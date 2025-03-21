@@ -20,12 +20,13 @@ from django.urls import path, include
 from main.views import login_view, integrate_with, logout_view, change_pass, cluster_select, delete_cluster, cluster_error, \
                         check_api_key, set_api_key, chatbot_response, validate_api_key, settings, \
                         profile
+from dashboard.src.clusters_DB import get_cluster_status
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
     # APP URLS
-    path('', login_view, name='login'),  # Route for the login page
+    path('', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('update-password/', change_pass, name='update-password'),
     path('integrate/', integrate_with, name='integrate'),
@@ -39,4 +40,5 @@ urlpatterns = [
     path('validate-api-key/', validate_api_key, name='validate_api_key'),
     path('settings/', settings, name='settings'),
     path('profile/', profile, name='profile'),
+    path('get_cluster_status/', get_cluster_status ,name = 'get_cluster_status')
 ]

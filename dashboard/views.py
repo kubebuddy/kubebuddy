@@ -1056,48 +1056,67 @@ def node_metrics(request, cluster_name):
     })
 
 
+current_working_directory = os.path.expanduser('~')
+
 @csrf_exempt
 def execute_command(request, cluster_name):
+    global current_working_directory
+
     if request.method == 'POST':
         import json
         data = json.loads(request.body)
         command = data.get('command', '')
-        
-        # Get the user's home directory based on OS
-        if os.name == 'nt':  # Windows
-            home_dir = os.path.expanduser('~')
-        else:  # Unix-like systems
-            home_dir = os.path.expanduser('~')
-        
+
         try:
-            # Determine the shell based on the OS
-            if os.name == 'nt':  # Windows
-                shell = 'C:\\Windows\\System32\\cmd.exe'  # Full path to cmd.exe
-                if command.strip() == 'ls':
-                    command = 'dir'  # Replace 'ls' with 'dir' on Windows
-                elif command.strip() == 'pwd':
-                    command = 'cd'  # Replace 'pwd' with 'cd' on Windows
-            else:  # Unix-like systems (Linux, macOS)
-                shell = '/bin/bash'  # Full path to bash
+            # Handle 'cd' command separately
+            if command.strip().startswith('cd'):
+                # Extract the directory path from the command
+                new_dir = command.strip().split(' ', 1)[1] if len(command.strip().split(' ', 1)) > 1 else ''
 
-            # Execute the command
-            result = subprocess.run(
-                command,
-                shell=True,
-                executable=shell,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                cwd=home_dir,  # Set the current working directory to home
-                env=os.environ  # Pass the current environment variables
-            )
+                # Handle 'cd' without arguments (go to home directory)
+                if not new_dir:
+                    new_dir = os.path.expanduser('~')
 
-            if result.returncode == 0:
-                output = result.stdout
+                # Resolve the full path
+                new_dir = os.path.join(current_working_directory, new_dir)
+                new_dir = os.path.abspath(os.path.expanduser(new_dir))
+
+                # Check if the directory exists
+                if os.path.isdir(new_dir):
+                    current_working_directory = new_dir
+                    output = f"Changed directory to: {current_working_directory}"
+                else:
+                    output = f"Error: Directory not found: {new_dir}"
             else:
-                output = result.stderr
+                # Determine the shell based on the OS
+                if os.name == 'nt':  # Windows
+                    shell = 'C:\\Windows\\System32\\cmd.exe'
+                    if command.strip() == 'ls':
+                        command = 'dir'  # Replace 'ls' with 'dir' on Windows
+                    elif command.strip() == 'pwd':
+                        command = 'cd'  # Replace 'pwd' with 'cd' on Windows
+                    elif command.strip().startswith('cat'):
+                        command = command.replace('cat', 'type', 1)  # Replace 'cat' with 'type' on Windows
+                else:  # Unix-like systems (Linux, macOS)
+                    shell = '/bin/bash'
+
+                # Execute the command
+                result = subprocess.run(
+                    command,
+                    shell=True,
+                    executable=shell,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    cwd=current_working_directory,  # Use the current working directory
+                    env=os.environ  # Pass the current environment variables
+                )
+
+                if result.returncode == 0:
+                    output = result.stdout
+                else:
+                    output = result.stderr
         except Exception as e:
             output = f"Error: {str(e)}"
 
         return JsonResponse({'output': output})
-    return JsonResponse({'error': 'Invalid request method'}, status=400)

@@ -21,25 +21,27 @@ from kubernetes import config, client
 from dashboard.src import clusters_DB
 from .decorators import server_down_handler
 
+from django.http import HttpResponseServerError
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import subprocess
-import shlex
 import os
 
 def get_utils_data(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
     current_cluster = Cluster.objects.get(id = cluster_id)
-    path = current_cluster.kube_config.path
     
-    # get clusters in DB
-    registered_clusters = clusters_DB.get_cluster_names()
-    # get namespaces
-    namespaces = k8s_namespaces.get_namespace(path, current_cluster.context_name)
+    # handle incorrect cluster name in URL
+    if cluster_name == current_cluster.cluster_name:
+        path = current_cluster.kube_config.path
+        
+        registered_clusters = clusters_DB.get_cluster_names()
+        namespaces = k8s_namespaces.get_namespace(path, current_cluster.context_name)
+        context_name = current_cluster.context_name
+        return cluster_id, current_cluster, path, registered_clusters, namespaces, context_name
     
-    context_name = current_cluster.context_name
-
-    return cluster_id, current_cluster, path, registered_clusters, namespaces, context_name
+    else:
+        return HttpResponseServerError(render(request, 'Cluster name is incorrect. Please check the cluster: ' + cluster_name + ' exists.'))
 
 @server_down_handler
 @login_required
@@ -47,29 +49,18 @@ def dashboard(request, cluster_name):
     namespace = request.GET.get("namespace")
     if namespace == None:
         namespace="all"
-    cluster_id = request.GET.get('cluster_id')
-    current_cluster = Cluster.objects.get(id = cluster_id)
-    context_name = current_cluster.context_name
-    path = current_cluster.kube_config.path
-    logger.info(f"kube config file path  : {path}")
+
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     config.load_kube_config(config_file=path, context = context_name)  # Load the kube config
-
-    # get cluster name
-    current_cluster = current_cluster.cluster_name
     
-    namespaces = k8s_namespaces.get_namespace(path, context_name)
     namespaces_count = len(namespaces)
-    logger.info(f"Namespaces  : {len(namespaces)}")
 
     # check if the user is using default username and password
     if request.user.username == "admin" and request.user.check_password("admin"):
         warning_message = "Warning: You're using the default username & password. Please change it for security reasons."
     else:
         warning_message = None
-
-    # get clusters in DB
-    registered_clusters = clusters_DB.get_cluster_names()
 
     # get nodes information
     ready_nodes, not_ready_nodes, node_count = k8s_nodes.getNodesStatus(path, context_name)

@@ -183,11 +183,11 @@
                                     {{ cluster.kube_config__path|default:"Path not available" }}
                                 </span>
                             </p>
-                            <div class="mt-auto d-flex justify-content-end">
-                                <button class="btn btn-danger btn-sm " onclick="deleteCluster(event,'{{ cluster.id }}')"><i class="bi bi-trash"></i></button>
-                            </div>
                         </div>
-                        </a>
+                    </a>
+                    <div class="d-flex justify-content-end mb-3 me-3">
+                        <button class="btn btn-danger btn-sm " onclick="deleteCluster(event,'{{ cluster.id }}')"><i class="bi bi-trash"></i></button>
+                    </div>
                     </div>
                 </div>
                 {% endfor %}

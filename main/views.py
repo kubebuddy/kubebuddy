@@ -136,7 +136,7 @@ def save_clusters(kube_config, changes, path):
                     Cluster.objects.create(cluster_name=cluster_name, context_name=context_name, kube_config=kube_config)
 
             except Exception as e:
-                print("Exception caught:", e)
+                logger.error("Exception caught:", e)
     else:
         # Fetch existing clusters for this kube_config
         existing_clusters = Cluster.objects.filter(kube_config=kube_config)

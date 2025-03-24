@@ -22,7 +22,7 @@ def get_cluster_status(request):
     try:
         config.load_kube_config(config_file=cluster['kube_config__path'], context=cluster['context_name'])
     except Exception as e:
-        print(f"Error loading kubeconfig for {cluster['cluster_name']}: {e}")
+        logger.info(f"Error loading kubeconfig for {cluster['cluster_name']}: {e}")
         cluster.control_plane_status = "Unavailable"
         cluster.core_dns_status = "Unavailable"
         cluster.number_of_nodes = 'N/A'
@@ -59,7 +59,7 @@ def get_cluster_status(request):
         return JsonResponse({"message": "Cluster status retrieved", "received_data": cluster})
 
     except Exception as e:
-        print(f"Cluster {cluster['cluster_name']} is unreachable: {e}")
+        logger.info(f"Cluster {cluster['cluster_name']} is unreachable: {e}")
         cluster['control_plane_status'] = "Unavailable"
         cluster['core_dns_status'] = "Unavailable"
         cluster['number_of_nodes'] = 'N/A'

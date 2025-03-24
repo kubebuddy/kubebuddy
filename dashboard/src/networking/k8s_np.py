@@ -1,6 +1,7 @@
 from kubernetes import client, config
 import yaml
 from datetime import datetime, timezone
+from kubebuddy.appLogs import logger
 from ..utils import calculateAge
 
 def get_np(path, context):
@@ -19,7 +20,7 @@ def get_np(path, context):
            })
         
     except Exception as e:
-        print(f"Error fetching np: {e}")
+        logger.error(f"Error fetching np: {e}")
     
     return np_list, len(np_list)
 

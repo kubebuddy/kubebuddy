@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from kubebuddy.appLogs import logger
 import yaml
 
 def get_limit_ranges(path, context):
@@ -23,7 +24,7 @@ def get_limit_ranges(path, context):
                     "created_at": lr.metadata.creation_timestamp.strftime("%Y-%m-%d %H:%M:%S")
                 })
         except Exception as e:
-            print(f"Error fetching LimitRange for namespace {ns}: {e}")
+            logger.error(f"Error fetching LimitRange for namespace {ns}: {e}")
     
     return limit_ranges, len(limit_ranges)
 

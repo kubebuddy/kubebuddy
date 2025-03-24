@@ -16,7 +16,7 @@ def get_endpoints(path, context):
         try:
             namespaces = v1.list_namespace()
         except Exception as e:
-            print(f"Error fetching namespaces: {e}")
+            logger.error(f"Error fetching namespaces: {e}")
             return []
         
         endpoint_data = []
@@ -28,7 +28,7 @@ def get_endpoints(path, context):
             try:
                 endpoints = v1.list_namespaced_endpoints(namespace)
             except Exception as e:
-                print(f"Error fetching endpoints for namespace '{namespace}': {e}")
+                logger.error(f"Error fetching endpoints for namespace '{namespace}': {e}")
                 continue  # Skip to the next namespace
             
             for ep in endpoints.items:

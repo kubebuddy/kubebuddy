@@ -7,14 +7,14 @@ function renderGaugeChart(canvasId, chartData, object_name) {
   delete chartData["Count"];
   // Define a fixed color mapping for known labels
   const labelColors = {
-      "Running": "RGB(50, 205, 50)",
+      "Running": "#32CD32",
       "Pending": "#ffc107",
-      "Failed": "RGB(220, 20, 60)",
+      "Failed": "#DC143C",
       "Succeeded": "#0dcaf0",
       "Completed": "#0dcaf0",
       "Total": "#007bff",
-      "Ready": "RGB(50, 205, 50)",
-      "Not Ready": "#dc3545"
+      "Ready": "#32CD32",
+      "Not Ready": "#DC143C"
   };
 
   // Get labels and data dynamically
@@ -35,8 +35,9 @@ function renderGaugeChart(canvasId, chartData, object_name) {
               label: 'Count',
               data: dataValues,
               backgroundColor: backgroundColors,
-              borderWidth: 1
-          }]
+              borderWidth: 1,
+          }],
+          
       },
       options: {
           responsive: true,

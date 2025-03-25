@@ -1,31 +1,30 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseBadRequest, HttpResponseServerError
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
 from .src.cluster_management import k8s_namespaces, k8s_nodes, k8s_limit_range, k8s_resource_quota, k8s_pdb
-
 from .src.services import k8s_endpoints, k8s_services
-
 from .src.events import k8s_events
-
 from .src.networking import k8s_np, k8s_ingress
-
 from .src.config_secrets import k8s_configmaps, k8s_secrets
 from .src.workloads import k8s_cronjobs, k8s_daemonset, k8s_deployments, k8s_jobs, k8s_pods, k8s_replicaset, k8s_statefulset
 from .src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
 from .src.rbac import k8s_role, k8s_cluster_role_bindings, k8s_cluster_roles, k8s_rolebindings, k8s_service_accounts
 from .src.metrics import k8s_pod_metrics, k8s_node_metrics
-from main.models import KubeConfig, Cluster
 from .src import k8s_cluster_metric
-from django.contrib.auth.decorators import login_required
+
+from main.models import KubeConfig, Cluster
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
 from dashboard.src import clusters_DB
 from .decorators import server_down_handler
 
-from django.http import HttpResponseServerError
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 import subprocess
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 def get_utils_data(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')
@@ -43,83 +42,118 @@ def get_utils_data(request, cluster_name):
     else:
         return HttpResponseServerError(render(request, 'Cluster name is incorrect. Please check the cluster: ' + cluster_name + ' exists.'))
 
+
 @server_down_handler
 @login_required
 def dashboard(request, cluster_name):
-    namespace = request.GET.get("namespace")
-    if namespace == None:
-        namespace="all"
+    namespace = request.GET.get("namespace", "all")
 
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
-    config.load_kube_config(config_file=path, context = context_name)  # Load the kube config
-    
+    config.load_kube_config(config_file=path, context=context_name)  # Load the kube config
+
     namespaces_count = len(namespaces)
 
-    # check if the user is using default username and password
-    if request.user.username == "admin" and request.user.check_password("admin"):
-        warning_message = "Warning: You're using the default username & password. Please change it for security reasons."
-    else:
-        warning_message = None
+    # Check if the user is using default credentials
+    warning_message = (
+        "Warning: You're using the default username & password. Please change it for security reasons."
+        if request.user.username == "admin" and request.user.check_password("admin")
+        else None
+    )
 
-    # get nodes information
-    ready_nodes, not_ready_nodes, node_count = k8s_nodes.getNodesStatus(path, context_name)
+    # Define functions for multithreading
+    def fetch_nodes_status():
+        return k8s_nodes.getNodesStatus(path, context_name)
 
-    # getting list of nodes
-    node_list, node_count = k8s_nodes.getnodes(path, context_name)
+    def fetch_nodes():
+        return k8s_nodes.getnodes(path, context_name)
 
-    # get pods status
-    status_count = k8s_pods.getPodsStatus(path,context_name, namespace)
+    def fetch_pods_status():
+        return k8s_pods.getPodsStatus(path, context_name, namespace)
 
-    # get list of pods
-    pod_list, pode_count = k8s_pods.getpods(path, context_name, namespace)
+    def fetch_pods():
+        return k8s_pods.getpods(path, context_name, namespace)
 
-    # get deployment count
-    deployments_status = k8s_deployments.getDeploymentsStatus(path, context_name, namespace)
+    def fetch_deployments():
+        return k8s_deployments.getDeploymentsStatus(path, context_name, namespace)
 
-    # get daemonset count
-    daemonset_status = k8s_daemonset.getDaemonsetStatus(path, context_name, namespace)
+    def fetch_daemonsets():
+        return k8s_daemonset.getDaemonsetStatus(path, context_name, namespace)
 
-    # get replicaset count
-    replicaset_status = k8s_replicaset.getReplicasetStatus(path, context_name, namespace)
+    def fetch_replicasets():
+        return k8s_replicaset.getReplicasetStatus(path, context_name, namespace)
 
-    # get statefulset count
-    statefulset_status = k8s_statefulset.getStatefulsetStatus(path, context_name, namespace)
+    def fetch_statefulsets():
+        return k8s_statefulset.getStatefulsetStatus(path, context_name, namespace)
 
-    # get jobs count
-    jobs_status = k8s_jobs.getJobsStatus(path, context_name, namespace)
+    def fetch_jobs():
+        return k8s_jobs.getJobsStatus(path, context_name, namespace)
 
-    # get cronjobs count
-    cronjob_status = k8s_cronjobs.getCronJobsStatus(path, context_name, namespace)
+    def fetch_cronjobs():
+        return k8s_cronjobs.getCronJobsStatus(path, context_name, namespace)
 
-    # get cluster metrics 
-    metrics = k8s_cluster_metric.getMetrics(path, context_name)
+    def fetch_metrics():
+        return k8s_cluster_metric.getMetrics(path, context_name)
 
-    # get cluster events
-    events = k8s_events.get_events(path, context_name, True, namespace)
+    def fetch_events():
+        return k8s_events.get_events(path, context_name, True, namespace)
 
-    return render(request, 'dashboard/dashboard.html', {'warning': warning_message,
-                                                        'ready_nodes': ready_nodes,
-                                                        'not_ready_nodes' : not_ready_nodes,
-                                                        'node_count': node_count,
-                                                        'status_count': status_count,
-                                                        'pod_count': pode_count,
-                                                        'current_cluster': current_cluster,
-                                                        'node_list': node_list,
-                                                        'deployments_status':deployments_status,
-                                                        'daemonset_status': daemonset_status,
-                                                        'replicaset_status':replicaset_status,
-                                                        'statefulset_status': statefulset_status,
-                                                        'jobs_status': jobs_status,
-                                                        'cronjob_status': cronjob_status,
-                                                        'namespaces':namespaces,
-                                                        'selected_namespace': namespace,
-                                                        'namespaces_count': namespaces_count,
-                                                        'cluster_id': cluster_id,
-                                                        'metrics' : metrics,
-                                                        'registered_clusters': registered_clusters,
-                                                        'events': events,
-                                                        'context_name': context_name})
+    # Run tasks concurrently
+    with ThreadPoolExecutor() as executor:
+        futures = {
+            "nodes_status": executor.submit(fetch_nodes_status),
+            "nodes": executor.submit(fetch_nodes),
+            "pods_status": executor.submit(fetch_pods_status),
+            "pods": executor.submit(fetch_pods),
+            "deployments_status": executor.submit(fetch_deployments),
+            "daemonsets_status": executor.submit(fetch_daemonsets),
+            "replicasets_status": executor.submit(fetch_replicasets),
+            "statefulsets_status": executor.submit(fetch_statefulsets),
+            "jobs_status": executor.submit(fetch_jobs),
+            "cronjobs_status": executor.submit(fetch_cronjobs),
+            "metrics": executor.submit(fetch_metrics),
+            "events": executor.submit(fetch_events),
+        }
+
+        # Retrieve results
+        ready_nodes, not_ready_nodes, node_count = futures["nodes_status"].result()
+        node_list, node_count = futures["nodes"].result()
+        status_count = futures["pods_status"].result()
+        pod_list, pod_count = futures["pods"].result()
+        deployments_status = futures["deployments_status"].result()
+        daemonset_status = futures["daemonsets_status"].result()
+        replicaset_status = futures["replicasets_status"].result()
+        statefulset_status = futures["statefulsets_status"].result()
+        jobs_status = futures["jobs_status"].result()
+        cronjob_status = futures["cronjobs_status"].result()
+        metrics = futures["metrics"].result()
+        events = futures["events"].result()
+
+    return render(request, 'dashboard/dashboard.html', {
+        'warning': warning_message,
+        'ready_nodes': ready_nodes,
+        'not_ready_nodes': not_ready_nodes,
+        'node_count': node_count,
+        'status_count': status_count,
+        'pod_count': pod_count,
+        'current_cluster': current_cluster,
+        'node_list': node_list,
+        'deployments_status': deployments_status,
+        'daemonset_status': daemonset_status,
+        'replicaset_status': replicaset_status,
+        'statefulset_status': statefulset_status,
+        'jobs_status': jobs_status,
+        'cronjob_status': cronjob_status,
+        'namespaces': namespaces,
+        'selected_namespace': namespace,
+        'namespaces_count': namespaces_count,
+        'cluster_id': cluster_id,
+        'metrics': metrics,
+        'registered_clusters': registered_clusters,
+        'events': events,
+        'context_name': context_name
+    })
+
     
 def pods(request, cluster_name):
     cluster_id = request.GET.get('cluster_id')

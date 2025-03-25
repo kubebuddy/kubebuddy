@@ -3,7 +3,6 @@ from kubernetes import config, client
 from kubebuddy.appLogs import logger
 from django.http import JsonResponse
 import json
-import urllib3
 from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
@@ -22,7 +21,11 @@ def get_cluster_status(request):
     try:
         config.load_kube_config(config_file=cluster['kube_config__path'], context=cluster['context_name'])
     except Exception as e:
+<<<<<<< Updated upstream
         logger.info(f"Error loading kubeconfig for {cluster['cluster_name']}: {e}")
+=======
+        logger.error(f"Error loading kubeconfig for {cluster['cluster_name']}: {e}")
+>>>>>>> Stashed changes
         cluster.control_plane_status = "Unavailable"
         cluster.core_dns_status = "Unavailable"
         cluster.number_of_nodes = 'N/A'
@@ -59,7 +62,11 @@ def get_cluster_status(request):
         return JsonResponse({"message": "Cluster status retrieved", "received_data": cluster})
 
     except Exception as e:
+<<<<<<< Updated upstream
         logger.info(f"Cluster {cluster['cluster_name']} is unreachable: {e}")
+=======
+        logger.error(f"Cluster {cluster['cluster_name']} is unreachable: {e}")
+>>>>>>> Stashed changes
         cluster['control_plane_status'] = "Unavailable"
         cluster['core_dns_status'] = "Unavailable"
         cluster['number_of_nodes'] = 'N/A'

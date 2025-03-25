@@ -33,11 +33,9 @@
                     <pre>
 <b>Name:</b> {{ service_info.describe.name }}
 <b>Namespace:</b> {{ service_info.describe.namespace }}
-<b>Labels</b>: {% for key, value in service_info.describe.labels.items %} {{ key }}={{ value }}{% if not loop.last %}{% endif %} 
-        {% endfor %}
-<b>Annotations</b>: {% for key, value in service_info.describe.annotations.items %}{{ key }}: {{ value }}{% if not loop.last %}{% endif %}
-        {% endfor %}
-<b>Selector:</b> {% if service_info.describe.selector %}{% for key, value in service_info.describe.selector.items %}{{ key }}={{ value }}{% endfor %}{% else %}N/A{% endif %}
+<b>Labels</b>: {% if service_info.describe.labels %}{% for key, value in service_info.describe.labels.items %}{{ key }}={{ value }}{% if not loop.last %}{% endif %}<br>        {% endfor %}{% else %}&lt;none&gt;{% endif %}
+<b>Annotations</b>: {% if service_info.describe.annotations %}{% for key, value in service_info.describe.annotations %}{{ key }}: {{ value }}{% if not loop.last %}{% endif %} <br>            {% endfor %}{% else %}&lt;none&gt;{% endif %}
+<b>Selector:</b> {% if service_info.describe.selector %}{% for key, value in service_info.describe.selector.items %}{{ key }}={{ value }}{% endfor %}{% else %}&lt;none&gt;{% endif %}
 <b>Type:</b> {{ service_info.describe.type }}
 <b>IP Family Policy::</b> {{ service_info.describe.ip_family_policy }}
 <b>IP Families:</b> {% for ip in service_info.describe.ip_families %} {{ip}}, {% endfor %}

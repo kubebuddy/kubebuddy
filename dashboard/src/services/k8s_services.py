@@ -1,6 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 from kubebuddy.appLogs import logger
 import yaml
 
@@ -73,11 +73,6 @@ def get_service_description(path=None, context=None, namespace=None, service_nam
             if hasattr(ingress, "ip") and ingress.ip:
                 external_ips.append(ingress.ip)
 
-    # Get annotations
-    annotations = service.metadata.annotations or {}
-    # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-    filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
-        
     service_info = {
         "name": service.metadata.name,
         "namespace": service.metadata.namespace,
@@ -99,7 +94,7 @@ def get_service_description(path=None, context=None, namespace=None, service_nam
         
         # Added fields
         "labels": service.metadata.labels if hasattr(service.metadata, "labels") else {},
-        "annotations": filtered_annotations if filtered_annotations else None,
+        "annotations": filter_annotations(service.metadata.annotations or {}),
         "ip_family_policy": getattr(service.spec, "ip_family_policy", "N/A"),
         "ip_families": getattr(service.spec, "ip_families", []),
         "endpoints": endpoints,
@@ -121,4 +116,7 @@ def get_service_yaml(path, context, namespace, service_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     service = v1.read_namespaced_service(name=service_name, namespace=namespace)
+    # Filtering Annotations
+    if service.metadata:
+        service.metadata.annotations = filter_annotations(service.metadata.annotations or {})
     return yaml.dump(service.to_dict(), default_flow_style=False)

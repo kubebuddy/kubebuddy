@@ -2,7 +2,7 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 import yaml
 from kubebuddy.appLogs import logger
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def get_endpoints(path, context):
     try:
@@ -65,25 +65,12 @@ def get_endpoint_description(path=None, context=None, namespace=None, endpoint_n
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     try:
-        endpoints = v1.list_namespaced_endpoints(namespace=namespace).items  # THE CORRECT API CALL
-        target_endpoint = None
-        for endpoint in endpoints:
-            if endpoint.metadata.name == endpoint_name:
-                target_endpoint = endpoint
-                break
-        if target_endpoint is None:
-            return {"error": f"Endpoint {endpoint_name} not found in namespace {namespace}"}
-        
-        # Get annotations
-        annotations = target_endpoint.metadata.annotations or {}
-        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "control-plane.alpha.kubernetes.io/leader"}        
-
+        target_endpoint = v1.read_namespaced_endpoints(endpoint_name, namespace=namespace)
         endpoint_info = {
             "name": target_endpoint.metadata.name,
             "namespace": target_endpoint.metadata.namespace,
             "labels": target_endpoint.metadata.labels,
-            "annotations": filtered_annotations if filtered_annotations else "",
+            "annotations": filter_annotations(target_endpoint.metadata.annotations or {}),
             "subsets": [
                 {
                     "addresses": [
@@ -119,19 +106,8 @@ def get_endpoint_events(path, context, namespace, endpoint_name):
 def get_endpoint_yaml(path, context, namespace, endpoint_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
-    try:
-        endpoints = v1.list_namespaced_endpoints(namespace=namespace).items # Correct API call
-
-        target_endpoint = None
-        for endpoint in endpoints:
-            if endpoint.metadata.name == endpoint_name:
-                target_endpoint = endpoint
-                break
-
-        if target_endpoint is None:
-            return {"error": f"Endpoint {endpoint_name} not found in namespace {namespace}"}
-
-        return yaml.dump(target_endpoint.to_dict(), default_flow_style=False) # Use target_endpoint
-
-    except client.exceptions.ApiException as e:
-        return {"error": f"Failed to fetch endpoint details: {e.reason}"}
+    endpoints = v1.read_namespaced_endpoints(endpoint_name, namespace=namespace)
+    # Filtering Annotations
+    if endpoints.metadata:
+        endpoints.metadata.annotations = filter_annotations(endpoints.metadata.annotations or {})
+    return yaml.dump(endpoints.to_dict(), default_flow_style=False)

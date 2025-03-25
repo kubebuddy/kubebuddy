@@ -1,7 +1,7 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
 import yaml
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def get_configmaps(path, context):
     config.load_kube_config(config_file=path, context=context)
@@ -72,15 +72,8 @@ def get_configmap_events(path, context, namespace, configmap_name):
 def get_configmap_yaml(path, context, namespace, configmap_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
-    configmaps = v1.list_namespaced_config_map(namespace=namespace).items
-
-    target_configmap = None
-    for cm in configmaps:
-        if cm.metadata.name == configmap_name:
-            target_configmap = cm
-            break
-
-    if target_configmap is None:
-        return {"error": f"ConfigMap {configmap_name} not found in namespace {namespace}"}
-
-    return yaml.dump(target_configmap.to_dict(), default_style='|', width=float("inf"))
+    configmaps = v1.read_namespaced_config_map(configmap_name, namespace=namespace)
+    # Filtering Annotations
+    if configmaps.metadata:
+        configmaps.metadata.annotations = filter_annotations(configmaps.metadata.annotations or {})
+    return yaml.dump(configmaps.to_dict(), default_style='')

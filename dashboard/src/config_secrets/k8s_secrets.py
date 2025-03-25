@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
 import base64
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def list_secrets(path, context):
     # Load the kubeconfig file with the specified path and context
@@ -75,14 +75,8 @@ def get_secret_events(path, context, namespace, secret_name):
 def get_secret_yaml(path, context, namespace, secret_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
-    secrets = v1.list_namespaced_secret(namespace=namespace).items
-
-    target_secret = None
-    for secret in secrets:
-        if secret.metadata.name == secret_name:
-            target_secret = secret
-            break
-
-    if target_secret is None:
-        return {"error": f"Secret {secret_name} not found in namespace {namespace}"}
-    return yaml.dump(target_secret.to_dict(), default_flow_style=False)
+    secrets = v1.read_namespaced_secret(secret_name, namespace=namespace)
+    # Filtering Annotations
+    if secrets.metadata:
+        secrets.metadata.annotations = filter_annotations(secrets.metadata.annotations or {})
+    return yaml.dump(secrets.to_dict(), default_flow_style=False)

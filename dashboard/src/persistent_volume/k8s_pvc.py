@@ -1,6 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 import yaml
 
 def list_pvc(path: str, context: str):
@@ -45,11 +45,7 @@ def get_pvc_description(path=None, context=None, namespace=None, pvc_name=None):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     pvc = v1.read_namespaced_persistent_volume_claim(name=pvc_name, namespace=namespace)
-    # Get annotations
-    annotations = pvc.metadata.annotations or {}
-    # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-    filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
-    
+
     pvc_info = {
         "Name": pvc.metadata.name,
         "Namespace": pvc.metadata.namespace,
@@ -57,7 +53,7 @@ def get_pvc_description(path=None, context=None, namespace=None, pvc_name=None):
         "Status": pvc.status.phase,
         "Volume": pvc.spec.volume_name,
         "Labels": pvc.metadata.labels,
-        "Annotations": filtered_annotations if filtered_annotations else None,
+        "Annotations": filter_annotations(pvc.metadata.annotations or {}),
         "Finalizers": pvc.metadata.finalizers,
         "Capacity": pvc.spec.resources.requests.get("storage"),  # Get storage capacity
         "Access_Modes": pvc.spec.access_modes,
@@ -88,4 +84,7 @@ def get_pvc_yaml(path, context, namespace, pvc_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     pvc = v1.read_namespaced_persistent_volume_claim(name=pvc_name, namespace=namespace)
+    # Filtering Annotations
+    if pvc.metadata:
+        pvc.metadata.annotations = filter_annotations(pvc.metadata.annotations or {})
     return yaml.dump(pvc.to_dict(), default_flow_style=False)

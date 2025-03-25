@@ -1,6 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 import yaml
 
 def list_storage_classes(path: str, context: str):
@@ -41,15 +41,10 @@ def get_storage_class_description(path=None, context=None, sc_name=None):
         else:
             is_default = "No"
 
-        # Get annotations
-        annotations = sc.metadata.annotations or {}
-        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
-
         return {
             'name': sc.metadata.name,
             'is_default_class': is_default,
-            'annotations': filtered_annotations if filtered_annotations else None,
+            'annotations': filter_annotations(sc.metadata.annotations or {}),
             'provisioner': sc.provisioner,
             'parameters': sc.parameters,
             'allow_volume_expansion': sc.allow_volume_expansion,
@@ -76,8 +71,9 @@ def get_sc_yaml(path, context, sc_name):
     v1 = client.StorageV1Api()
     try:
         sc = v1.read_storage_class(name=sc_name)
-
+        # Filtering Annotations
+        if sc.metadata:
+            sc.metadata.annotations = filter_annotations(sc.metadata.annotations or {})
         return yaml.dump(sc.to_dict(), default_flow_style=False)
-    
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch Storage Class details: {e.reason}"}

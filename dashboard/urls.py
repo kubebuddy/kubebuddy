@@ -79,7 +79,7 @@ urlpatterns = [
     path('<str:cluster_name>/pv/<str:pv_name>/', pv_info, name='pv_info'),
     path('<str:cluster_name>/pvc/<str:namespace>/<str:pvc_name>/', pvc_info, name='pvc_info'),
 
-    path('<str:cluster_name>/sc/<str:sc_name>/', storageclass_info, name='sc_info'),
+    path('<str:cluster_name>/storageclass/<str:sc_name>/', storageclass_info, name='sc_info'),
     
     # Networking
     path('<str:cluster_name>/np', np, name="np"),

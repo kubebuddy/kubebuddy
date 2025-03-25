@@ -1,6 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 import yaml
 
 def list_persistent_volumes(path: str, context: str):
@@ -42,15 +42,10 @@ def get_pv_description(path=None, context=None, pv_name=None):
     v1 = client.CoreV1Api()
     pv = v1.read_persistent_volume(name=pv_name)
 
-    # Get annotations
-    annotations = pv.metadata.annotations or {}
-    # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-    filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
-    
     pv_info = {
         "Name": pv.metadata.name,
         "Labels": pv.metadata.labels,
-        "Annotations": filtered_annotations if filtered_annotations else None,
+        "Annotations": filter_annotations(pv.metadata.annotations or {}),
         "Finalizers": pv.metadata.finalizers,
         "StorageClass": pv.spec.storage_class_name,
         "Status": pv.status.phase,
@@ -81,4 +76,7 @@ def get_pv_yaml(path, context, pv_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     pv = v1.read_persistent_volume(name=pv_name)
+    # Filtering Annotations
+    if pv.metadata:
+        pv.metadata.annotations = filter_annotations(pv.metadata.annotations or {})
     return yaml.dump(pv.to_dict(), default_flow_style=False)

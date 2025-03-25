@@ -34,7 +34,8 @@
                     <pre>
 <b>Name:</b> {{ sc_info.describe.name }}
 <b>IsDefaultClass:</b> {{ sc_info.describe.is_default_class }}
-<b>Annotations:</b> {{ sc_info.describe.annotations }}
+<b>Annotations</b>:{% if sc_info.describe.annotations %}{% for key, value in sc_info.describe.annotations %}{{ key }}: {{ value }}{% if not loop.last %}{% endif %} <br>         {% endfor %} 
+        {% else %} &lt;none&gt; {% endif %}
 <b>Provisioner:</b> {{ sc_info.describe.provisioner }}
 <b>Parameters:</b> {% if sc_info.describe.parameters %}{{ sc_info.describe.parameters }}{% else %} &lt;none&gt;{% endif %}
 <b>AllowVolumeExpansion:</b> {% if sc_info.describe.allow_volume_expansion %}{{ sc_info.describe.allow_volume_expansion }}{% else %}&lt;unset&gt;{% endif %}

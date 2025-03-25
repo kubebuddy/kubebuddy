@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from datetime import datetime
 import yaml
+from ..utils import filter_annotations
 
 def list_roles(path, context):
     # Load kubeconfig using the provided path and context
@@ -33,10 +34,7 @@ def get_role_description(path=None, context=None, namespace=None, role_name=None
 
     try:
         role = v1.read_namespaced_role(name=role_name, namespace=namespace)
-        # Get annotations
-        annotations = role.metadata.annotations or {}
-        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
+      
         policy_rule = [{
                 'resources': r.resources,
                 'non_resource_urls': r.non_resource_ur_ls,
@@ -47,7 +45,7 @@ def get_role_description(path=None, context=None, namespace=None, role_name=None
         return {
             'name': role.metadata.name,
             'labels': role.metadata.labels,
-            'annotations': filtered_annotations if filtered_annotations else None,
+            'annotations': filter_annotations(role.metadata.annotations or {}),
             'policy_rule': policy_rule
         }
     
@@ -69,7 +67,9 @@ def get_role_yaml(path, context, namespace, role_name):
     v1 = client.RbacAuthorizationV1Api()
     try:
         role = v1.read_namespaced_role(name=role_name, namespace=namespace)
-
+        # Filtering Annotations
+        if role.metadata:
+            role.metadata.annotations = filter_annotations(role.metadata.annotations or {})
         return yaml.dump(role.to_dict(), default_flow_style=False)
     
     except client.exceptions.ApiException as e:

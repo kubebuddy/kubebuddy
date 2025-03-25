@@ -1,6 +1,6 @@
 from kubernetes import client, config
 from datetime import datetime, timedelta, timezone
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 import yaml
 
 def get_cluster_role_bindings(path, context):
@@ -43,9 +43,7 @@ def get_cluster_role_binding_description(path=None, context=None, cluster_role_b
     
     try:
         cluster_role_binding = v1.read_cluster_role_binding(name=cluster_role_binding)
-        # Annotations
-        annotations = cluster_role_binding.metadata.annotations or {}
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
+
         subjects = [{
                 'kind': r.kind,
                 'name': r.name,
@@ -55,7 +53,7 @@ def get_cluster_role_binding_description(path=None, context=None, cluster_role_b
         return {
             'name': cluster_role_binding.metadata.name,
             'labels': cluster_role_binding.metadata.labels,
-            'annotations': filtered_annotations if filtered_annotations else "",
+            'annotations': filter_annotations(cluster_role_binding.metadata.annotations or {}),
             'role': {
                 'kind': cluster_role_binding.role_ref.kind,
                 'name': cluster_role_binding.role_ref.name
@@ -81,7 +79,9 @@ def get_cluster_role_binding_yaml(path, context, cluster_role_binding):
     v1 = client.RbacAuthorizationV1Api()
     try:
         cluster_role_binding = v1.read_cluster_role_binding(name=cluster_role_binding)
-
+        # Filtering Annotations
+        if cluster_role_binding.metadata:
+            cluster_role_binding.metadata.annotations = filter_annotations(cluster_role_binding.metadata.annotations or {})
         return yaml.dump(cluster_role_binding.to_dict(), default_flow_style=False)
     
     except client.exceptions.ApiException as e:

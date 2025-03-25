@@ -2,7 +2,7 @@ from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 from kubebuddy.appLogs import logger
 from datetime import datetime, timezone
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 import yaml
 
 def list_rolebindings(path, context):
@@ -59,9 +59,7 @@ def get_role_binding_description(path=None, context=None, namespace=None, role_b
 
     try:
         role_binding = v1.read_namespaced_role_binding(name=role_binding_name, namespace=namespace)
-        annotations = role_binding.metadata.annotations or {}
-        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
+        
         subjects = [{
                 'kind': r.kind,
                 'name': r.name,
@@ -71,7 +69,7 @@ def get_role_binding_description(path=None, context=None, namespace=None, role_b
         return {
             'name': role_binding.metadata.name,
             'labels': role_binding.metadata.labels,
-            'annotations': filtered_annotations if filtered_annotations else None,
+            'annotations': filter_annotations(role_binding.metadata.annotations or {}),
             'role': {
                 'kind': role_binding.role_ref.kind,
                 'name': role_binding.role_ref.name
@@ -97,7 +95,9 @@ def get_role_binding_yaml(path, context, namespace, role_binding_name):
     v1 = client.RbacAuthorizationV1Api()
     try:
         role_binding = v1.read_namespaced_role_binding(name=role_binding_name, namespace=namespace)
-
+        # Filtering Annotations
+        if role_binding.metadata:
+            role_binding.metadata.annotations = filter_annotations(role_binding.metadata.annotations or {})
         return yaml.dump(role_binding.to_dict(), default_flow_style=False)
     
     except client.exceptions.ApiException as e:

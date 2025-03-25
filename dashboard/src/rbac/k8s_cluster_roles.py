@@ -1,5 +1,6 @@
 from kubernetes import client, config
-import yaml 
+import yaml
+from ..utils import filter_annotations
 
 def get_cluster_role(path, context):
     config.load_kube_config(path, context=context)
@@ -28,9 +29,7 @@ def get_cluster_role_description(path=None, context=None, cluster_role_name=None
 
     try:
         cluster_role = v1.read_cluster_role(name=cluster_role_name)
-        # Annotations
-        annotations = cluster_role.metadata.annotations or {}
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
+
         policy_rule = [{
                 'resources': r.resources,
                 'non_resource_urls': r.non_resource_ur_ls,
@@ -41,7 +40,7 @@ def get_cluster_role_description(path=None, context=None, cluster_role_name=None
         return {
             'name': cluster_role.metadata.name,
             'labels': cluster_role.metadata.labels,
-            'annotations': filtered_annotations if filtered_annotations else "",
+            'annotations': filter_annotations(cluster_role.metadata.annotations or {}),
             'policy_rule': policy_rule
         }
     
@@ -63,7 +62,9 @@ def get_cluster_role_yaml(path, context, cluster_role_name):
     v1 = client.RbacAuthorizationV1Api()
     try:
         cluster_role = v1.read_cluster_role(name=cluster_role_name)
-
+        # Filtering Annotations
+        if cluster_role.metadata:
+            cluster_role.metadata.annotations = filter_annotations(cluster_role.metadata.annotations or {})
         return yaml.dump(cluster_role.to_dict(), default_flow_style=False)
     
     except client.exceptions.ApiException as e:

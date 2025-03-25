@@ -1,5 +1,5 @@
 from kubernetes import client, config
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
@@ -86,10 +86,6 @@ def get_cronjob_description(path=None, context=None, namespace=None, cronjob_nam
     try:
         # Fetch CronJob details
         cronjob = v1.read_namespaced_cron_job(name=cronjob_name, namespace=namespace)
-        # Get annotations
-        annotations =cronjob.metadata.annotations or {}
-        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
         
         # Prepare CronJob information
         cronjob_info = {
@@ -103,7 +99,7 @@ def get_cronjob_description(path=None, context=None, namespace=None, cronjob_nam
             "starting_deadline_seconds": cronjob.spec.starting_deadline_seconds,
             "selector": cronjob.spec.selector.match_labels if hasattr(cronjob.spec, 'selector') and cronjob.spec.selector else "<unset>",
             "labels": cronjob.metadata.labels if isinstance(cronjob.metadata.labels, dict) else "<none>",
-            "annotations": filtered_annotations if filtered_annotations else None,
+            "annotations": filter_annotations(cronjob.metadata.annotations or {}),
             "pods_status": {
                 "active": cronjob.status.active,
                 "last_schedule_time": cronjob.status.last_schedule_time
@@ -149,4 +145,7 @@ def get_yaml_cronjob(path, context, namespace, cronjob_name):
     config.load_kube_config(config_file=path, context=context)
     v1 = client.BatchV1Api()
     cronjob = v1.read_namespaced_cron_job(name=cronjob_name, namespace=namespace)
+    # Filtering Annotations
+    if cronjob.metadata:
+        cronjob.metadata.annotations = filter_annotations(cronjob.metadata.annotations or {})
     return yaml.dump(cronjob.to_dict(), default_flow_style=False)

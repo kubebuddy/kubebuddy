@@ -2,7 +2,7 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def getpods(path, context, namespace="all"):
     config.load_kube_config(config_file=path, context=context)
@@ -104,11 +104,6 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
             owner_reference = pod.metadata.owner_references[0]
             controlled_by = f"{owner_reference.kind}/{owner_reference.name}"
         
-        # Get annotations
-        annotations = pod.metadata.annotations or {}
-        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
-        
         # Prepare pod information
         pod_info = {
             "name": pod.metadata.name,
@@ -120,7 +115,7 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
             "host_ip": pod.status.host_ip,
             "start_time": pod.status.start_time.strftime('%a, %d %b %Y %H:%M:%S %z') if pod.status.start_time else None,
             "labels": list(pod.metadata.labels.items()) if pod.metadata.labels else [],
-            "annotations": filtered_annotations if filtered_annotations else None,
+            "annotations": filter_annotations(pod.metadata.annotations or {}),
             "qos_class": pod.status.qos_class,
             "node_selectors": pod.spec.node_selector if pod.spec.node_selector else None,
             "tolerations" : pod.spec.tolerations if pod.spec.tolerations else None,
@@ -205,4 +200,7 @@ def get_pod_yaml(path, context, namespace, pod_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
+    # Filtering Annotations
+    if pod.metadata:
+        pod.metadata.annotations = filter_annotations(pod.metadata.annotations or {})
     return yaml.dump(pod.to_dict(), default_flow_style=False)

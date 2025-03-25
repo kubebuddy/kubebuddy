@@ -2,7 +2,7 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def getDaemonsetCount():
     config.load_kube_config()
@@ -83,15 +83,12 @@ def get_daemonset_description(path=None, context=None, namespace=None, daemonset
     try:
         daemonset = v1.read_namespaced_daemon_set(name=daemonset_name, namespace=namespace)
         
-        annotations = daemonset.metadata.annotations or {}
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}        
-        
         daemonset_info = {
             "name": daemonset.metadata.name,
             "namespace": daemonset.metadata.namespace,
             "selector": daemonset.spec.selector.match_labels, # Add selector info
             "labels": daemonset.metadata.labels,
-            "annotations": filtered_annotations if filtered_annotations else None,
+            "annotations": filter_annotations(daemonset.metadata.annotations or {}),
             "pod_status": daemonset.status.conditions,
             "template": { # Expanded pod template structure
                 "labels": daemonset.spec.template.metadata.labels,
@@ -163,4 +160,7 @@ def get_daemonset_yaml(path, context, namespace, daemonset_name):
     config.load_kube_config(path, context)
     v1 = client.AppsV1Api() # Use AppsV1Api
     daemonset = v1.read_namespaced_daemon_set(name=daemonset_name, namespace=namespace)
+    # Filtering Annotations
+    if daemonset.metadata:
+        daemonset.metadata.annotations = filter_annotations(daemonset.metadata.annotations or {})
     return yaml.dump(daemonset.to_dict(), default_flow_style=False)

@@ -35,8 +35,8 @@
 <b>Selector</b>: {% for key, value in rs_info.describe.selector.items %}{{ key }}={{ value }}{% if not loop.last %}{% endif %}<br>          {% endfor %}
 <b>Labels</b>: {% for key, value in rs_info.describe.labels %} {{ key }}={{ value }}{% if not loop.last %} {% endif %} 
         {% endfor %}
-<b>Annotations</b>: {% for key, value in rs_info.describe.annotations %}{{ key }}: {{ value }}{% if not loop.last %} {% endif %}
-             {% endfor %} 
+<b>Annotations</b>:{% if rs_info.describe.annotations %}{% for key, value in rs_info.describe.annotations.items %}{{ key }}: {{ value }}{% if not loop.last %}{% endif %} <br>            {% endfor %} 
+        {% else %} &lt;none&gt; {% endif %}
 <b>Controlled By</b>: {{ rs_info.describe.controlled_by }}
 <b>Replicas</b>: Current: {{ rs_info.describe.replicas.current }}, Desired: {{ rs_info.describe.replicas.available }}
 <b>Pods Status</b>: {{ rs_info.describe.pods_status.running }} Running / {{ rs_info.describe.pods_status.waiting }} Waiting / {{ rs_info.describe.pods_status.succeeded }} Succeeded / {{ rs_info.describe.pods_status.failed }} Failed

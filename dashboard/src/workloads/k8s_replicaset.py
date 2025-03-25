@@ -2,7 +2,7 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def getReplicaSetsInfo(path, context, namespace="all"):
     config.load_kube_config(path, context)
@@ -83,7 +83,7 @@ def get_replicaset_description(path=None, context=None, namespace=None, rs_name=
             "selector": rs.spec.selector.match_labels if rs.spec.selector else [],
             "namespace": rs.metadata.namespace,
             "labels": list(rs.metadata.labels.items()) if rs.metadata.labels else [],
-            "annotations": list(rs.metadata.annotations.items()) if rs.metadata.annotations else [],
+            "annotations": filter_annotations(rs.metadata.annotations or {}),
             "replicas": {
                 "current": rs.status.replicas,  # The total number of replicas
                 "available": rs.status.available_replicas if hasattr(rs.status, 'available_replicas') else 0,  # Pods that are available/running
@@ -137,4 +137,7 @@ def get_yaml_rs(path, context, namespace, rs_name):
     config.load_kube_config(path, context)
     v1 = client.AppsV1Api()
     rs = v1.read_namespaced_replica_set(name=rs_name, namespace=namespace)
+    # Filtering Annotations
+    if rs.metadata:
+        rs.metadata.annotations = filter_annotations(rs.metadata.annotations or {})
     return yaml.dump(rs.to_dict(), default_flow_style=False)

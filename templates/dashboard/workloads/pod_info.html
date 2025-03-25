@@ -41,9 +41,10 @@
 <b>Service Account</b>: {{ pod_info.describe.service_account }}
 <b>Node</b>: {{ pod_info.describe.node_name }}
 <b>Start Time</b>: {{ pod_info.describe.start_time }}
-<b>Labels</b>: {% for key, value in pod_info.describe.labels %}{{ key }}={{ value }}{% if not loop.last %}{% endif %}{% endfor %}
+<b>Labels</b>: {% for key, value in pod_info.describe.labels %}{{ key }}={{ value }}{% if not loop.last %}{% endif %}
+        {% endfor %}
 <b>Annotations</b>:{% if pod_info.describe.annotations %}{% for key, value in pod_info.describe.annotations.items %}
-    {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %} {% else %}None {% endif %}
+    {{ key }}: {{ value }}{% if not loop.last %}, {% endif %} {% endfor %} {% else %} &lt;none&gt; {% endif %}
 <b>Status</b>: {{ pod_info.describe.status }}
 <b>Pod IP</b>: {{ pod_info.describe.pod_ip }}
 <b>Host IP</b>: {{ pod_info.describe.host_ip }}

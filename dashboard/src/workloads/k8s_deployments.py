@@ -2,7 +2,7 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def getDeploymentsInfo(path, context, namespace="all"):
     config.load_kube_config(path, context)
@@ -73,16 +73,13 @@ def get_deployment_description(path=None, context=None, namespace=None, dep_name
     try:
         # Fetch Deployment details
         dep = v1.read_namespaced_deployment(name=dep_name, namespace=namespace)
-        annotations = dep.metadata.annotations or {}
-        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
-        # Prepare Deployment information
+
         dep_info = {
             "name": dep.metadata.name,
             "namespace": dep.metadata.namespace,
             "creation_timestamp": dep.metadata.creation_timestamp,
             "labels": list(dep.metadata.labels.items()) if dep.metadata.labels else [],
-            "annotations": filtered_annotations if filtered_annotations else None,
+            "annotations": filter_annotations(dep.metadata.annotations or {}),
             "selector": list(dep.spec.selector.match_labels.items()) if dep.spec.selector.match_labels else [],
             "replicas": {
                 "desired": dep.status.replicas,  # Desired number of replicas
@@ -149,4 +146,7 @@ def get_yaml_deploy(path, context, namespace, deployment_name):
     config.load_kube_config(config_file=path, context=context)
     v1 = client.AppsV1Api()
     deployment = v1.read_namespaced_deployment(name=deployment_name, namespace=namespace)
+    # Filtering Annotations
+    if deployment.metadata:
+        deployment.metadata.annotations = filter_annotations(deployment.metadata.annotations or {})
     return yaml.dump(deployment.to_dict(), default_flow_style=False)

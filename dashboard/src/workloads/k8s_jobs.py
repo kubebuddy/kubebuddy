@@ -1,7 +1,7 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 import yaml
 
 
@@ -95,15 +95,14 @@ def get_job_description(path=None, context=None, namespace=None, job_name=None):
     try:
         # Fetch Job details
         job = batch_v1.read_namespaced_job(name=job_name, namespace=namespace)
-        annotations = job.metadata.annotations or {}
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
+
         # Prepare Job information
         job_info = {
             "name": job.metadata.name,
             "namespace": job.metadata.namespace,
             "selector": list(job.spec.selector.match_labels.items()) if job.spec.selector and job.spec.selector.match_labels else [],
             "labels": job.metadata.labels if isinstance(job.metadata.labels, dict) else {},
-            "annotations": filtered_annotations,
+            "annotations": filter_annotations(job.metadata.annotations or {}),
             "parallelism": job.spec.parallelism,
             "completions": job.spec.completions,
             "completion_mode": job.spec.completion_mode,
@@ -157,4 +156,7 @@ def get_yaml_job(path, context, namespace, job_name):
     config.load_kube_config(config_file=path, context=context)
     v1 = client.BatchV1Api()
     job = v1.read_namespaced_job(name=job_name, namespace=namespace)
+    # Filtering Annotations
+    if job.metadata:
+        job.metadata.annotations = filter_annotations(job.metadata.annotations or {})
     return yaml.dump(job.to_dict(), default_flow_style=False)

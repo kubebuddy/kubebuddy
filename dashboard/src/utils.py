@@ -13,9 +13,7 @@ def calculateAge(timedelta_obj):
     
 
 def filter_annotations(annotations):
-
     if not annotations:
         return None
-    filtered_annotations = {k: v for k, v in annotations.items() if "env" in k} 
-
+    filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"} 
     return filtered_annotations if filtered_annotations else None

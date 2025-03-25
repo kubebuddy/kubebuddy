@@ -2,7 +2,7 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def get_resource_quotas(path, context, namespace="all"):
     config.load_kube_config(path, context)
@@ -89,14 +89,8 @@ def get_resourcequota_events(path, context, namespace, resourcequota_name):
 def get_resourcequota_yaml(path, context, namespace, resourcequota_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
-    resource_quotas = v1.list_namespaced_resource_quota(namespace=namespace).items
-
-    target_resource_quota = None
-    for rq in resource_quotas:
-      if rq.metadata.name == resourcequota_name:
-        target_resource_quota = rq
-        break
-
-    if target_resource_quota is None:
-      return {"error": f"ResourceQuota {resourcequota_name} not found in namespace {namespace}"}
-    return yaml.dump(target_resource_quota.to_dict(), default_flow_style=False)
+    resource_quotas = v1.read_namespaced_resource_quota(resourcequota_name, namespace=namespace)
+    # Filtering Annotations
+    if resource_quotas.metadata:
+        resource_quotas.metadata.annotations = filter_annotations(resource_quotas.metadata.annotations or {})
+    return yaml.dump(resource_quotas.to_dict(), default_flow_style=False)

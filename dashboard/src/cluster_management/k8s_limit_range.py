@@ -1,6 +1,7 @@
 from kubernetes import client, config
 from kubebuddy.appLogs import logger
 import yaml
+from ..utils import filter_annotations
 
 def get_limit_ranges(path, context):
     # Load Kubernetes configuration
@@ -77,14 +78,8 @@ def get_limitrange_events(path, context, namespace, limitrange_name):
 def get_limitrange_yaml(path, context, namespace, limitrange_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
-    limit_ranges = v1.list_namespaced_limit_range(namespace=namespace).items
-
-    target_limit_range = None
-    for lr in limit_ranges:
-      if lr.metadata.name == limitrange_name:
-        target_limit_range = lr
-        break
-
-    if target_limit_range is None:
-      return {"error": f"LimitRange {limitrange_name} not found in namespace {namespace}"}
-    return yaml.dump(target_limit_range.to_dict(), default_flow_style=False)
+    limit_ranges = v1.read_namespaced_limit_range(limitrange_name, namespace=namespace)
+    # Filtering Annotations
+    if limit_ranges.metadata:
+        limit_ranges.metadata.annotations = filter_annotations(limit_ranges.metadata.annotations or {})
+    return yaml.dump(limit_ranges.to_dict(), default_flow_style=False)

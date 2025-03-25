@@ -1,7 +1,7 @@
 from kubernetes import client, config
 from django.shortcuts import render
 from datetime import datetime, timezone
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 import yaml
 
 def get_namespace(path, context):
@@ -47,16 +47,13 @@ def get_namespace_description(path=None, context=None, namespace=None):
     try:
         # Fetch namespace details
         namespace = v1.read_namespace(name=namespace)
-        annotations = namespace.metadata.annotations or {}
-        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
-        # Prepare namespace information
+
         namespace_info = {
             "name": namespace.metadata.name,
             "status": namespace.status.phase if namespace.status else "Unknown",
             "labels": list(namespace.metadata.labels.items()) if namespace.metadata.labels else [],
-            "annotations": filtered_annotations if filtered_annotations else None,
-            "resource_quota": namespace.status.resource_quota if hasattr(namespace.status, 'resource_quota') else "None",
+            "annotations": filter_annotations(namespace.metadata.annotations or {}),
+            "resource_quota": namespace.status.resource_quota if hasattr(namespace.status, 'resource_quota') else None,
             "limit_range": namespace.status.limit_range if hasattr(namespace.status, 'limit_range') else "None",
         }
 
@@ -69,4 +66,7 @@ def get_namespace_yaml(path, context, namespace_name):
     config.load_kube_config(path, context)
     v1 = client.CoreV1Api()
     namespace = v1.read_namespace(name=namespace_name)
+    # Filtering Annotations
+    if namespace.metadata:
+        namespace.metadata.annotations = filter_annotations(namespace.metadata.annotations or {})
     return yaml.dump(namespace.to_dict(), default_flow_style=False)

@@ -2,7 +2,7 @@ from kubernetes import client, config
 import yaml
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def get_pdb(path, context):
     # Load Kubernetes configuration
@@ -64,5 +64,8 @@ def get_pdb_events(path, context, namespace, pdb_name):
 def get_pdb_yaml(path, context, namespace, pdb_name):
     config.load_kube_config(path, context)
     v1 = client.PolicyV1Api()
-    pdb = v1.list_namespaced_pod_disruption_budget(namespace=namespace)
+    pdb = v1.read_namespaced_pod_disruption_budget(pdb_name, namespace=namespace)
+    # Filtering Annotations
+    if pdb.metadata:
+        pdb.metadata.annotations = filter_annotations(pdb.metadata.annotations or {})
     return yaml.dump(pdb.to_dict(), default_flow_style=False)

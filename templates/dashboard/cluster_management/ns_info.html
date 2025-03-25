@@ -34,17 +34,11 @@
                     <pre>
 <b>Name:</b> {{ ns_info.describe.name }}
 <b>Status:</b> {{ ns_info.describe.status }}
-<b>Labels:</b>{% for k, v in ns_info.describe.labels %}
-    {{ k }}: {{ v }}{% if not loop.last %}, {% endif %}{% endfor %}
-<b>Annotations:</b>{% if ns_info.describe.annotations %}{% for k, v in ns_info.describe.annotations %}
-    {{ k }}: {{ v }}{% if not loop.last %}, {% endif %}{% endfor %}
-    {% else %}None{% endif %}
-<b>Resource Quota:</b>{% if ns_info.describe.resource_quota %}
-    {{ ns_info.describe.resource_quota }}{% else %}
-    None{% endif %}
-<b>Limit Range:</b>{% if ns_info.describe.spec.limit_range %}
-    {{ ns_info.describe.spec.limit_range }}{% else %}
-    None{% endif %}
+<b>Labels:</b> {% for k, v in ns_info.describe.labels %}{{ k }}: {{ v }}{% if not loop.last %}{% endif %}<br>        {% endfor %}
+<b>Annotations:</b> {% if ns_info.describe.annotations %}{% for k, v in ns_info.describe.annotations %}{{ k }}: {{ v }}{% if not loop.last %}{% endif %}<br>            {% endfor %}
+    {% else %}&lt;none&gt;{% endif %}
+<b>Resource Quota:</b> {% if ns_info.describe.resource_quota %}{{ ns_info.describe.resource_quota }}{% else %}&lt;none&gt;{% endif %}
+<b>Limit Range:</b> {% if ns_info.describe.spec.limit_range %}{{ ns_info.describe.spec.limit_range }}{% else %}&lt;none&gt;{% endif %}
                     </pre>
                 </div>
               </div>

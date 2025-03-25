@@ -2,7 +2,7 @@ from kubernetes import client, config
 import yaml
 from kubebuddy.appLogs import logger
 from datetime import datetime, timezone
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def get_ingress(path, context):
     try:
@@ -39,10 +39,6 @@ def get_ingress_description(path=None, context=None, namespace=None, ingress_nam
     try:
         ingress = v1.read_namespaced_ingress(name=ingress_name, namespace=namespace)
 
-        # Annotations
-        annotations = ingress.metadata.annotations or {}
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
-
         rules = []
         for rule in ingress.spec.rules or []:
             host = rule.host or "<none>"
@@ -71,7 +67,7 @@ def get_ingress_description(path=None, context=None, namespace=None, ingress_nam
             "address": ingress.status.load_balancer.ingress[0].ip if ingress.status.load_balancer.ingress else "<none>",
             "ingress_class": ingress.spec.ingress_class_name if ingress.spec.ingress_class_name else "<none>",
             "rules": rules,
-            "annotations": filtered_annotations if filtered_annotations else ""
+            "annotations": filter_annotations(ingress.metadata.annotations or {})
         }
 
         return ingress_info
@@ -94,4 +90,7 @@ def get_ingress_yaml(path, context, namespace, ingress_name):
     config.load_kube_config(path, context)
     v1 = client.NetworkingV1Api()
     ingress = v1.read_namespaced_ingress(name=ingress_name, namespace=namespace)
+    # Filtering Annotations
+    if ingress.metadata:
+        ingress.metadata.annotations = filter_annotations(ingress.metadata.annotations or {})
     return yaml.dump(ingress.to_dict(), default_flow_style=False)

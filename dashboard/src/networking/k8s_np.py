@@ -2,7 +2,7 @@ from kubernetes import client, config
 import yaml
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
-from ..utils import calculateAge
+from ..utils import calculateAge, filter_annotations
 
 def get_np(path, context):
     try:
@@ -29,18 +29,13 @@ def get_np_description(path=None, context=None, namespace=None, np_name=None):
     v1 = client.NetworkingV1Api()
     try:
         np = v1.read_namespaced_network_policy(name=np_name, namespace=namespace)
-        
-        # Get annotations
-        annotations = np.metadata.annotations or {}
-        # Remove 'kubectl.kubernetes.io/last-applied-configuration' if it's the only annotation
-        filtered_annotations = {k: v for k, v in annotations.items() if k != "kubectl.kubernetes.io/last-applied-configuration"}
 
         np_info = {
             "name": np.metadata.name,
             "namespace": np.metadata.name,
             "created_on": np.metadata.creation_timestamp,
             "labels": np.metadata.labels,
-            "annotations": filtered_annotations if filtered_annotations else None,
+            "annotations": filter_annotations(np.metadata.annotations or {}),
             "spec":{
                 "pod_selector": np.spec.pod_selector.match_labels,
                 "ingress": np.spec.ingress,
@@ -66,5 +61,8 @@ def get_np_events(path, context, namespace, np_name):
 def get_np_yaml(path, context, namespace, np_name):
     config.load_kube_config(path, context)
     v1 = client.NetworkingV1Api()
-    np = v1.list_namespaced_network_policy(namespace=namespace)
+    np = v1.read_namespaced_network_policy(np_name, namespace=namespace)
+    # Filtering Annotations
+    if np.metadata:
+        np.metadata.annotations = filter_annotations(np.metadata.annotations or {})
     return yaml.dump(np.to_dict(), default_flow_style=False)

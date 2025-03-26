@@ -38,7 +38,7 @@
 <b>Annotations:</b> {% if  cluster_role_info.describe.annotations %}{% for annotation, value in  cluster_role_info.describe.annotations.items %}
 - {{ annotation }}: {{ value }}{% if not loop.last %}{% endif %}{% endfor %}{% else %}&lt;none&gt; {% endif %}
 
-<b>PolicyRule:</b><table class="text-center align-middle" style="border-collapse: separate; border-spacing: 0.4rem ;font-size: 0.9rem; ">
+<b>PolicyRule:</b><table>
         <thead>
             <th>Resources</th>
             <th>Non-Resource URLs</th>

@@ -37,8 +37,7 @@
 <b>Annotations:</b> {% if role_info.describe.annotations %}{% for annotation, value in role_info.describe.annotations.items %}
 - {{ annotation }}: {{ value }}{% if not loop.last %}<br>{% endif %}{% endfor %}{% else %} &lt;none&gt; {% endif %}
 <b>PolicyRule:</b>
-</pre>
-    <table class="text-center align-middle" style="border-collapse: separate; border-spacing: 0.4rem ;font-size: 0.9rem; ">
+    <table>
         <thead>
             <th>Resources</th>
             <th>Non-Resource URLs</th>
@@ -55,7 +54,7 @@
             </tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table></pre>
                 </div>
               </div>
               

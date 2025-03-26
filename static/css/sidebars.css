@@ -874,3 +874,17 @@ table th, td {
   padding: 15px;
   position: relative;
 }
+
+.describe pre table {
+  margin: 0rem 0.97rem !important;
+  width: 90% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.describe pre th,
+.describe pre td {
+  padding: 4px !important;
+  text-align: left !important;
+  border: none !important;
+}

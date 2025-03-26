@@ -92,7 +92,7 @@ function terminalFullscreen() {
     if (!terScreen) {
         // Maximize the chat window to fullscreen
         terminalWindow.style.width = '80vw'; // Full width
-        terminalWindow.style.height = '73vh'; // Full height
+        terminalWindow.style.height = '65vh'; // Full height
         terminalWindow.style.right = '20px'; // Stick to right
 
         // Show exit fullscreen icon, hide fullscreen icon
@@ -101,7 +101,7 @@ function terminalFullscreen() {
     } else {
         // Minimize the chat window to original size
         terminalWindow.style.width = '50vw'; // Original width
-        terminalWindow.style.height = '60vh'; // Original height
+        terminalWindow.style.height = '55vh'; // Original height
         terminalWindow.style.right = '20px'; // Reset right margin
 
         // Show fullscreen icon, hide exit fullscreen icon

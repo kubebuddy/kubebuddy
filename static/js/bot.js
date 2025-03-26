@@ -286,7 +286,7 @@ function toggleFullscreen() {
     if (!isFullscreen) {
         // Maximize the chat window to fullscreen
         chatbotWindow.style.width = '80vw'; // Full width
-        chatbotWindow.style.height = '80vh'; // Full height
+        chatbotWindow.style.height = '68vh'; // Full height
         chatbotWindow.style.right = '0'; // Stick to right
 
         // Show exit fullscreen icon, hide fullscreen icon
@@ -295,7 +295,7 @@ function toggleFullscreen() {
     } else {
         // Minimize the chat window to original size
         chatbotWindow.style.width = '40vw'; // Original width
-        chatbotWindow.style.height = '60vh'; // Original height
+        chatbotWindow.style.height = '58vh'; // Original height
         chatbotWindow.style.right = '0'; // Reset right margin
 
         // Show fullscreen icon, hide exit fullscreen icon

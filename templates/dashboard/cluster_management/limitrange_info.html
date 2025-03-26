@@ -36,63 +36,31 @@
 <b>Name:</b> {{ limitrange_info.describe.name }}
 <b>Namespace:</b> {{ limitrange_info.describe.namespace }}
 
-{{ limitrange_info.describe.limits }}
-
 <table>
     <thead>
         <tr>
             <th>Type</th>
-            <th>Default</th>
-            <th>Default Request</th>
-            <th>Max</th>
+            <th>Resource</th>
             <th>Min</th>
+            <th>Max</th>
+            <th>Default Request</th>
+            <th>Default Limit</th>
+            <th>Max Limit/Request Ratio</th>
         </tr>
     </thead>
     <tbody>
         {% for limit in limitrange_info.describe.limits %}
-        <tr>
-            <td>{{ limit.type }}</td>
-            <td>
-                <table>
-                    {% for key, value in limit.default.items %}
-                    <tr>
-                        <td>{{ key }}</td>
-                        <td>{{ value }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            </td>
-            <td>
-                <table>
-                    {% for key, value in limit.default_request.items %}
-                    <tr>
-                        <td>{{ key }}</td>
-                        <td>{{ value }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            </td>
-            <td>
-                <table>
-                    {% for key, value in limit.max.items %}
-                    <tr>
-                        <td>{{ key }}</td>
-                        <td>{{ value }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            </td>
-            <td>
-                <table>
-                    {% for key, value in limit.min.items %}
-                    <tr>
-                        <td>{{ key }}</td>
-                        <td>{{ value }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            </td>
-        </tr>
+            {% for resource_type, resource in limit.resources.items %}
+            <tr>
+                <td>{{ limit.type }}</td>
+                <td>{{ resource_type }}</td>
+                <td>{% if resource.min %}{{ resource.min }}{% else %}-{% endif %}</td>
+                <td>{% if resource.max %}{{ resource.max }}{% else %}-{% endif %}</td>
+                <td>{% if resource.default_request %}{{ resource.default_request }}{% else %}-{% endif %}</td>
+                <td>{% if resource.default_limit %}{{ resource.default_limit }}{% else %}-{% endif %}</td>
+                <td>{% if resource.max_limit_request_ratio %}{{ resource.max_limit_request_ratio }}{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
         {% endfor %}
     </tbody>
 </table>

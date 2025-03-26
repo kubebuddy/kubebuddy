@@ -31,35 +31,37 @@ def get_limit_ranges(path, context):
 
 
 
-def get_limitrange_description(path=None, context=None, namespace=None, limitrange_name=None):
-    config.load_kube_config(path, context)
-    v1 = client.CoreV1Api()
+def get_limit_range_description(path=None, context=None, namespace=None, limit_range_name=None):
     try:
-        limit_ranges = v1.list_namespaced_limit_range(namespace=namespace).items
-
-        target_limit_range = None
-        for lr in limit_ranges:
-          if lr.metadata.name == limitrange_name:
-            target_limit_range = lr
-            break
-
-        if target_limit_range is None:
-          return {"error": f"LimitRange {limitrange_name} not found in namespace {namespace}"}
-
+        config.load_kube_config(path, context)
+        v1 = client.CoreV1Api()
+        limit_range = v1.read_namespaced_limit_range(name=limit_range_name, namespace=namespace)
+        
         limit_range_info = {
-            "name": target_limit_range.metadata.name,
-            "namespace": target_limit_range.metadata.namespace,
-            "limits": [
-                {
-                    "type": limit.type,
-                    "default": {k: v for k, v in limit.default.items()} if limit.default else {}, # Handle missing default
-                    "default_request": {k: v for k, v in limit.default_request.items()} if limit.default_request else {}, # Handle missing default_request
-                    "max": {k: v for k, v in limit.max.items()} if limit.max else {}, # Handle missing max
-                    "min": {k: v for k, v in limit.min.items()} if limit.min else {}, # Handle missing min
-                }
-                for limit in target_limit_range.spec.limits
-            ],
+            "name": limit_range.metadata.name,
+            "namespace": limit_range.metadata.namespace,
+            "limits": []
         }
+        
+        for limit in limit_range.spec.limits:
+            limit_details = {
+                "type": limit.type,
+                "resources": {}
+            }
+            
+            # Define the resource types
+            resource_types = ["memory", "cpu"]
+            
+            for resource_type in resource_types:
+                limit_details["resources"][resource_type] = {
+                    "min": getattr(limit, "min", {}).get(resource_type, None),
+                    "max": getattr(limit, "max", {}).get(resource_type, None),
+                    "default_request": getattr(limit, "default_request", {}).get(resource_type, None),
+                    "default_limit": getattr(limit, "default", {}).get(resource_type, None),
+                    "max_limit_request_ratio": limit.max_limit_request_ratio
+                }
+            
+            limit_range_info["limits"].append(limit_details)
         return limit_range_info
 
     except client.exceptions.ApiException as e:

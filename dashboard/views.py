@@ -266,7 +266,7 @@ def limitrange_info(request, cluster_name, namespace, limitrange_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request, cluster_name)
 
     limitrange_info = {
-        "describe": k8s_limit_range.get_limitrange_description(path, context_name, namespace, limitrange_name),
+        "describe": k8s_limit_range.get_limit_range_description(path, context_name, namespace, limitrange_name),
         "events": k8s_limit_range.get_limitrange_events(path, context_name, namespace, limitrange_name),
         "yaml": k8s_limit_range.get_limitrange_yaml(path, context_name, namespace, limitrange_name),
     }

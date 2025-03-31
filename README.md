@@ -92,4 +92,4 @@ Feel free to fork this repository and submit pull requests with enhancements and
 
 ## Powered By
 
-*This project is Powered by [Thinknyx Technologies LLP](www.thinknyx.com)*
+*This project is Powered by [Thinknyx Technologies LLP](https://www.thinknyx.com)*

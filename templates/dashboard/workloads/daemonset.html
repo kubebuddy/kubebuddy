@@ -11,13 +11,13 @@
 <div class="container">
   <div class="d-flex justify-content-center mb-4">
     <div class="gap" role="group" aria-label="Resource Tabs">
-      <a href="/{{current_cluster}}/pods?cluster_id={{cluster_id}}" class="btn btn-primary" id="pods-tab">Pods</a>
-      <a href="/{{current_cluster}}/replicasets?cluster_id={{cluster_id}}" class="btn btn-primary" id="replicasets-tab">ReplicaSets</a>
-      <a href="/{{current_cluster}}/deployments?cluster_id={{cluster_id}}" class="btn btn-primary" id="deployments-tab">Deployments</a>
-      <a href="/{{current_cluster}}/statefulsets?cluster_id={{cluster_id}}" class="btn btn-primary" id="statefulsets-tab">StatefulSets</a>
-      <a href="/{{current_cluster}}/daemonset?cluster_id={{cluster_id}}" class="btn btn-primary active" id="daemonset-tab">DaemonSets</a>
-      <a href="/{{current_cluster}}/jobs?cluster_id={{cluster_id}}" class="btn btn-primary" id="jobs-tab">Jobs</a>
-      <a href="/{{current_cluster}}/cronjobs?cluster_id={{cluster_id}}" class="btn btn-primary" id="cronjobs-tab">CronJobs</a>
+      <a href="/{{cluster_id}}/pods?cluster_id={{cluster_id}}" class="btn btn-primary" id="pods-tab">Pods</a>
+      <a href="/{{cluster_id}}/replicasets?cluster_id={{cluster_id}}" class="btn btn-primary" id="replicasets-tab">ReplicaSets</a>
+      <a href="/{{cluster_id}}/deployments?cluster_id={{cluster_id}}" class="btn btn-primary" id="deployments-tab">Deployments</a>
+      <a href="/{{cluster_id}}/statefulsets?cluster_id={{cluster_id}}" class="btn btn-primary" id="statefulsets-tab">StatefulSets</a>
+      <a href="/{{cluster_id}}/daemonset?cluster_id={{cluster_id}}" class="btn btn-primary active" id="daemonset-tab">DaemonSets</a>
+      <a href="/{{cluster_id}}/jobs?cluster_id={{cluster_id}}" class="btn btn-primary" id="jobs-tab">Jobs</a>
+      <a href="/{{cluster_id}}/cronjobs?cluster_id={{cluster_id}}" class="btn btn-primary" id="cronjobs-tab">CronJobs</a>
     </div>
   </div>
   {% if daemonset_status.Count == 0 %}
@@ -138,7 +138,7 @@
         <tr>
           <td>{{ daemonset.namespace }}</td>
           <td>
-            <a href="/{{current_cluster}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}">
+            <a href="/{{cluster_id}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}">
                 {{ daemonset.name }}
             </a>
         </td>
@@ -152,9 +152,9 @@
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <li><a class="dropdown-item" href="/{{current_cluster}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}">Describe</a></li>
-                <li><a class="dropdown-item" href="/{{current_cluster}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
-                <li><a class="dropdown-item" href="/{{current_cluster}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/daemonset/{{daemonset.namespace}}/{{daemonset.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
               </ul>
             </div>
           </td>

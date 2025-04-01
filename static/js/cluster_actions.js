@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault(); // Prevent default form submission
         let selectedNamespace = document.getElementById("categorySelect").value;
         // Construct the new URL and reload the page with the selected namespace
-        let newUrl = `/${current_cluster}/dashboard/?cluster_id=${cluster_id}`;
+        let newUrl = `/${cluster_id}/dashboard/?cluster_id=${cluster_id}`;
         if (selectedNamespace !== "all") {
             newUrl += `&namespace=${selectedNamespace}`;
         }

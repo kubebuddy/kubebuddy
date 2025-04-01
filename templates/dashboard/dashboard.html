@@ -67,7 +67,7 @@
     <div class="container my-5">
         <div class="row mb-4 dash-cards">
             <div class="col-lg-2">
-                <a class="text-decoration-none" href="/{{current_cluster}}/deployments?cluster_id={{cluster_id}}">
+                <a class="text-decoration-none" href="/{{cluster_id}}/deployments?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">Deployments</p>
                     <p class="card-text text-dark">{{ deployments_status.Count }}</p>
@@ -76,7 +76,7 @@
                 </a>
             </div>
             <div class="col-lg-2">
-                <a class="text-decoration-none" href="/{{current_cluster}}/daemonset?cluster_id={{cluster_id}}">
+                <a class="text-decoration-none" href="/{{cluster_id}}/daemonset?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">DaemonSets</p>
                     <p class="card-text text-dark">{{daemonset_status.Count}}</p>
@@ -85,7 +85,7 @@
                 </a>
             </div>
             <div class="col-lg-2">
-                <a class="text-decoration-none" href="/{{current_cluster}}/replicasets?cluster_id={{cluster_id}}">
+                <a class="text-decoration-none" href="/{{cluster_id}}/replicasets?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">ReplicaSets</p>
                     <p class="card-text text-dark">{{replicaset_status.Count}}</p>
@@ -94,7 +94,7 @@
                 </a>
             </div>
             <div class="col-lg-2">
-                <a class="text-decoration-none" href="/{{current_cluster}}/statefulsets?cluster_id={{cluster_id}}">
+                <a class="text-decoration-none" href="/{{cluster_id}}/statefulsets?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">StatefulSets</p>
                     <p class="card-text text-dark">{{statefulset_status.Count}}</p>
@@ -103,7 +103,7 @@
                 </a>
             </div>
             <div class="col-lg-2">
-                <a class="text-decoration-none" href="/{{current_cluster}}/jobs?cluster_id={{cluster_id}}">
+                <a class="text-decoration-none" href="/{{cluster_id}}/jobs?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">Jobs</p>
                     <p class="card-text text-dark">{{jobs_status.Count}}</p>
@@ -112,7 +112,7 @@
                 </a>
             </div>
             <div class="col-lg-2">
-                <a class="text-decoration-none" href="/{{current_cluster}}/cronjobs?cluster_id={{cluster_id}}">
+                <a class="text-decoration-none" href="/{{cluster_id}}/cronjobs?cluster_id={{cluster_id}}">
                 <div class="card text-center p-4">
                     <p class="card-title bold">CronJobs</p>
                     <p class="card-text text-dark">{{cronjob_status.Count}}</p>
@@ -205,7 +205,7 @@
             {% endfor %}
             </tbody>
         </table>
-        <a type="button" class="btn btn-primary w-auto mt-auto mb-3" href="/{{current_cluster}}/events?cluster_id={{cluster_id}}">
+        <a type="button" class="btn btn-primary w-auto mt-auto mb-3" href="/{{cluster_id}}/events?cluster_id={{cluster_id}}">
             More Events
         </a>
     </div>

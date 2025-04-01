@@ -146,8 +146,8 @@
 <div class="pagination">
   <span class="step-links">
       {% if page_obj.has_previous %}
-          <a href="/{{ current_cluster }}/events?cluster_id={{cluster_id}}&page=1">&laquo; First</a>
-          <a href="/{{ current_cluster }}/events?cluster_id={{cluster_id}}&page={{ page_obj.previous_page_number }}">Previous</a>
+          <a href="/{{ cluster_id }}/events?cluster_id={{cluster_id}}&page=1">&laquo; First</a>
+          <a href="/{{ cluster_id }}/events?cluster_id={{cluster_id}}&page={{ page_obj.previous_page_number }}">Previous</a>
       {% endif %}
 
       <span class="current">
@@ -155,8 +155,8 @@
       </span>
 
       {% if page_obj.has_next %}
-          <a href="/{{ current_cluster }}/events?cluster_id={{cluster_id}}&page={{ page_obj.next_page_number }}">Next</a>
-          <a href="/{{ current_cluster }}/events?cluster_id={{cluster_id}}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+          <a href="/{{ cluster_id }}/events?cluster_id={{cluster_id}}&page={{ page_obj.next_page_number }}">Next</a>
+          <a href="/{{ cluster_id }}/events?cluster_id={{cluster_id}}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
       {% endif %}
   </span>
 </div>

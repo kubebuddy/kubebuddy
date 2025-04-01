@@ -9,9 +9,9 @@
 <div class="container">
   <div class="d-flex justify-content-center mb-4">
     <div class="gap" role="group" aria-label="Persistent Storage Tabs">
-      <a href="/{{current_cluster}}/pv?cluster_id={{cluster_id}}" class="btn btn-primary active" id="pv-tab">Persistent Volumes</a>
-      <a href="/{{current_cluster}}/pvc?cluster_id={{cluster_id}}" class="btn btn-primary" id="pvc-tab">Persistent Volume Claims</a>
-      <a href="/{{current_cluster}}/storageclass?cluster_id={{cluster_id}}" class="btn btn-primary" id="storageclass-tab">Storage Classes</a>
+      <a href="/{{cluster_id}}/pv?cluster_id={{cluster_id}}" class="btn btn-primary active" id="pv-tab">Persistent Volumes</a>
+      <a href="/{{cluster_id}}/pvc?cluster_id={{cluster_id}}" class="btn btn-primary" id="pvc-tab">Persistent Volume Claims</a>
+      <a href="/{{cluster_id}}/storageclass?cluster_id={{cluster_id}}" class="btn btn-primary" id="storageclass-tab">Storage Classes</a>
     </div>
   </div>
   {% if total_pvs == 0 %}
@@ -106,7 +106,7 @@
       {% for pv in pvs %}
         <tr>
           <td>
-            <a href="/{{current_cluster}}/pv/{{pv.name}}?cluster_id={{cluster_id}}">
+            <a href="/{{cluster_id}}/pv/{{pv.name}}?cluster_id={{cluster_id}}">
                 {{ pv.name }}
             </a>
           </td>
@@ -118,7 +118,7 @@
             {% if pv.claim == "-" %}
             {{pv.claim}}
             {% else %}
-            <a href="/{{current_cluster}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}">
+            <a href="/{{cluster_id}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}">
               {{pv.claim}}
             </a>
             {% endif %}
@@ -132,9 +132,9 @@
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <li><a class="dropdown-item" href="/{{current_cluster}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}">Describe</a></li>
-                <li><a class="dropdown-item" href="/{{current_cluster}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}#events">Events</a></li>
-                <li><a class="dropdown-item" href="/{{current_cluster}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/pvc/{{pv.namespace}}/{{pv.claim_name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
               </ul>
             </div>
           </td>

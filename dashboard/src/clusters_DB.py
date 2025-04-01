@@ -4,10 +4,13 @@ from kubebuddy.appLogs import logger
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
+import eks_token
+import os
+from dotenv import load_dotenv
 
 @csrf_exempt
 def get_cluster_status(request):
-
+    load_dotenv()
     cluster = json.loads(request.body)
     control_plane_components = [
         {"key": "component", "value": "kube-apiserver"},
@@ -21,7 +24,7 @@ def get_cluster_status(request):
     try:
         config.load_kube_config(config_file=cluster['kube_config__path'], context=cluster['context_name'])
     except Exception as e:
-        logger.info(f"Error loading kubeconfig for {cluster['cluster_name']}: {e}")
+        logger.error(f"Error loading kubeconfig for {cluster['cluster_name']}: {e}")
         cluster.control_plane_status = "Unavailable"
         cluster.core_dns_status = "Unavailable"
         cluster.number_of_nodes = 'N/A'
@@ -30,6 +33,9 @@ def get_cluster_status(request):
         return JsonResponse({"message": "Cluster status retrieved", "received_data": cluster})
     
     try:
+        # my_token = eks_token.get_token(cluster['cluster_name'])['status']['token']
+        current_config = client.Configuration.get_default_copy()
+        current_config.api_key = {"authorization": f"Bearer {os.getenv('AWS_EKS_TOKEN')}"}
         v1 = client.CoreV1Api()
         nodes = v1.list_node().items
         cluster['number_of_nodes'] = len(nodes)
@@ -58,7 +64,7 @@ def get_cluster_status(request):
         return JsonResponse({"message": "Cluster status retrieved", "received_data": cluster})
 
     except Exception as e:
-        logger.info(f"Cluster {cluster['cluster_name']} is unreachable: {e}")
+        logger.error(f"Cluster {cluster['cluster_name']} is unreachable: {e}")
         cluster['control_plane_status'] = "Unavailable"
         cluster['core_dns_status'] = "Unavailable"
         cluster['number_of_nodes'] = 'N/A'

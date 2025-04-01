@@ -9,11 +9,11 @@
 <div class="container">
   <div class="d-flex justify-content-center mb-4">
     <div class="gap" role="group" aria-label="RBAC Tabs">
-      <a href="/{{current_cluster}}/role?cluster_id={{cluster_id}}" class="btn btn-primary" id="role-tab">Roles</a>
-      <a href="/{{current_cluster}}/rolebinding?cluster_id={{cluster_id}}" class="btn btn-primary" id="rolebinding-tab">Role Bindings</a>
-      <a href="/{{current_cluster}}/clusterrole?cluster_id={{cluster_id}}" class="btn btn-primary" id="clusterrole-tab">Cluster Roles</a>
-      <a href="/{{current_cluster}}/clusterrolebinding?cluster_id={{cluster_id}}" class="btn btn-primary active" id="clusterrolebinding-tab">Cluster Role Bindings</a>
-      <a href="/{{current_cluster}}/sa?cluster_id={{cluster_id}}" class="btn btn-primary" id="serviceaccount-tab">Service Accounts</a>
+      <a href="/{{cluster_id}}/role?cluster_id={{cluster_id}}" class="btn btn-primary" id="role-tab">Roles</a>
+      <a href="/{{cluster_id}}/rolebinding?cluster_id={{cluster_id}}" class="btn btn-primary" id="rolebinding-tab">Role Bindings</a>
+      <a href="/{{cluster_id}}/clusterrole?cluster_id={{cluster_id}}" class="btn btn-primary" id="clusterrole-tab">Cluster Roles</a>
+      <a href="/{{cluster_id}}/clusterrolebinding?cluster_id={{cluster_id}}" class="btn btn-primary active" id="clusterrolebinding-tab">Cluster Role Bindings</a>
+      <a href="/{{cluster_id}}/sa?cluster_id={{cluster_id}}" class="btn btn-primary" id="serviceaccount-tab">Service Accounts</a>
     </div>
   </div>
   {% if total_clusterrolebinding == 0 %}
@@ -91,7 +91,7 @@
       <tbody>
       {% for crb in clusterrolebinding %}
         <tr>
-          <td><a href="/{{current_cluster}}/clusterrolebinding/{{crb.name}}?cluster_id={{cluster_id}}">{{ crb.name }}</a></td>
+          <td><a href="/{{cluster_id}}/clusterrolebinding/{{crb.name}}?cluster_id={{cluster_id}}">{{ crb.name }}</a></td>
           <td>{{ crb.role }}</td>
           <td>{{ crb.users }}</td>
           <td>{{ crb.groups }}</td>
@@ -103,9 +103,9 @@
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <li><a class="dropdown-item" href="/{{current_cluster}}/clusterrolebinding/{{crb.name}}?cluster_id={{cluster_id}}">Describe</a></li>
-                <li><a class="dropdown-item" href="/{{current_cluster}}/clusterrolebinding/{{crb.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
-                <li><a class="dropdown-item" href="/{{current_cluster}}/clusterrolebinding/{{crb.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/clusterrolebinding/{{crb.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/clusterrolebinding/{{crb.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/clusterrolebinding/{{crb.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
               </ul>
             </div>
           </td>

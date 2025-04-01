@@ -11,8 +11,8 @@
 <div class="container">
   <div class="d-flex justify-content-center mb-4">
     <div class="gap" role="group" aria-label="Services Tabs">
-      <a href="/{{current_cluster}}/services?cluster_id={{cluster_id}}" class="btn btn-primary active" id="services-tab">Services</a>
-      <a href="/{{current_cluster}}/endpoints?cluster_id={{cluster_id}}" class="btn btn-primary" id="endpoints-tab">Endpoints</a>
+      <a href="/{{cluster_id}}/services?cluster_id={{cluster_id}}" class="btn btn-primary active" id="services-tab">Services</a>
+      <a href="/{{cluster_id}}/endpoints?cluster_id={{cluster_id}}" class="btn btn-primary" id="endpoints-tab">Endpoints</a>
     </div>
   </div>
   {% if total_services == 0 %}
@@ -123,7 +123,7 @@
         <tr>
             <td>{{ service.namespace }}</td>
             <td>
-              <a href="/{{current_cluster}}/services/{{service.namespace}}/{{service.name}}?cluster_id={{cluster_id}}">
+              <a href="/{{cluster_id}}/services/{{service.namespace}}/{{service.name}}?cluster_id={{cluster_id}}">
                   {{ service.name }}
               </a>
           </td>
@@ -139,9 +139,9 @@
                   <i class="bi bi-three-dots-vertical"></i>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <li><a class="dropdown-item" href="/{{current_cluster}}/services/{{service.namespace}}/{{service.name}}?cluster_id={{cluster_id}}">Describe</a></li>
-                  <li><a class="dropdown-item" href="/{{current_cluster}}/services/{{service.namespace}}/{{service.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
-                  <li><a class="dropdown-item" href="/{{current_cluster}}/services/{{service.namespace}}/{{service.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+                  <li><a class="dropdown-item" href="/{{cluster_id}}/services/{{service.namespace}}/{{service.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                  <li><a class="dropdown-item" href="/{{cluster_id}}/services/{{service.namespace}}/{{service.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                  <li><a class="dropdown-item" href="/{{cluster_id}}/services/{{service.namespace}}/{{service.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
                 </ul>
               </div>
             </td>

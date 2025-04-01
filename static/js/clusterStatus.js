@@ -46,25 +46,22 @@ document.addEventListener('DOMContentLoaded', function() {
         coreDNSElement.classList.add(clusterData.core_dns_status === "Running" ? "text-success" : "text-danger")
 
         // update styling of cards and links
-        clusterElement.querySelector("a").href = (clusterData.core_dns_status === 'Running' && clusterData.control_plane_status === 'Running') ? `/${clusterData.cluster_name}/dashboard?cluster_id=${clusterData.id}` : `/${clusterData.cluster_name}/cluster_error`;
-        clusterElement.querySelector("a").style.pointerEvents = (clusterData.core_dns_status === 'Running' && clusterData.control_plane_status === 'Running') ? 'auto' : 'auto';
-        clusterElement.querySelector("a").style.cursor = (clusterData.core_dns_status === 'Running' && clusterData.control_plane_status === 'Running') ? 'pointer' : 'pointer';
+        clusterElement.querySelector("a").href = (clusterData.control_plane_status === 'Running') ? `/${clusterData.id}/dashboard?cluster_id=${clusterData.id}` : `/${clusterData.id}/cluster_error`;
+        clusterElement.querySelector("a").style.pointerEvents = (clusterData.control_plane_status === 'Running') ? 'auto' : 'auto';
+        clusterElement.querySelector("a").style.cursor = (clusterData.control_plane_status === 'Running') ? 'pointer' : 'pointer';
 
         const cardHeader = clusterElement.querySelector("#card-head");
         if (cardHeader) {
             cardHeader.classList.remove("bg-light-subtle");
 
-            if (clusterData.core_dns_status === 'Running' && clusterData.control_plane_status === 'Running') {
+            if (clusterData.control_plane_status === 'Running') {
                 cardHeader.classList.add("bg-success", "text-white"); // Green background for healthy clusters
             } else {
-                cardHeader.classList.add("bg-danger", "text-white"); // Red background for uunavailable clusters
+                cardHeader.classList.add("bg-danger", "text-white"); // Red background for unavailable clusters
             }
         } else {
             console.warn(`Card header not found for cluster ${clusterData.id}`);
         }
-
-        // tooltip for statuses
-
     }
 
     clusters.forEach((cluster) => {

@@ -47,7 +47,7 @@ input.addEventListener('keydown', async (event) => {
             } else {
                 // Send the command to the backend
                 try {
-                    const response = await fetch(`/cluster_name/execute/`, {
+                    const response = await fetch(`/execute/`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

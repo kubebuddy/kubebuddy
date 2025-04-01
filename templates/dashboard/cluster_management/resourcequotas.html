@@ -11,11 +11,11 @@
 <div class="container">
   <div class="d-flex justify-content-center mb-4">
     <div class="gap" role="group" aria-label="Cluster Management Tabs">
-      <a href="/{{current_cluster}}/namespace?cluster_id={{cluster_id}}" class="btn btn-primary" id="namespaces-tab">Namespaces</a>
-      <a href="/{{current_cluster}}/nodes?cluster_id={{cluster_id}}" class="btn btn-primary" id="nodes-tab">Nodes</a>
-      <a href="/{{current_cluster}}/pdb?cluster_id={{cluster_id}}" class="btn btn-primary" id="pdb-tab">Pod Disruption Budgets</a>
-      <a href="/{{current_cluster}}/limitrange?cluster_id={{cluster_id}}" class="btn btn-primary" id="limitrange-tab">Limit Ranges</a>
-      <a href="/{{current_cluster}}/resourcequotas?cluster_id={{cluster_id}}" class="btn btn-primary active" id="resourcequotas-tab">Resource Quotas</a>
+      <a href="/{{cluster_id}}/namespace?cluster_id={{cluster_id}}" class="btn btn-primary" id="namespaces-tab">Namespaces</a>
+      <a href="/{{cluster_id}}/nodes?cluster_id={{cluster_id}}" class="btn btn-primary" id="nodes-tab">Nodes</a>
+      <a href="/{{cluster_id}}/pdb?cluster_id={{cluster_id}}" class="btn btn-primary" id="pdb-tab">Pod Disruption Budgets</a>
+      <a href="/{{cluster_id}}/limitrange?cluster_id={{cluster_id}}" class="btn btn-primary" id="limitrange-tab">Limit Ranges</a>
+      <a href="/{{cluster_id}}/resourcequotas?cluster_id={{cluster_id}}" class="btn btn-primary active" id="resourcequotas-tab">Resource Quotas</a>
     </div>
   </div>
   {% if total_quotas == 0 %}
@@ -111,7 +111,7 @@
         <tr>
           <td>{{ q.namespace }}</td>
           <td>
-            <a href="/{{current_cluster}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}">
+            <a href="/{{cluster_id}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}">
                 {{ q.name }}
             </a>
           </td>
@@ -124,9 +124,9 @@
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <li><a class="dropdown-item" href="/{{current_cluster}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}">Describe</a></li>
-                <li><a class="dropdown-item" href="/{{current_cluster}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
-                <li><a class="dropdown-item" href="/{{current_cluster}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+                <li><a class="dropdown-item" href="/{{cluster_id}}/resourcequotas/{{q.namespace}}/{{q.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
               </ul>
             </div>
           </td>

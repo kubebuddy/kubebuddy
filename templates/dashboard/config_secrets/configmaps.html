@@ -10,8 +10,8 @@
 <div class="container">
   <div class="d-flex justify-content-center mb-4">
     <div class="gap" role="group" aria-label="Config & Secrets Tabs">
-      <a href="/{{current_cluster}}/configmaps?cluster_id={{cluster_id}}" class="btn btn-primary active" id="configmaps-tab">ConfigMaps</a>
-      <a href="/{{current_cluster}}/secrets?cluster_id={{cluster_id}}" class="btn btn-primary" id="secrets-tab">Secrets</a>
+      <a href="/{{cluster_id}}/configmaps?cluster_id={{cluster_id}}" class="btn btn-primary active" id="configmaps-tab">ConfigMaps</a>
+      <a href="/{{cluster_id}}/secrets?cluster_id={{cluster_id}}" class="btn btn-primary" id="secrets-tab">Secrets</a>
     </div>
   </div>
   {% if total_count == 0 %}
@@ -102,7 +102,7 @@
         <tr>
           <td>{{ cm.namespace }}</td>
           <td>
-            <a href="/{{current_cluster}}/configmaps/{{cm.namespace}}/{{cm.name}}?cluster_id={{cluster_id}}">
+            <a href="/{{cluster_id}}/configmaps/{{cm.namespace}}/{{cm.name}}?cluster_id={{cluster_id}}">
                 {{ cm.name }}
             </a>
         </td>
@@ -114,9 +114,9 @@
               <i class="bi bi-three-dots-vertical"></i>
             </button>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <li><a class="dropdown-item" href="/{{current_cluster}}/configmaps/{{cm.namespace}}/{{cm.name}}?cluster_id={{cluster_id}}">Describe</a></li>
-              <li><a class="dropdown-item" href="/{{current_cluster}}/configmaps/{{cm.namespace}}/{{cm.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
-              <li><a class="dropdown-item" href="/{{current_cluster}}/configmaps/{{cm.namespace}}/{{cm.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
+              <li><a class="dropdown-item" href="/{{cluster_id}}/configmaps/{{cm.namespace}}/{{cm.name}}?cluster_id={{cluster_id}}">Describe</a></li>
+              <li><a class="dropdown-item" href="/{{cluster_id}}/configmaps/{{cm.namespace}}/{{cm.name}}?cluster_id={{cluster_id}}#events">Events</a></li>
+              <li><a class="dropdown-item" href="/{{cluster_id}}/configmaps/{{cm.namespace}}/{{cm.name}}?cluster_id={{cluster_id}}#yaml">YAML</a></li>
             </ul>
           </div>
         </td>

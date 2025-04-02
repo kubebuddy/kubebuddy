@@ -52,7 +52,8 @@ function initBreadcrumbNavigation() {
   // First segment always goes to KubeBuddy
   if (pathSegments[0]) {
     // Get display name if it exists, otherwise use original
-    const displayText = displayNameMap[pathSegments[0]] || pathSegments[0];
+    // const displayText = displayNameMap[pathSegments[0]] || pathSegments[0];
+    const displayText = 'Cluster'
     
     breadcrumbs.push({
       text: displayText,

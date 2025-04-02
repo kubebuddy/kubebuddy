@@ -35,13 +35,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Updating Control Plane status
         const controlPlaneElement = clusterElement.querySelector("p:nth-child(3) span");
-        controlPlaneElement.textContent = clusterData.control_plane_status || "Checking...";
+        controlPlaneElement.innerHTML = (clusterData.control_plane_status === 'Running' ? "&#9989; " +  clusterData.control_plane_status : "&#10060; " + clusterData.control_plane_status) || "Checking...";
         controlPlaneElement.classList.remove("text-primary");
         controlPlaneElement.classList.add(clusterData.control_plane_status === "Running" ? "text-success" : "text-danger")
 
         // Updating CoreDNS status
         const coreDNSElement = clusterElement.querySelector("p:nth-child(4) span");
-        coreDNSElement.textContent = clusterData.core_dns_status || "Checking...";
+        coreDNSElement.innerHTML = (clusterData.core_dns_status === 'Running' ? "&#9989; " +  clusterData.core_dns_status : "&#10060; " + clusterData.core_dns_status) || "Checking...";
         coreDNSElement.classList.remove("text-primary");
         coreDNSElement.classList.add(clusterData.core_dns_status === "Running" ? "text-success" : "text-danger")
 

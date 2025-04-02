@@ -47,12 +47,12 @@
       <!-- Cluster dropdown -->
       <div class="my-2 p-0">
         <div class="dropdown">
-          <input type="text" id="search-bar" class="form-control fw-bold bg-primary" style="color: #fff; cursor:pointer; width: 15vw;" placeholder="Search for clusters..." onkeyup="searchClusters()">
+          <input type="text" id="search-bar" class="form-control fw-bold bg-primary" style="color: #fff; cursor:pointer; width: 15vw;" placeholder="Search for clusters..." onkeyup="searchClusters()" readOnly>
           <i class="bi bi-caret-down-fill position-absolute" style="right: 15px; top: 50%; transform: translateY(-50%); color: white; pointer-events: none;"></i>
           <ul class="dropdown-menu" id="cluster-list" style="width: 15vw;">
             {% for cluster in registered_clusters %}
-            <a href="/{{cluster.id}}/dashboard?cluster_id={{cluster.id}}" class="text-decoration-none">
-              <li class="dropdown-item cluster-item">{{ cluster.cluster_name }}</li>
+            <a href="/{{cluster.id}}/dashboard?cluster_id={{cluster.id}}" class="text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="{{cluster.cluster_name}}">
+              <li class="dropdown-item cluster-item" >{{ cluster.cluster_name|truncatechars:25 }}</li>
             </a>
             {% empty %}
               <li class="list-group-item">No clusters found.</li>

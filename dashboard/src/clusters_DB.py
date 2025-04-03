@@ -4,7 +4,6 @@ from kubebuddy.appLogs import logger
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
-import eks_token
 import os
 from dotenv import load_dotenv
 

@@ -93,6 +93,7 @@
                 </a>
             </div>
             <div class="card-body d-flex flex-column">
+                <input type="text" id="search-bar" class="form-control" placeholder="Search Clusters" onkeyup="searchClusters()">
             </div>
             
             <!-- Bottom sidebar links -->
@@ -143,7 +144,7 @@
                     </a>
                 </div>
                 {% for cluster in registered_clusters %}
-                <div class="col-md-4 mb-2" id="{{ cluster.id }}">
+                <div class="col-md-4 mb-2 cluster-card" id="{{ cluster.id }}">
                     <div class="card shadow-sm d-flex flex-column" style="min-height:17rem;">
                         <div class="card-header d-flex justify-content-between bg-light-subtle" id="card-head">
                         <span id="cluster_tag" class="w-100">{{ cluster.cluster_name }}</span>
@@ -309,46 +310,19 @@
 
         // search functionality
         function searchClusters() {
-            var input, filter, list, items, item, textValue;
-            input = document.getElementById('search-bar');
-            filter = input.value.toLowerCase();
-            list = document.getElementById('cluster-list');
-            items = list.getElementsByClassName('cluster-item');
-
-            if (filter.length > 0 || document.activeElement === input) {
-                list.classList.add("show"); // Show dropdown
-            } else {
-                list.classList.remove("show"); // Hide dropdown if input is empty
-            }
-
-            for (var i = 0; i < items.length; i++) {
-                item = items[i];
-                textValue = item.textContent || item.innerText;
-                if (textValue.toLowerCase().indexOf(filter) > -1) {
-                    item.style.display = "";
+            let input = document.getElementById("search-bar").value.toLowerCase();
+            let clusters = document.getElementsByClassName("cluster-card");
+    
+            for (let i = 0; i < clusters.length; i++) {
+                let clusterName = clusters[i].querySelector("#cluster_tag").textContent.toLowerCase();
+                if (clusterName.includes(input)) {
+                    clusters[i].style.display = "block"; // Show matching clusters
                 } else {
-                    item.style.display = "none";
+                    clusters[i].style.display = "none"; // Hide non-matching clusters
                 }
             }
         }
 
-        document.getElementById('search-bar').addEventListener("focus", function() {
-            var list = document.getElementById('cluster-list');
-            list.classList.add("show");
-        });
-
-        function showDropdown() {
-            document.getElementById('cluster-list').style.display = "block";
-        }
-
-        // Hide dropdown when clicking outside
-        document.addEventListener("click", function(event) {
-            var dropdown = document.getElementById('cluster-list');
-            var input = document.getElementById('search-bar');
-            if (!dropdown.contains(event.target) && event.target !== input) {
-                dropdown.classList.remove("show");
-            }
-        });
     </script>
 </body>
 </html>

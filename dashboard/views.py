@@ -62,7 +62,7 @@ def pods(request, cluster_id):
     return render(request, 'dashboard/workloads/pods.html', { "pods": pods, "pc": pc, 
                                                    "cluster_id": cluster_id,
                                                    "pod_info_list": pod_info_list, "status_count": status_count,
-                                                   "registered_clusters": registered_clusters, "namespaces": namespaces})
+                                                   "registered_clusters": registered_clusters, "namespaces": namespaces, 'current_cluster': current_cluster})
 
 
 def pod_info(request, cluster_id, namespace, pod_name):
@@ -76,7 +76,7 @@ def pod_info(request, cluster_id, namespace, pod_name):
 
     return render(request, 'dashboard/workloads/pod_info.html', {"pod_info": pod_info, "cluster_id": cluster_id,
                                                         "pod_name": pod_name,
-                                                        "registered_clusters": registered_clusters})
+                                                        "registered_clusters": registered_clusters, 'current_cluster': current_cluster})
 
 
 def replicasets(request, cluster_id):
@@ -85,7 +85,7 @@ def replicasets(request, cluster_id):
     replicaset_info_list = k8s_replicaset.getReplicaSetsInfo(path, context_name)
     return render(request, 'dashboard/workloads/replicasets.html', {"cluster_id": cluster_id, "replicaset_info_list": replicaset_info_list,
                                                           "rs_status": rs_status,
-                                                          "registered_clusters": registered_clusters, "namespaces": namespaces})
+                                                          "registered_clusters": registered_clusters, "namespaces": namespaces, 'current_cluster': current_cluster})
 
 
 def rs_info(request, cluster_id, namespace, rs_name):
@@ -96,7 +96,7 @@ def rs_info(request, cluster_id, namespace, rs_name):
         "yaml": k8s_replicaset.get_yaml_rs(path, context_name, namespace, rs_name)
     }
     return render(request, 'dashboard/workloads/rs_info.html', {"rs_info": rs_info, "cluster_id": cluster_id, "rs_name": rs_name, 
-                                                                "registered_clusters": registered_clusters})
+                                                                "registered_clusters": registered_clusters, 'current_cluster': current_cluster})
 
 
 def deployments(request, cluster_id):
@@ -104,7 +104,7 @@ def deployments(request, cluster_id):
     dep_status = k8s_deployments.getDeploymentsStatus(path, context_name)
     deployment_info_list = k8s_deployments.getDeploymentsInfo(path, context_name)
     return render(request, 'dashboard/workloads/deployment.html', {"cluster_id": cluster_id, "dep_status": dep_status, "deployment_info_list": deployment_info_list,
-                                                                "registered_clusters": registered_clusters, "namespaces": namespaces})
+                                                                "registered_clusters": registered_clusters, "namespaces": namespaces, 'current_cluster': current_cluster})
 
 
 def deploy_info(request, cluster_id, namespace, deploy_name):
@@ -115,7 +115,7 @@ def deploy_info(request, cluster_id, namespace, deploy_name):
         "yaml": k8s_deployments.get_yaml_deploy(path, context_name, namespace, deploy_name)
     }
     return render(request, 'dashboard/workloads/deploy_info.html', {"deploy_info": deploy_info, "cluster_id": cluster_id, "deploy_name": deploy_name, 
-                                                                    "registered_clusters": registered_clusters})
+                                                                    "registered_clusters": registered_clusters, 'current_cluster': current_cluster})
 
 
 def statefulsets(request, cluster_id):
@@ -125,7 +125,7 @@ def statefulsets(request, cluster_id):
 
     return render(request, 'dashboard/workloads/statefulsets.html', {'cluster_id': cluster_id,
                                                                      'statefulsets_list': statefulsets_list, 'statefulsets_status': statefulsets_status,
-                                                                     'registered_clusters': registered_clusters,'namespaces': namespaces})
+                                                                     'registered_clusters': registered_clusters,'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def sts_info(request, cluster_id, namespace, sts_name):
@@ -137,7 +137,7 @@ def sts_info(request, cluster_id, namespace, sts_name):
     }
     
     return render(request, 'dashboard/workloads/sts_info.html', {"sts_info": sts_info,"cluster_id": cluster_id,
-                                                                 "sts_name": sts_name, 'registered_clusters': registered_clusters})
+                                                                 "sts_name": sts_name, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def daemonset(request, cluster_id):
@@ -147,7 +147,7 @@ def daemonset(request, cluster_id):
     
     return render(request, 'dashboard/workloads/daemonset.html',{'cluster_id': cluster_id,
                                                                  'daemonset_status': daemonset_status, 'daemonset_list': daemonset_list,
-                                                                 'registered_clusters': registered_clusters, 'namespaces': namespaces})
+                                                                 'registered_clusters': registered_clusters, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def daemonset_info(request, cluster_id, namespace, daemonset_name):
@@ -158,7 +158,7 @@ def daemonset_info(request, cluster_id, namespace, daemonset_name):
         "yaml": k8s_daemonset.get_daemonset_yaml(path, context_name, namespace, daemonset_name),
     }
     return render(request, 'dashboard/workloads/daemonset_info.html', {"daemonset_info": daemonset_info, "cluster_id": cluster_id,
-                                                                       "daemonset_name": daemonset_name, 'registered_clusters': registered_clusters})
+                                                                       "daemonset_name": daemonset_name, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def jobs(request, cluster_id):
@@ -167,7 +167,7 @@ def jobs(request, cluster_id):
     jobs_list = k8s_jobs.getJobsList(path, context_name)
 
     return render(request, 'dashboard/workloads/jobs.html',{'cluster_id': cluster_id, 'jobs_status': jobs_status,
-                                                            'jobs_list': jobs_list, 'registered_clusters': registered_clusters, 'namespaces': namespaces})
+                                                            'jobs_list': jobs_list, 'registered_clusters': registered_clusters, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def jobs_info(request, cluster_id, namespace, job_name):
@@ -178,7 +178,7 @@ def jobs_info(request, cluster_id, namespace, job_name):
         "yaml": k8s_jobs.get_yaml_job(path, context_name, namespace, job_name)
     }
     return render(request, 'dashboard/workloads/job_info.html', { "job_info": job_info, "cluster_id": cluster_id,
-                                                                 "job_name": job_name, 'registered_clusters': registered_clusters})
+                                                                 "job_name": job_name, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def cronjobs(request, cluster_id):
@@ -188,7 +188,7 @@ def cronjobs(request, cluster_id):
 
     return render(request, 'dashboard/workloads/cronjobs.html', {'cluster_id': cluster_id,
                                                                  'registered_clusters': registered_clusters, 'cronjobs_status': cronjobs_status,
-                                                                 'cronjobs_list': cronjobs_list, 'namespaces': namespaces})
+                                                                 'cronjobs_list': cronjobs_list, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 def cronjob_info(request, cluster_id, namespace, cronjob_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
@@ -199,7 +199,7 @@ def cronjob_info(request, cluster_id, namespace, cronjob_name):
         "yaml": k8s_cronjobs.get_yaml_cronjob(path, context_name, namespace, cronjob_name)
     }
     return render(request, 'dashboard/workloads/cronjob_info.html', {"cronjob_info": cronjob_info, "cluster_id": cluster_id,
-                                                                     "cronjob_name": cronjob_name, 'registered_clusters': registered_clusters})
+                                                                     "cronjob_name": cronjob_name, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 ############ CLUSTER MANAGEMENT SECTION ############
 
@@ -213,7 +213,7 @@ def namespace(request, cluster_id):
     namespaces_count = len(namespaces)
 
     return render(request, 'dashboard/cluster_management/namespace.html',{'cluster_id': cluster_id,
-                                                                          'registered_clusters': registered_clusters, 'namespaces': namespaces, 'namespaces_count': namespaces_count})
+                                                                          'registered_clusters': registered_clusters, 'namespaces': namespaces, 'namespaces_count': namespaces_count, 'current_cluster': current_cluster})
 
 
 def ns_info(request, cluster_id, namespace):
@@ -224,7 +224,7 @@ def ns_info(request, cluster_id, namespace):
     }
 
     return render(request, 'dashboard/cluster_management/ns_info.html', {"ns_info": ns_info, "cluster_id": cluster_id,
-                                                                         "namespace": namespace, 'registered_clusters': registered_clusters})
+                                                                         "namespace": namespace, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def nodes(request, cluster_id):
@@ -234,7 +234,7 @@ def nodes(request, cluster_id):
     ready_nodes, not_ready_nodes, total_nodes = k8s_nodes.getNodesStatus(path, context_name)
     
     return render(request, 'dashboard/cluster_management/nodes.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'nodes': nodes, 
-                                                                       'ready_nodes': ready_nodes, 'not_ready_nodes': not_ready_nodes, 'total_nodes': total_nodes})
+                                                                       'ready_nodes': ready_nodes, 'not_ready_nodes': not_ready_nodes, 'total_nodes': total_nodes, 'current_cluster': current_cluster})
 
 
 def node_info(request, cluster_id, node_name):
@@ -245,7 +245,7 @@ def node_info(request, cluster_id, node_name):
         "yaml": k8s_nodes.get_node_yaml(path, context_name, node_name),
     }
     return render(request, 'dashboard/cluster_management/node_info.html', {"node_info": node_info, "cluster_id": cluster_id, "node_name": node_name, 
-                                                                           'registered_clusters': registered_clusters})
+                                                                           'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def limitrange(request, cluster_id):
@@ -254,7 +254,7 @@ def limitrange(request, cluster_id):
     limitranges, total_limitranges = k8s_limit_range.get_limit_ranges(path, context_name)
 
     return render(request, 'dashboard/cluster_management/limitrange.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'limitranges': limitranges, 
-                                                                            'total_limitranges': total_limitranges, 'namespaces': namespaces})
+                                                                            'total_limitranges': total_limitranges, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def limitrange_info(request, cluster_id, namespace, limitrange_name):
@@ -267,7 +267,7 @@ def limitrange_info(request, cluster_id, namespace, limitrange_name):
     }
 
     return render(request, 'dashboard/cluster_management/limitrange_info.html', {"limitrange_info": limitrange_info, "cluster_id": cluster_id, "limitrange_name": limitrange_name, 
-                                                                                 'registered_clusters': registered_clusters})
+                                                                                 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def resourcequotas(request, cluster_id):
@@ -276,7 +276,7 @@ def resourcequotas(request, cluster_id):
     resourcequotas, total_quotas = k8s_resource_quota.get_resource_quotas(path, context_name)
 
     return render(request, 'dashboard/cluster_management/resourcequotas.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'resourcequotas': resourcequotas, 
-                                                                                'total_quotas': total_quotas, 'namespaces': namespaces})
+                                                                                'total_quotas': total_quotas, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def resourcequota_info(request, cluster_id, namespace, resourcequota_name):
@@ -289,7 +289,7 @@ def resourcequota_info(request, cluster_id, namespace, resourcequota_name):
     }
 
     return render(request, 'dashboard/cluster_management/resourcequota_info.html', {"resourcequota_info": resourcequota_info, "cluster_id": cluster_id, "resourcequota_name": resourcequota_name, 
-                                                                                    'registered_clusters': registered_clusters})
+                                                                                    'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def pdb(request, cluster_id):
@@ -298,7 +298,7 @@ def pdb(request, cluster_id):
     pdbs, pdbs_count = k8s_pdb.get_pdb(path, context_name)
 
     return render(request, 'dashboard/cluster_management/pdb.html', {"cluster_id": cluster_id, "registered_clusters": registered_clusters, "pdbs": pdbs, 
-                                                                     "namespaces": namespaces, "pdbs_count": pdbs_count})
+                                                                     "namespaces": namespaces, "pdbs_count": pdbs_count, 'current_cluster': current_cluster})
 
 
 def pdb_info(request, cluster_id, namespace, pdb_name):
@@ -311,7 +311,7 @@ def pdb_info(request, cluster_id, namespace, pdb_name):
     }
 
     return render(request, 'dashboard/cluster_management/pdb_info.html', {"pdb_info": pdb_info, "cluster_id": cluster_id, 
-                                                                          "registered_clusters": registered_clusters})
+                                                                          "registered_clusters": registered_clusters, 'current_cluster': current_cluster})
 
 
 ############ CONFIGMAPS & SECRETS SECTION ############
@@ -320,7 +320,7 @@ def configmaps(request, cluster_id):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
     configmaps, total_count = k8s_configmaps.get_configmaps(path, context_name)
     return render(request, 'dashboard/config_secrets/configmaps.html', {"configmaps": configmaps, 'total_count':total_count, "cluster_id": cluster_id, 
-                                                                        'registered_clusters': registered_clusters, 'namespaces': namespaces})
+                                                                        'registered_clusters': registered_clusters, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def configmap_info(request, cluster_id, namespace, configmap_name):
@@ -332,7 +332,7 @@ def configmap_info(request, cluster_id, namespace, configmap_name):
     }
 
     return render(request, 'dashboard/config_secrets/configmap_info.html', {"configmap_info": configmap_info, "cluster_id": cluster_id, "configmap_name": configmap_name, 
-                                                                            'registered_clusters': registered_clusters})
+                                                                            'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def secrets(request, cluster_id):
@@ -341,7 +341,7 @@ def secrets(request, cluster_id):
     namespaces = k8s_namespaces.get_namespace(path, context_name)
     secrets, total_secrets = k8s_secrets.list_secrets(path, context_name)
     return render(request, 'dashboard/config_secrets/secrets.html', {"secrets": secrets, "total_secrets": total_secrets, "cluster_id": cluster_id, 
-                                                                     'registered_clusters': registered_clusters, 'namespaces': namespaces})
+                                                                     'registered_clusters': registered_clusters, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def secret_info(request, cluster_id, namespace, secret_name):
@@ -353,7 +353,7 @@ def secret_info(request, cluster_id, namespace, secret_name):
     }
 
     return render(request, 'dashboard/config_secrets/secret_info.html', {"secret_info": secret_info, "cluster_id": cluster_id, "secret_name": secret_name, 
-                                                                         'registered_clusters': registered_clusters})
+                                                                         'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 ############ SERVICES SECTION ############
@@ -364,7 +364,7 @@ def services(request, cluster_id):
     services = k8s_services.list_kubernetes_services(path, context_name)
     total_services = len(services)
     return render(request, 'dashboard/services/services.html', {"services": services,"total_services": total_services, "cluster_id": cluster_id, 
-                                                                'registered_clusters': registered_clusters, 'namespaces': namespaces})
+                                                                'registered_clusters': registered_clusters, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def service_info(request, cluster_id, namespace, service_name):
@@ -376,7 +376,7 @@ def service_info(request, cluster_id, namespace, service_name):
     }
 
     return render(request, 'dashboard/services/service_info.html', {"service_info": service_info, "cluster_id": cluster_id, "service_name": service_name, 
-                                                                    'registered_clusters': registered_clusters})
+                                                                    'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def endpoints(request, cluster_id):
@@ -384,7 +384,7 @@ def endpoints(request, cluster_id):
     
     endpoints = k8s_endpoints.get_endpoints(path, context_name)
     total_endpoints = len(endpoints)
-    return render(request, 'dashboard/services/endpoints.html', {"endpoints": endpoints,"total_endpoints":total_endpoints, "cluster_id": cluster_id, 'registered_clusters': registered_clusters, 'namespaces': namespaces}) 
+    return render(request, 'dashboard/services/endpoints.html', {"endpoints": endpoints,"total_endpoints":total_endpoints, "cluster_id": cluster_id, 'registered_clusters': registered_clusters, 'namespaces': namespaces, 'current_cluster': current_cluster}) 
 
 
 def endpoint_info(request, cluster_id, namespace, endpoint_name):
@@ -397,7 +397,7 @@ def endpoint_info(request, cluster_id, namespace, endpoint_name):
     }
 
     return render(request, 'dashboard/services/endpoint_info.html', {"endpoint_info": endpoint_info, "cluster_id": cluster_id, "endpoint_name": endpoint_name, 
-                                                                     'registered_clusters': registered_clusters})
+                                                                     'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 ############ PERSISTENT STORAGE SECTION ############
@@ -408,7 +408,7 @@ def persistentvolume(request, cluster_id):
     pvs, total_pvs = k8s_pv.list_persistent_volumes(path, context_name)
 
     return render(request, 'dashboard/persistent_storage/persistentvolume.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                                                  'pvs': pvs, 'total_pvs': total_pvs})
+                                                                                  'pvs': pvs, 'total_pvs': total_pvs, 'current_cluster': current_cluster})
 
 
 def pv_info(request, cluster_id, pv_name):
@@ -420,7 +420,7 @@ def pv_info(request, cluster_id, pv_name):
     }
 
     return render(request, 'dashboard/persistent_storage/pv_info.html', {"pv_info": pv_info, "cluster_id": cluster_id, "pv_name": pv_name, 
-                                                                         'registered_clusters': registered_clusters})
+                                                                         'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def persistentvolumeclaim(request, cluster_id):
@@ -429,7 +429,7 @@ def persistentvolumeclaim(request, cluster_id):
     pvc, total_pvc = k8s_pvc.list_pvc(path, context_name)
 
     return render(request, 'dashboard/persistent_storage/persistentvolumeclaim.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'pvc': pvc, 
-                                                                                       'total_pvc': total_pvc, 'namespaces': namespaces})
+                                                                                       'total_pvc': total_pvc, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def pvc_info(request, cluster_id, namespace, pvc_name):
@@ -442,7 +442,7 @@ def pvc_info(request, cluster_id, namespace, pvc_name):
     }
 
     return render(request, 'dashboard/persistent_storage/pvc_info.html', {"pvc_info": pvc_info, "cluster_id": cluster_id, "pvc_name": pvc_name, 
-                                                                          'registered_clusters': registered_clusters})
+                                                                          'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def storageclass(request, cluster_id):
@@ -451,7 +451,7 @@ def storageclass(request, cluster_id):
     sc, total_sc = k8s_storage_class.list_storage_classes(path, context_name)
 
     return render(request, 'dashboard/persistent_storage/storageclass.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                                              'sc': sc, 'total_sc': total_sc})
+                                                                              'sc': sc, 'total_sc': total_sc, 'current_cluster': current_cluster})
 
 def storageclass_info(request, cluster_id, sc_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
@@ -462,7 +462,7 @@ def storageclass_info(request, cluster_id, sc_name):
         "yaml": k8s_storage_class.get_sc_yaml(path, context_name, sc_name)
     }    
 
-    return render(request, 'dashboard/persistent_storage/storageclass_info.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'sc_info': sc_info})
+    return render(request, 'dashboard/persistent_storage/storageclass_info.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'sc_info': sc_info, 'current_cluster': current_cluster})
 
 ############ NETWORKING SECTION ############
 
@@ -472,7 +472,7 @@ def np(request, cluster_id):
     nps, nps_count = k8s_np.get_np(path, current_cluster.context_name)
 
     return render(request, 'dashboard/networking/np.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                            'nps': nps, 'nps_count': nps_count, 'namespaces': namespaces})
+                                                            'nps': nps, 'nps_count': nps_count, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def np_info(request, cluster_id, namespace, np_name):
@@ -485,7 +485,7 @@ def np_info(request, cluster_id, namespace, np_name):
     }    
 
     return render(request, 'dashboard/networking/np_info.html', {'cluster_id': cluster_id, 
-                                                                 'registered_clusters': registered_clusters, 'np_info': np_info})
+                                                                 'registered_clusters': registered_clusters, 'np_info': np_info, 'current_cluster': current_cluster})
 
 
 def ingress(request, cluster_id):
@@ -494,7 +494,7 @@ def ingress(request, cluster_id):
     ingress, ingress_count = k8s_ingress.get_ingress(path, current_cluster.context_name)
 
     return render(request, 'dashboard/networking/ingress.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                                 'ingress': ingress, 'ingress_count': ingress_count, 'namespaces': namespaces})
+                                                                 'ingress': ingress, 'ingress_count': ingress_count, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 def ingress_info(request, cluster_id, namespace, ingress_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
@@ -504,7 +504,7 @@ def ingress_info(request, cluster_id, namespace, ingress_name):
         "events": k8s_ingress.get_ingress_events(path, current_cluster.context_name, namespace, ingress_name),
         "yaml": k8s_ingress.get_ingress_yaml(path, current_cluster.context_name, namespace, ingress_name)
     }
-    return render(request, 'dashboard/networking/ingress_info.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'ingress_info': ingress_info})
+    return render(request, 'dashboard/networking/ingress_info.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'ingress_info': ingress_info, 'current_cluster': current_cluster})
 
 
 ############ RBAC SECTION ############
@@ -514,7 +514,7 @@ def role(request, cluster_id):
     role, total_role = k8s_role.list_roles(path, current_cluster.context_name)
 
     return render(request, 'dashboard/RBAC/role.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                        'role': role, 'total_role': total_role, 'namespaces': namespaces})
+                                                        'role': role, 'total_role': total_role, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def role_info(request, cluster_id, namespace, role_name):
@@ -526,7 +526,7 @@ def role_info(request, cluster_id, namespace, role_name):
         "yaml": k8s_role.get_role_yaml(path, context_name, namespace, role_name)
     }
 
-    return render(request, 'dashboard/RBAC/role_info.html', {"role_info": role_info, "cluster_id": cluster_id, 'registered_clusters': registered_clusters})
+    return render(request, 'dashboard/RBAC/role_info.html', {"role_info": role_info, "cluster_id": cluster_id, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def rolebinding(request, cluster_id):
@@ -535,7 +535,7 @@ def rolebinding(request, cluster_id):
     rolebinding, total_rolebinding = k8s_rolebindings.list_rolebindings(path, context_name)
 
     return render(request, 'dashboard/RBAC/rolebinding.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                               'rolebinding': rolebinding, 'total_rolebinding': total_rolebinding, 'namespaces': namespaces})
+                                                               'rolebinding': rolebinding, 'total_rolebinding': total_rolebinding, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def role_binding_info(request, cluster_id, namespace, role_binding_name):
@@ -548,7 +548,7 @@ def role_binding_info(request, cluster_id, namespace, role_binding_name):
     }
 
     return render(request, 'dashboard/RBAC/rolebinding_info.html', {"role_binding_info": role_binding_info, "cluster_id": cluster_id, 
-                                                                    'registered_clusters': registered_clusters})
+                                                                    'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def clusterrole(request, cluster_id):
@@ -557,7 +557,7 @@ def clusterrole(request, cluster_id):
     clusterrole, total_clusterrole = k8s_cluster_roles.get_cluster_role(path, context_name)
 
     return render(request, 'dashboard/RBAC/clusterrole.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                               'clusterrole': clusterrole, 'total_clusterrole': total_clusterrole})
+                                                               'clusterrole': clusterrole, 'total_clusterrole': total_clusterrole, 'current_cluster': current_cluster})
 
 
 def clusterrole_info(request, cluster_id, cluster_role_name):
@@ -570,7 +570,7 @@ def clusterrole_info(request, cluster_id, cluster_role_name):
     }
 
     return render(request, 'dashboard/RBAC/clusterrole_info.html', {"cluster_role_info": cluster_role_info, "cluster_id": cluster_id, 
-                                                                    'registered_clusters': registered_clusters})
+                                                                    'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def clusterrolebinding(request, cluster_id):
@@ -579,7 +579,7 @@ def clusterrolebinding(request, cluster_id):
     clusterrolebinding, total_clusterrolebinding = k8s_cluster_role_bindings.get_cluster_role_bindings(path, context_name)
 
     return render(request, 'dashboard/RBAC/clusterrolebinding.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'clusterrolebinding': clusterrolebinding, 
-                                                                      'total_clusterrolebinding': total_clusterrolebinding})
+                                                                      'total_clusterrolebinding': total_clusterrolebinding, 'current_cluster': current_cluster})
 
 
 def cluster_role_binding_info(request, cluster_id, cluster_role_binding_name):
@@ -592,7 +592,7 @@ def cluster_role_binding_info(request, cluster_id, cluster_role_binding_name):
     }
 
     return render(request, 'dashboard/RBAC/clusterrolebinding_info.html', {"cluster_role_binding_info": cluster_role_binding_info, 
-                                                                           "cluster_id": cluster_id, 'registered_clusters': registered_clusters})
+                                                                           "cluster_id": cluster_id, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
 def serviceAccount(request, cluster_id):
@@ -601,7 +601,7 @@ def serviceAccount(request, cluster_id):
     serviceAccount, total_serviceAccount = k8s_service_accounts.get_service_accounts(path, context_name)
 
     return render(request, 'dashboard/RBAC/serviceAccount.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                                  'serviceAccount': serviceAccount, 'total_serviceAccount': total_serviceAccount, 'namespaces': namespaces})
+                                                                  'serviceAccount': serviceAccount, 'total_serviceAccount': total_serviceAccount, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def serviceAccountInfo(request, cluster_id, namespace, sa_name):
@@ -614,7 +614,7 @@ def serviceAccountInfo(request, cluster_id, namespace, sa_name):
     }
 
     return render(request, 'dashboard/RBAC/serviceAccountInfo.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                                      'serviceAccountInfo': serviceAccountInfo})
+                                                                      'serviceAccountInfo': serviceAccountInfo, 'current_cluster': current_cluster})
 
 
 ############ METRICS SECTION ############
@@ -639,7 +639,7 @@ def pod_metrics(request, cluster_id):
 
     return render(request, 'dashboard/metrics/pod_metrics.html', {'all_pod_metrics': all_pod_metrics if metrics_available else [], 'total_pods': total_pods, 
                                                                   'metrics_available': metrics_available, 'error_message': error_message, 'cluster_id': cluster_id, 
-                                                                  'registered_clusters': registered_clusters, 'namespaces': namespaces})
+                                                                  'registered_clusters': registered_clusters, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 def node_metrics(request, cluster_id):
@@ -662,7 +662,7 @@ def node_metrics(request, cluster_id):
     
     return render(request, 'dashboard/metrics/node_metrics.html', {'node_metrics': node_metrics if metrics_available else [], 'total_nodes': total_nodes, 'metrics_available': metrics_available, 
                                                                    'error_message': error_message, 'cluster_id': cluster_id, 
-                                                                   'registered_clusters': registered_clusters, 'namespaces': namespaces})
+                                                                   'registered_clusters': registered_clusters, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
 ############ EVENTS SECTION ############
@@ -686,7 +686,7 @@ def events(request=None, cluster_id = None):
 
     return render(request, 'dashboard/events.html', {'cluster_id': cluster_id, 'events': page_obj,
                                                      'registered_clusters': registered_clusters,
-                                                     'namespaces': namespaces, 'page_obj': page_obj})
+                                                     'namespaces': namespaces, 'page_obj': page_obj, 'current_cluster': current_cluster})
 
 
 current_working_directory = os.path.expanduser('~')

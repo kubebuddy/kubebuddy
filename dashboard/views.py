@@ -59,7 +59,7 @@ def pods(request, cluster_id):
     pods, pc = k8s_pods.getpods(path, context_name)
     pod_info_list = k8s_pods.get_pod_info(path, current_cluster.context_name)
     status_count = k8s_pods.getPodsStatus(path, current_cluster.context_name)
-    return render(request, 'dashboard/workloads/pods.html', { "pods": pods, "pc": pc, 
+    return render(request, 'dashboard/workloads/pods.html', { "pods": pods, "pc": pc,
                                                    "cluster_id": cluster_id,
                                                    "pod_info_list": pod_info_list, "status_count": status_count,
                                                    "registered_clusters": registered_clusters, "namespaces": namespaces, 'current_cluster': current_cluster})

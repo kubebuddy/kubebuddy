@@ -273,9 +273,9 @@ main {
 }
 
 .dark-mode .cluster-sidebar {
-  background: #1d2b3a !important;
+  background: linear-gradient(145deg, #212121, #292929) !important;
   color: #e4e4e4 !important;
-  border: 1px solid #2c3e50 !important;
+  border: 1px solid #e0e0e0 !important;
 }
 
 .dark-mode .dash-cards p{

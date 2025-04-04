@@ -212,8 +212,7 @@
     {% endif %}
   <script src="{% static 'js/cluster_actions.js' %}"></script>
   <script>
-    let current_cluster = "{{ current_cluster }}";  // Injected from Django template
-    let cluster_id =  "{{ cluster_id|default:0 }}";  // Injected from Django template
+    let cluster_id =  "{{ cluster_id|default:0 }}";
     // CPU and Memory usage graph
     var usageChart = document.getElementById('usageChart').getContext('2d');
         var myChart0 = new Chart(usageChart, {

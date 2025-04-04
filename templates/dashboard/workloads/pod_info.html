@@ -74,7 +74,7 @@
             </div>
             <div class="tab-pane fade" id="events">
                 <div class="overflow-auto describe">
-                    <pre>{{ pod_info.events }}</pre>
+                    <pre>{% if pod_info.events %}{{ pod_info.events }}{% else %}&lt;none&gt;{% endif %}</pre>
                 </div>
             </div>
             <div class="tab-pane fade" id="yaml">

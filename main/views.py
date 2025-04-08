@@ -447,8 +447,6 @@ def settings(request):
         
         # Validate the API key before saving
         validation_result = api_key_validation(provider, api_key)
-        
-        print(validation_result)
 
         if validation_result["status"] == "invalid":
             return redirect('/settings?ai_config_failed=true&tab=ai-config')

@@ -225,6 +225,11 @@
                             AI configuration saved successfully!
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
+                        {% elif request.GET.ai_config_failed %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            AI configuration Failed. Please recheck your API key!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                         {% endif %}
                         
                         <form method="POST" action="{% url 'settings' %}">
@@ -232,17 +237,17 @@
                             <input type="hidden" name="save_ai_config" value="true">
                             
                             <div class="mb-3">
-                                <label for="aiModel" class="form-label">AI Model Provider</label>
-                                <select class="form-select" id="aiModel" name="aiModel">
-                                    <option value="openai" {% if 'openai' in ai_configs %}selected{% endif %}>OpenAI</option>
+                                <label for="provider" class="form-label">AI Model Provider</label>
+                                <select class="form-select" id="provider" name="provider">
                                     <option value="gemini" {% if 'gemini' in ai_configs %}selected{% endif %}>Google Gemini</option>
+                                    <option value="openai" {% if 'openai' in ai_configs %}selected{% endif %}>OpenAI</option>
                                 </select>
                             </div>
                             
                             <div class="mb-3">
-                                <label for="apiKey" class="form-label">API Key</label>
+                                <label for="api_key" class="form-label">API Key</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="apiKey" name="apiKey" 
+                                    <input type="password" class="form-control" id="api_key" name="api_key" 
                                            value="{% if 'openai' in ai_configs %}{{ ai_configs.openai.api_key }}{% elif 'gemini' in ai_configs %}{{ ai_configs.gemini.api_key }}{% endif %}" required>
                                     <button class="btn btn-outline-secondary" type="button" id="showApiKey">
                                         <i class="bi bi-eye"></i>
@@ -529,7 +534,7 @@
             // Show/Hide API Key
             if (document.getElementById('showApiKey')) {
                 document.getElementById('showApiKey').addEventListener('click', function() {
-                    const apiKeyInput = document.getElementById('apiKey');
+                    const apiKeyInput = document.getElementById('api_key');
                     const eyeIcon = this.querySelector('i');
                     
                     if (apiKeyInput.type === 'password') {
@@ -598,10 +603,10 @@
 
         // Handle API model selection changes
         document.addEventListener('DOMContentLoaded', function() {
-            const aiModelSelect = document.getElementById('aiModel');
-            const apiKeyInput = document.getElementById('apiKey');
+            const providerSelect = document.getElementById('provider');
+            const apiKeyInput = document.getElementById('api_key');
             
-            if (aiModelSelect && apiKeyInput) {
+            if (providerSelect && apiKeyInput) {
                 // Store API keys for each provider
                 const apiKeys = {
                     {% for provider, config in ai_configs.items %}
@@ -610,7 +615,7 @@
                 };
                 
                 // Update API key when model selection changes
-                aiModelSelect.addEventListener('change', function() {
+                providerSelect.addEventListener('change', function() {
                     const selectedProvider = this.value;
                     if (apiKeys[selectedProvider]) {
                         apiKeyInput.value = apiKeys[selectedProvider];

@@ -14,10 +14,6 @@ function toggleChat() {
     var chatWindow = document.getElementById("chatbotWindow");
     chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
     chatWindow.classList.add('popup-animation');
-
-    if (chatWindow.style.display === "flex") {
-        checkAPIKey();
-    }
 }
 
 // Check if API Key Exists
@@ -26,10 +22,15 @@ async function checkAPIKey() {
         const response = await fetch('/check-api-key/');
         const data = await response.json();
 
-        if (data.status === "missing") {
+        const apiKeyMessageShown = sessionStorage.getItem('apiKeyMessageShown');
+
+        if (data.status === "missing" && !apiKeyMessageShown) {
             botMessage("Hello! To start, please set up your AI API key.");
             botMessage("Which provider do you want to use? <br> 1) Gemini <br> 2) OpenAI");
             awaitingProvider = true;
+            sessionStorage.setItem('apiKeyMessageShown', 'true');
+        } else {
+            awaitingProvider = false;
         }
     } catch (error) {
         console.error("Error checking API key:", error);
@@ -70,7 +71,7 @@ function handleProviderSelection(message) {
     } else if (input === "2" || input === "openai") {
         provider = "openai";
     } else {
-        botMessage("Invalid selection. Please type '1' or 'Gemini' for Gemini, or '2' or 'OpenAI' for OpenAI.");
+        botMessage("Invalid selection. Please type '1' or 'Gemini' for Gemini, or '2' or 'OpenAI' for OpenAI or <a href='/settings/?tab=ai-config'>click here</a>");
         return;
     }
 
@@ -249,15 +250,10 @@ function saveMessage(text, type) {
 // Clear Chat History
 function clearChatHistory() {
     sessionStorage.removeItem('chatHistory');
+    sessionStorage.removeItem('apiKeyMessageShown'); // Reset the API key message flag
     const chatBody = document.getElementById("chatBody");
     chatBody.innerHTML = '';
 }
-
-// Auto Resize text area
-// function autoResize(textarea) {
-//     textarea.style.height = "auto"; // Reset height
-//     textarea.style.height = textarea.scrollHeight + "px"; // Set new height
-// }
 
 // Listen for "Enter" Key Press in Input Field
 document.getElementById("chatInput").addEventListener("keydown", function(event) {

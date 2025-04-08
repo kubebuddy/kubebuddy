@@ -291,15 +291,15 @@ def openai_response(api_key, user_message):
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_message}
-            ]
+            ],
+            temperature=0.7
         )
-        return response.choices[0].message.content
+        return render_markdown(response.choices[0].message.content)
     except Exception as e:
         return f"Error generating response: {str(e)}"
 
 @csrf_exempt
 def check_api_key(request):
-    """Check if an API key is set; if not, prompt the user to enter one."""
     config = AIConfig.objects.first()
     if config and config.api_key:
         return JsonResponse({"status": "success", "provider": config.provider, "api_key": "********"})
@@ -308,7 +308,6 @@ def check_api_key(request):
 
 @csrf_exempt
 def validate_api_key(request):
-    """Validate the API key by making a test API call."""
     if request.method == "POST":
         data = json.loads(request.body)
         provider = data.get("provider")
@@ -379,8 +378,9 @@ def chatbot_response(request):
         # Get API key
         config = AIConfig.objects.first()
         if not config or not config.api_key:
-            return JsonResponse({"status": "error", "message": "API key not set. Please configure it first."})
-
+            message = "API key not set. Please configure it first or <a href='/settings/?tab=ai-config'>click here</a>"
+            return JsonResponse({"status": "error", "message": message})
+        
         provider = config.provider
         api_key = config.api_key
 
@@ -399,7 +399,30 @@ def chatbot_response(request):
 
     return JsonResponse({"status": "error", "message": "Invalid request method."})
 
+def api_key_validation(provider, api_key):
+    try:
+        # Gemini API validation
+        if provider == "gemini":
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash", 
+                contents="Test"
+            )
+            # If we get here, the key works
+            return {"status": "valid"}
+        
+        # OpenAI API validation
+        elif provider == "openai":
+            client = openai.OpenAI(api_key=api_key)
+            models = client.models.list()  # A simple request to validate API key
+            return {"status": "valid"}
+        
+        else:
+            return {"status": "invalid", "message": "Unsupported provider."}
 
+    except Exception as e:
+        # If there's an error (e.g., invalid API key), return the error message
+        return {"status": "invalid", "message": f"API key validation failed: {str(e)}"}
 
 def settings(request):
     username = request.user.username
@@ -418,14 +441,23 @@ def settings(request):
     
     # Handle form submission for AI configuration
     if request.method == 'POST' and 'save_ai_config' in request.POST:
-        provider = request.POST.get('aiModel')
-        api_key = request.POST.get('apiKey')
+
+        provider = request.POST.get('provider')
+        api_key = request.POST.get('api_key')
         
-        if provider and api_key:
-            # Update or create AI configuration
+        # Validate the API key before saving
+        validation_result = api_key_validation(provider, api_key)
+        
+        print(validation_result)
+
+        if validation_result["status"] == "invalid":
+            return redirect('/settings?ai_config_failed=true&tab=ai-config')
+        
+        # Save the AI configuration if the API key is valid
+        else:
             obj, created = AIConfig.objects.update_or_create(
-                provider=provider,
-                defaults={'api_key': api_key}
+            provider=provider,
+            defaults={'api_key': api_key}
             )
             return redirect('/settings?ai_config_success=true&tab=ai-config')
             

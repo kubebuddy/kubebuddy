@@ -692,7 +692,7 @@ def events(request=None, cluster_id = None):
 current_working_directory = os.path.expanduser('~')
 
 @csrf_exempt
-def execute_command(request, cluster_id):
+def execute_command(request):
     global current_working_directory
 
     if request.method == 'POST':

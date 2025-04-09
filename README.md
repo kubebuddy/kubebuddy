@@ -1,4 +1,4 @@
-# <img src="https://kubebuddy.org/KubeBuddy-no-title.png" alt="KubeBuddy Logo" width="30"> KubeBuddy
+# <img src="https://kubebuddy.org/images/logo-hz.png" alt="KubeBuddy Logo" width="400">
 
 **KubeBuddy** is an AI-powered Kubernetes dashboard tool designed to provide a comprehensive and user-friendly interface for managing Kubernetes clusters. It offers real-time insights & monitoring that makes it easier to track workloads, nodes, and resource usage.
 

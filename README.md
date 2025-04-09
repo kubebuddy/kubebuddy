@@ -33,7 +33,7 @@
 
 ## 🟢 Quickstart
 
-To install **KubeBuddy** in your system, follow the steps in our [installation guide](https://kubebuddy.org/docs/installation).
+To install **KubeBuddy** in your system, follow the steps in our [installation guide](https://kubebuddy.org/documents/#installation).
 
 ### Accessing the Dashboard
 

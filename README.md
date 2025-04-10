@@ -18,16 +18,16 @@
 
 <table>
     <tr>
-        <td width="33%"><img src="https://github.com/kubebuddy/docs/blob/main/public/ss1.png?raw=true"></td>
-        <td width="33%"><img src="https://github.com/kubebuddy/docs/blob/main/public/ss2.png?raw=true"></td>
+        <td width="33%"><img src="https://github.com/kubebuddy/kubebuddy.github.io/blob/main/images/ss1.png?raw=true"></td>
+        <td width="33%"><img src="https://github.com/kubebuddy/kubebuddy.github.io/blob/main/images/ss2.png?raw=true"></td>
     </tr>
     <tr>
-        <td width="33%"><img src="https://github.com/kubebuddy/docs/blob/main/public/ss3.png?raw=true"></td>
-        <td width="33%"><img src="https://github.com/kubebuddy/docs/blob/main/public/ss4.png?raw=true"></td>
+        <td width="33%"><img src="https://github.com/kubebuddy/kubebuddy.github.io/blob/main/images/ss3.png?raw=true"></td>
+        <td width="33%"><img src="https://github.com/kubebuddy/kubebuddy.github.io/blob/main/images/ss4.png?raw=true"></td>
     </tr>
     <tr>
-        <td width="33%"><img src="https://github.com/kubebuddy/docs/blob/main/public/ss5.png?raw=true"></td>
-        <td width="33%"><img src="https://github.com/kubebuddy/docs/blob/main/public/ss6.png?raw=true"></td>
+        <td width="33%"><img src="https://github.com/kubebuddy/kubebuddy.github.io/blob/main/images/ss5.png?raw=true"></td>
+        <td width="33%"><img src="https://github.com/kubebuddy/kubebuddy.github.io/blob/main/images/ss6.png?raw=true"></td>
     </tr>
 </table>
 

@@ -7,7 +7,7 @@ from ..utils import configure_k8s
 
 def get_events(config_file, context, limit, namespace = "all"):
     try:
-        configure_k8s(path, context)
+        configure_k8s(config_file, context)
 
         v1 = client.CoreV1Api()
 

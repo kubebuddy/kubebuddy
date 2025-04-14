@@ -3,10 +3,11 @@ from datetime import datetime
 from dateutil.tz import tzutc
 from kubebuddy.appLogs import logger
 from dateutil.relativedelta import relativedelta
+from ..utils import configure_k8s
 
 def get_events(config_file, context, limit, namespace = "all"):
     try:
-        config.load_kube_config(config_file, context)
+        configure_k8s(path, context)
 
         v1 = client.CoreV1Api()
 

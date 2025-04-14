@@ -2,11 +2,11 @@ from kubernetes import client, config
 import yaml
 from kubebuddy.appLogs import logger
 from datetime import datetime, timezone
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 
 def get_ingress(path, context):
     try:
-        config.load_kube_config(path, context)
+        configure_k8s(path, context)
         v1 = client.NetworkingV1Api()
         ingresses = v1.list_ingress_for_all_namespaces()
         ingress_list = []
@@ -33,7 +33,7 @@ def get_ingress(path, context):
     return ingress_list, len(ingress_list)
 
 def get_ingress_description(path=None, context=None, namespace=None, ingress_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.NetworkingV1Api()
 
     try:
@@ -77,7 +77,7 @@ def get_ingress_description(path=None, context=None, namespace=None, ingress_nam
 
 
 def get_ingress_events(path, context, namespace, ingress_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     ingress_events = [
@@ -87,7 +87,7 @@ def get_ingress_events(path, context, namespace, ingress_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in ingress_events])
 
 def get_ingress_yaml(path, context, namespace, ingress_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.NetworkingV1Api()
     ingress = v1.read_namespaced_ingress(name=ingress_name, namespace=namespace)
     # Filtering Annotations

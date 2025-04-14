@@ -1,11 +1,11 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 from kubebuddy.appLogs import logger
 import yaml
 
 def get_service_accounts(path, context):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     namespaces = v1.list_namespace()
     all_service_accounts = []
@@ -28,7 +28,7 @@ def get_service_accounts(path, context):
     return all_service_accounts, len(all_service_accounts)
 
 def get_sa_description(path=None, context=None, namespace=None, sa_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
 
     try:
@@ -52,7 +52,7 @@ def get_sa_description(path=None, context=None, namespace=None, sa_name=None):
         return {"error": f"Failed to fetch Service Account details: {e.reason}"}
     
 def get_sa_events(path, context, namespace, sa_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     sa_events = [
@@ -62,7 +62,7 @@ def get_sa_events(path, context, namespace, sa_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in sa_events])
 
 def get_sa_yaml(path, context, namespace, sa_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     try:
         sa = v1.read_namespaced_service_account(name=sa_name, namespace=namespace)

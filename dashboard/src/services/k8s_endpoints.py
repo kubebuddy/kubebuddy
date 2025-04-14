@@ -2,12 +2,12 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 import yaml
 from kubebuddy.appLogs import logger
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 
 def get_endpoints(path, context):
     try:
         # Load kube config with specific path and context
-        config.load_kube_config(path, context=context)
+        configure_k8s(path, context)
         
         # Initialize the Kubernetes API client
         v1 = client.CoreV1Api()
@@ -62,7 +62,7 @@ def get_endpoints(path, context):
 
 
 def get_endpoint_description(path=None, context=None, namespace=None, endpoint_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     try:
         target_endpoint = v1.read_namespaced_endpoints(endpoint_name, namespace=namespace)
@@ -94,7 +94,7 @@ def get_endpoint_description(path=None, context=None, namespace=None, endpoint_n
         return {"error": f"Failed to fetch endpoint details: {e.reason}"}
 
 def get_endpoint_events(path, context, namespace, endpoint_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     endpoint_events = [
@@ -104,7 +104,7 @@ def get_endpoint_events(path, context, namespace, endpoint_name):
 
 
 def get_endpoint_yaml(path, context, namespace, endpoint_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     endpoints = v1.read_namespaced_endpoints(endpoint_name, namespace=namespace)
     # Filtering Annotations

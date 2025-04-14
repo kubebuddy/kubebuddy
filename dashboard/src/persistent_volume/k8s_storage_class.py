@@ -1,11 +1,11 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 import yaml
 
 def list_storage_classes(path: str, context: str):
     # Load Kubernetes config
-    config.load_kube_config(path, context=context)
+    configure_k8s(path, context)
     
     v1 = client.StorageV1Api()
     storage_classes = v1.list_storage_class().items
@@ -30,7 +30,7 @@ def list_storage_classes(path: str, context: str):
     return storage_data, len(storage_data)
 
 def get_storage_class_description(path=None, context=None, sc_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.StorageV1Api()
 
     try:
@@ -57,7 +57,7 @@ def get_storage_class_description(path=None, context=None, sc_name=None):
         return {"error": f"Failed to fetch Storage Class details: {e.reason}"}
     
 def get_storage_class_events(path, context, sc_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_event_for_all_namespaces().items
     sc_events = [
@@ -67,7 +67,7 @@ def get_storage_class_events(path, context, sc_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in sc_events])
 
 def get_sc_yaml(path, context, sc_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.StorageV1Api()
     try:
         sc = v1.read_storage_class(name=sc_name)

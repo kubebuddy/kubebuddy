@@ -2,10 +2,10 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 
 def getpods(path, context, namespace="all"):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pods = v1.list_pod_for_all_namespaces() if namespace == "all" else v1.list_namespaced_pod(namespace=namespace)
     pod_names = [pod.metadata.name for pod in pods.items]
@@ -15,7 +15,7 @@ def getpods(path, context, namespace="all"):
     return pod_list, len(pod_list)
 
 def getPodsStatus(path, context, namespace="all"):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pods = v1.list_pod_for_all_namespaces() if namespace == "all" else v1.list_namespaced_pod(namespace=namespace)
 
@@ -67,8 +67,7 @@ def getPodStatus(pod):
 
 def get_pod_info(config_path, cluster_name):
 
-    config.load_kube_config(config_file=config_path, context=cluster_name)
-
+    configure_k8s(config_path, cluster_name)
     v1 = client.CoreV1Api()
     pods = v1.list_pod_for_all_namespaces(watch=False)
 
@@ -92,7 +91,7 @@ def get_pod_info(config_path, cluster_name):
     return pod_info_list
 
 def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     try:
         # Fetch pod details
@@ -179,7 +178,7 @@ def get_pod_description(path=None, context=None, namespace=None, pod_name=None):
         return {"error": f"Failed to fetch pod details: {e.reason}"}
 
 def get_pod_logs(path, context, namespace, pod_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     try:
         logs = v1.read_namespaced_pod_log(name=pod_name, namespace=namespace)
@@ -189,7 +188,7 @@ def get_pod_logs(path, context, namespace, pod_name):
     return logs
 
 def get_pod_events(path, context, namespace, pod_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     pod_events = [event for event in events if event.involved_object.name == pod_name]
@@ -197,7 +196,7 @@ def get_pod_events(path, context, namespace, pod_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in pod_events])
 
 def get_pod_yaml(path, context, namespace, pod_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
     # Filtering Annotations

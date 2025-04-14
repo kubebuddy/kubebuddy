@@ -1,10 +1,11 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
 from ..utils import calculateAge
+from ..utils import configure_k8s
 import yaml
 
 def getnodes(path, cluster_name):
-    config.load_kube_config(config_file = path, context = cluster_name) #Load the kube config with the specified path and context
+    configure_k8s(path, cluster_name)
     v1 = client.CoreV1Api() #Create an API client for the CoreV1Api
     nodes = v1.list_node() #total number of nodes
     node_list = []
@@ -13,7 +14,7 @@ def getnodes(path, cluster_name):
     return node_list, len(node_list)
 
 def getNodesStatus(path, context):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     node_list = v1.list_node().items
     ready_nodes = 0
@@ -35,7 +36,7 @@ def getNodesStatus(path, context):
 
 def get_nodes_info(path: str, context: str):
     # Load the kube config with the specified path and context
-    config.load_kube_config(path, context=context)
+    configure_k8s(path, context)
     
     v1 = client.CoreV1Api()
     nodes = v1.list_node().items
@@ -89,7 +90,7 @@ def get_nodes_info(path: str, context: str):
     return node_data
 
 def get_node_description(path=None, context=None, node_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     coordination_v1 = client.CoordinationV1Api()
 
@@ -184,7 +185,7 @@ def get_node_description(path=None, context=None, node_name=None):
 
 
 def get_node_yaml(path, context, node_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     node = v1.read_node(name=node_name)
     return yaml.dump(node.to_dict(), default_flow_style=False)

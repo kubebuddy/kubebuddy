@@ -1,9 +1,10 @@
 from kubernetes import config, client
 from kubebuddy.appLogs import logger
 from kubernetes.client.rest import ApiException
+from ..utils import configure_k8s
 
 def get_pod_metrics(path=None, context=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     metrics_api = client.CustomObjectsApi()
 

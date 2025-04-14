@@ -2,10 +2,10 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 
 def getDeploymentsInfo(path, context, namespace="all"):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.AppsV1Api()
     deployments = v1.list_deployment_for_all_namespaces() if namespace == "all" else v1.list_namespaced_deployment(namespace=namespace)
     deployment_info_list = []
@@ -39,7 +39,7 @@ def getDeploymentsInfo(path, context, namespace="all"):
 
 def getDeploymentsStatus(path, context, namespace="all"):
     try:
-        config.load_kube_config(path, context)
+        configure_k8s(path, context)
         v1 = client.AppsV1Api()
         deployments = v1.list_deployment_for_all_namespaces() if namespace == "all" else v1.list_namespaced_deployment(namespace=namespace)
 
@@ -67,7 +67,7 @@ def getDeploymentsStatus(path, context, namespace="all"):
         return []
 
 def get_deployment_description(path=None, context=None, namespace=None, dep_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.AppsV1Api()
     
     try:
@@ -136,14 +136,14 @@ def get_deployment_description(path=None, context=None, namespace=None, dep_name
 
 
 def get_deploy_events(path, context, namespace, deployment_name):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     deployment_events = [event for event in events if event.involved_object.name == deployment_name and event.involved_object.kind == "Deployment"]
     return "\n".join([f"{e.reason}: {e.message}" for e in deployment_events])
 
 def get_yaml_deploy(path, context, namespace, deployment_name):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.AppsV1Api()
     deployment = v1.read_namespaced_deployment(name=deployment_name, namespace=namespace)
     # Filtering Annotations

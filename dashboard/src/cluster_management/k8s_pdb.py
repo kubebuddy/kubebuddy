@@ -2,12 +2,12 @@ from kubernetes import client, config
 import yaml
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 
 def get_pdb(path, context):
     # Load Kubernetes configuration
     try:
-        config.load_kube_config(path, context)
+        configure_k8s(path, context)
         v1 = client.PolicyV1Api()
         pdbs = v1.list_pod_disruption_budget_for_all_namespaces()
         pdb_list = []
@@ -28,7 +28,7 @@ def get_pdb(path, context):
         
 
 def get_pdb_description(path=None, context=None, namespace=None, pdb_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.PolicyV1Api()
     try:
         pdb = v1.read_namespaced_pod_disruption_budget(name=pdb_name, namespace=namespace)
@@ -53,7 +53,7 @@ def get_pdb_description(path=None, context=None, namespace=None, pdb_name=None):
 
 
 def get_pdb_events(path, context, namespace, pdb_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     pdb_events = [
@@ -62,7 +62,7 @@ def get_pdb_events(path, context, namespace, pdb_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in pdb_events])
 
 def get_pdb_yaml(path, context, namespace, pdb_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.PolicyV1Api()
     pdb = v1.read_namespaced_pod_disruption_budget(pdb_name, namespace=namespace)
     # Filtering Annotations

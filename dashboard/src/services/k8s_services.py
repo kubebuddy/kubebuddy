@@ -1,13 +1,13 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 from kubebuddy.appLogs import logger
 import yaml
 
 
 def list_kubernetes_services(path, context):
     # Load the kubeconfig with the specified context
-    config.load_kube_config(path, context=context)
+    configure_k8s(path, context)
 
     # Create Kubernetes API client
     v1 = client.CoreV1Api()
@@ -44,7 +44,7 @@ def list_kubernetes_services(path, context):
 
 
 def get_service_description(path=None, context=None, namespace=None, service_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     service = v1.read_namespaced_service(name=service_name, namespace=namespace)
     
@@ -104,7 +104,7 @@ def get_service_description(path=None, context=None, namespace=None, service_nam
     return service_info
 
 def get_service_events(path, context, namespace, service_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     service_events = [
@@ -113,7 +113,7 @@ def get_service_events(path, context, namespace, service_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in service_events])
 
 def get_service_yaml(path, context, namespace, service_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     service = v1.read_namespaced_service(name=service_name, namespace=namespace)
     # Filtering Annotations

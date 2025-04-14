@@ -3,11 +3,11 @@ from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
 import base64
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 
 def list_secrets(path, context):
     # Load the kubeconfig file with the specified path and context
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     
     v1 = client.CoreV1Api()
     secrets = v1.list_secret_for_all_namespaces()
@@ -37,7 +37,7 @@ def list_secrets(path, context):
 
 
 def get_secret_description(path=None, context=None, namespace=None, secret_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     try:
         secrets = v1.list_namespaced_secret(namespace=namespace).items
@@ -64,7 +64,7 @@ def get_secret_description(path=None, context=None, namespace=None, secret_name=
         return {"error": f"Failed to fetch Secret details: {e.reason}"}
 
 def get_secret_events(path, context, namespace, secret_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     secret_events = [
@@ -73,7 +73,7 @@ def get_secret_events(path, context, namespace, secret_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in secret_events])
 
 def get_secret_yaml(path, context, namespace, secret_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     secrets = v1.read_namespaced_secret(secret_name, namespace=namespace)
     # Filtering Annotations

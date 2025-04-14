@@ -1,5 +1,5 @@
 from kubernetes import client, config
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
@@ -13,7 +13,7 @@ def getCronJobCount():
 
 def getCronJobsStatus(path, context, namespace="all"):
     try:
-        config.load_kube_config(path, context)
+        configure_k8s(path, context)
         v1 = client.BatchV1Api()
         cronjobs = v1.list_cron_job_for_all_namespaces() if namespace == "all" else v1.list_namespaced_cron_job(namespace=namespace)
 
@@ -34,15 +34,15 @@ def getCronJobsStatus(path, context, namespace="all"):
         return cronjobs_status
     
     except client.exceptions.ApiException as e:
-        logger(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger.error(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
         return []
     except Exception as e:  # Catch other potential errors (e.g., config issues)
-        logger(f"An error occurred: {e}")  # Print other errors to stderr
+        logger.error(f"An error occurred: {e}")  # Print other errors to stderr
         return []
 
 def getCronJobsList(path, context, namespace="all"):
     try:
-        config.load_kube_config(path, context)
+        configure_k8s(path, context)
         v1 = client.BatchV1Api()
         cronjobs = v1.list_cron_job_for_all_namespaces() if namespace == "all" else v1.list_namespaced_cron_job(namespace=namespace)
 
@@ -80,7 +80,7 @@ def getCronJobsList(path, context, namespace="all"):
         return []
 
 def get_cronjob_description(path=None, context=None, namespace=None, cronjob_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.BatchV1Api()
 
     try:
@@ -135,14 +135,14 @@ def get_cronjob_description(path=None, context=None, namespace=None, cronjob_nam
         return {"error": f"Failed to fetch CronJob details: {e.reason}"}
 
 def get_cronjob_events(path, context, namespace, cronjob_name):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     cronjob_events = [event for event in events if event.involved_object.name == cronjob_name and event.involved_object.kind == "CronJob"]
     return "\n".join([f"{e.reason}: {e.message}" for e in cronjob_events])
 
 def get_yaml_cronjob(path, context, namespace, cronjob_name):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.BatchV1Api()
     cronjob = v1.read_namespaced_cron_job(name=cronjob_name, namespace=namespace)
     # Filtering Annotations

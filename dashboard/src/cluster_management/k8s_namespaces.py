@@ -1,12 +1,12 @@
 from kubernetes import client, config
 from django.shortcuts import render
 from datetime import datetime, timezone
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 import yaml
 
 def get_namespace(path, context):
     try:
-        config.load_kube_config(path, context)
+        configure_k8s(path, context)
         v1 = client.CoreV1Api()
         list_ns = []
         namespaces = v1.list_namespace()
@@ -19,7 +19,7 @@ def get_namespace(path, context):
 
 def namespaces_data(path, context):
     # Load Kubernetes config
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
 
     v1 = client.CoreV1Api()
     namespaces = v1.list_namespace().items
@@ -41,7 +41,7 @@ def namespaces_data(path, context):
     return namespace_data
 
 def get_namespace_description(path=None, context=None, namespace=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
 
     try:
@@ -63,7 +63,7 @@ def get_namespace_description(path=None, context=None, namespace=None):
         return {"error": f"Failed to fetch namespace details: {e.reason}"}
     
 def get_namespace_yaml(path, context, namespace_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     namespace = v1.read_namespace(name=namespace_name)
     # Filtering Annotations

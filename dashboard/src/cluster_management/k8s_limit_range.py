@@ -1,11 +1,11 @@
 from kubernetes import client, config
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import filter_annotations
+from ..utils import filter_annotations, configure_k8s
 
 def get_limit_ranges(path, context):
     # Load Kubernetes configuration
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     api = client.ApiextensionsV1Api()
     
@@ -33,7 +33,7 @@ def get_limit_ranges(path, context):
 
 def get_limit_range_description(path=None, context=None, namespace=None, limit_range_name=None):
     try:
-        config.load_kube_config(path, context)
+        configure_k8s(path, context)
         v1 = client.CoreV1Api()
         limit_range = v1.read_namespaced_limit_range(name=limit_range_name, namespace=namespace)
         
@@ -69,7 +69,7 @@ def get_limit_range_description(path=None, context=None, namespace=None, limit_r
 
 
 def get_limitrange_events(path, context, namespace, limitrange_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     limitrange_events = [
@@ -78,7 +78,7 @@ def get_limitrange_events(path, context, namespace, limitrange_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in limitrange_events])
 
 def get_limitrange_yaml(path, context, namespace, limitrange_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     limit_ranges = v1.read_namespaced_limit_range(limitrange_name, namespace=namespace)
     # Filtering Annotations

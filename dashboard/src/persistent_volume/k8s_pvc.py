@@ -1,11 +1,11 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 import yaml
 
 def list_pvc(path: str, context: str):
     # Load Kubernetes configuration
-    config.load_kube_config(path, context=context)
+    configure_k8s(path, context)
     
     v1 = client.CoreV1Api()
     pvcs = v1.list_persistent_volume_claim_for_all_namespaces().items
@@ -42,7 +42,7 @@ def list_pvc(path: str, context: str):
     return pvc_list, len(pvc_list)
 
 def get_pvc_description(path=None, context=None, namespace=None, pvc_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pvc = v1.read_namespaced_persistent_volume_claim(name=pvc_name, namespace=namespace)
 
@@ -72,7 +72,7 @@ def get_pvc_description(path=None, context=None, namespace=None, pvc_name=None):
     return pvc_info
 
 def get_pvc_events(path, context, namespace, pvc_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     pvc_events = [
@@ -81,7 +81,7 @@ def get_pvc_events(path, context, namespace, pvc_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in pvc_events])
 
 def get_pvc_yaml(path, context, namespace, pvc_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pvc = v1.read_namespaced_persistent_volume_claim(name=pvc_name, namespace=namespace)
     # Filtering Annotations

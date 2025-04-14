@@ -2,10 +2,10 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 
 def get_resource_quotas(path, context, namespace="all"):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     
     try:
@@ -48,7 +48,7 @@ def get_resource_quotas(path, context, namespace="all"):
     
 
 def get_resourcequota_description(path=None, context=None, namespace=None, resourcequota_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     try:
         resource_quotas = v1.list_namespaced_resource_quota(namespace=namespace).items
@@ -78,7 +78,7 @@ def get_resourcequota_description(path=None, context=None, namespace=None, resou
         return {"error": f"Failed to fetch ResourceQuota details: {e.reason}"}
 
 def get_resourcequota_events(path, context, namespace, resourcequota_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     resourcequota_events = [
@@ -87,7 +87,7 @@ def get_resourcequota_events(path, context, namespace, resourcequota_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in resourcequota_events])
 
 def get_resourcequota_yaml(path, context, namespace, resourcequota_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     resource_quotas = v1.read_namespaced_resource_quota(resourcequota_name, namespace=namespace)
     # Filtering Annotations

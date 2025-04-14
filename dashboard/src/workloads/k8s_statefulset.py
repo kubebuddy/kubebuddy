@@ -1,11 +1,11 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 from kubebuddy.appLogs import logger
 import yaml
 
 def getStatefulsetCount():
-    config.load_kube_config()
+    configure_k8s(path, context)
     v1 = client.AppsV1Api() #Create an API client for the AppsV1Api
     statefulsets = v1.list_stateful_set_for_all_namespaces().items
 
@@ -13,7 +13,7 @@ def getStatefulsetCount():
 
 def getStatefulsetStatus(path, context, namespace="all"):
     try:
-        config.load_kube_config(config_file=path, context=context)
+        configure_k8s(path, context)
         v1 = client.AppsV1Api()
         statefulsets = v1.list_stateful_set_for_all_namespaces() if namespace == "all" else v1.list_namespaced_stateful_set(namespace=namespace)
 
@@ -42,7 +42,7 @@ def getStatefulsetStatus(path, context, namespace="all"):
     
 def getStatefulsetList(path, context, namespace="all"):
     try:
-        config.load_kube_config(config_file=path, context=context)
+        configure_k8s(path, context)
         v1 = client.AppsV1Api()
         statefulsets = v1.list_stateful_set_for_all_namespaces() if namespace == "all" else v1.list_namespaced_stateful_set(namespace=namespace)
 
@@ -79,7 +79,7 @@ def getStatefulsetList(path, context, namespace="all"):
     
 
 def get_statefulset_description(path=None, context=None, namespace=None, sts_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.AppsV1Api()
 
     try:
@@ -148,14 +148,14 @@ def get_statefulset_description(path=None, context=None, namespace=None, sts_nam
 
 
 def get_sts_events(path, context, namespace, statefulset_name):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     statefulset_events = [event for event in events if event.involved_object.name == statefulset_name and event.involved_object.kind == "StatefulSet"]
     return "\n".join([f"{e.reason}: {e.message}" for e in statefulset_events])
 
 def get_yaml_sts(path, context, namespace, statefulset_name):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.AppsV1Api()
     statefulset = v1.read_namespaced_stateful_set(name=statefulset_name, namespace=namespace)
     # Filtering Annotations

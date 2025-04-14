@@ -2,18 +2,18 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 
-def getDaemonsetCount():
-    config.load_kube_config()
-    v1 = client.AppsV1Api() #Create an API client for the AppsV1Api
-    deployments = v1.list_daemon_set_for_all_namespaces().items
+# def getDaemonsetCount(path, context):
+#     configure_k8s(path, context)
+#     v1 = client.AppsV1Api() #Create an API client for the AppsV1Api
+#     deployments = v1.list_daemon_set_for_all_namespaces().items
 
-    return len(deployments)
+#     return len(deployments)
 
 def getDaemonsetStatus(path, context, namespace="all"):
     try:
-        config.load_kube_config(config_file=path, context=context)
+        configure_k8s(path, context)
         v1 = client.AppsV1Api()
         daemonsets = v1.list_daemon_set_for_all_namespaces() if namespace == "all" else v1.list_namespaced_daemon_set(namespace=namespace)
 
@@ -34,15 +34,15 @@ def getDaemonsetStatus(path, context, namespace="all"):
         return daemonset_status
     
     except client.exceptions.ApiException as e:
-        logger(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger.error(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
         return []
     except Exception as e:  # Catch other potential errors (e.g., config issues)
-        logger(f"An error occurred: {e}")  # Print other errors to stderr
+        logger.error(f"An error occurred: {e}")  # Print other errors to stderr
         return []
     
 def getDaemonsetList(path, context, namespace="all"):
     try:
-        config.load_kube_config(config_file=path, context=context)
+        configure_k8s(path, context)
         v1 = client.AppsV1Api()
         daemonsets = v1.list_daemon_set_for_all_namespaces() if namespace == "all" else v1.list_namespaced_daemon_set(namespace=namespace)
 
@@ -78,7 +78,7 @@ def getDaemonsetList(path, context, namespace="all"):
 
 
 def get_daemonset_description(path=None, context=None, namespace=None, daemonset_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.AppsV1Api()  # Use AppsV1Api for DaemonSets
     try:
         daemonset = v1.read_namespaced_daemon_set(name=daemonset_name, namespace=namespace)
@@ -148,7 +148,7 @@ def get_daemonset_description(path=None, context=None, namespace=None, daemonset
 
 
 def get_daemonset_events(path, context, namespace, daemonset_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     daemonset_events = [
@@ -157,7 +157,7 @@ def get_daemonset_events(path, context, namespace, daemonset_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in daemonset_events])
 
 def get_daemonset_yaml(path, context, namespace, daemonset_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.AppsV1Api() # Use AppsV1Api
     daemonset = v1.read_namespaced_daemon_set(name=daemonset_name, namespace=namespace)
     # Filtering Annotations

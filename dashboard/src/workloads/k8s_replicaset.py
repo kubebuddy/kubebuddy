@@ -2,10 +2,10 @@ from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 
 def getReplicaSetsInfo(path, context, namespace="all"):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.AppsV1Api()
     replicaset_info_list = []
     
@@ -44,7 +44,7 @@ def getReplicaSetsInfo(path, context, namespace="all"):
 
 def getReplicasetStatus(path, context, namespace="all"):
     try:
-        config.load_kube_config(config_file=path, context=context)
+        configure_k8s(path, context)
         v1 = client.AppsV1Api()
         replicasets = v1.list_replica_set_for_all_namespaces() if namespace == "all" else v1.list_namespaced_replica_set(namespace=namespace)
 
@@ -72,7 +72,7 @@ def getReplicasetStatus(path, context, namespace="all"):
         return []
 
 def get_replicaset_description(path=None, context=None, namespace=None, rs_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.AppsV1Api()
     try:
         # Fetch ReplicaSet details
@@ -126,7 +126,7 @@ def get_replicaset_description(path=None, context=None, namespace=None, rs_name=
 
 
 def get_replicaset_events(path, context, namespace, replicaset_name):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     rs_events = [event for event in events if event.involved_object.name == replicaset_name and event.involved_object.kind == "ReplicaSet"]
@@ -134,7 +134,7 @@ def get_replicaset_events(path, context, namespace, replicaset_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in rs_events])    
 
 def get_yaml_rs(path, context, namespace, rs_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.AppsV1Api()
     rs = v1.read_namespaced_replica_set(name=rs_name, namespace=namespace)
     # Filtering Annotations

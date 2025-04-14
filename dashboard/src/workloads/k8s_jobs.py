@@ -1,12 +1,12 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 import yaml
 
 
 def getJobCount():
-    config.load_kube_config()
+    configure_k8s(path, context)
     v1 = client.BatchV1Api()
     jobs = v1.list_job_for_all_namespaces().items
 
@@ -14,7 +14,7 @@ def getJobCount():
 
 def getJobsStatus(path, context, namespace="all"):
     try:
-        config.load_kube_config(path, context)
+        configure_k8s(path, context)
         v1 = client.BatchV1Api()
         jobs = v1.list_job_for_all_namespaces() if namespace == "all" else v1.list_namespaced_job(namespace=namespace)
 
@@ -46,7 +46,7 @@ def getJobsStatus(path, context, namespace="all"):
     
 def getJobsList(path, context, namespace="all"):
     try:
-        config.load_kube_config(path, context)
+        configure_k8s(path, context)
         v1 = client.BatchV1Api()
         jobs = v1.list_job_for_all_namespaces() if namespace == "all" else v1.list_namespaced_job(namespace=namespace)
         jobs_list = []
@@ -89,7 +89,7 @@ def getJobsList(path, context, namespace="all"):
     
 
 def get_job_description(path=None, context=None, namespace=None, job_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     batch_v1 = client.BatchV1Api()
 
     try:
@@ -146,14 +146,14 @@ def get_job_description(path=None, context=None, namespace=None, job_name=None):
         return {"error": f"Failed to fetch Job details: {e.reason}"}
 
 def get_job_events(path, context, namespace, job_name):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     job_events = [event for event in events if event.involved_object.name == job_name and event.involved_object.kind == "Job"]
     return "\n".join([f"{e.reason}: {e.message}" for e in job_events])
 
 def get_yaml_job(path, context, namespace, job_name):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.BatchV1Api()
     job = v1.read_namespaced_job(name=job_name, namespace=namespace)
     # Filtering Annotations

@@ -1,10 +1,10 @@
 from kubernetes import client, config
 from datetime import datetime, timedelta, timezone
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 import yaml
 
 def get_cluster_role_bindings(path, context):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     rbac_api = client.RbacAuthorizationV1Api()
     clusterrolebindings = rbac_api.list_cluster_role_binding()
 
@@ -37,7 +37,7 @@ def get_cluster_role_bindings(path, context):
     return bindings_data, len(bindings_data)
 
 def get_cluster_role_binding_description(path=None, context=None, cluster_role_binding=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.RbacAuthorizationV1Api()
 
     
@@ -65,7 +65,7 @@ def get_cluster_role_binding_description(path=None, context=None, cluster_role_b
         return {"error": f"Failed to fetch role_binding details: {e.reason}"}
     
 def get_cluster_role_binding_events(path, context, cluster_role_binding):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_event_for_all_namespaces().items
     cluster_role_binding_events = [
@@ -75,7 +75,7 @@ def get_cluster_role_binding_events(path, context, cluster_role_binding):
     return "\n".join([f"{e.reason}: {e.message}" for e in cluster_role_binding_events])
 
 def get_cluster_role_binding_yaml(path, context, cluster_role_binding):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.RbacAuthorizationV1Api()
     try:
         cluster_role_binding = v1.read_cluster_role_binding(name=cluster_role_binding)

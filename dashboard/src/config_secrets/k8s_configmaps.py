@@ -1,10 +1,10 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
 import yaml
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 
 def get_configmaps(path, context):
-    config.load_kube_config(config_file=path, context=context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
 
     # Fetch all ConfigMaps in all namespaces
@@ -35,7 +35,7 @@ def get_configmaps(path, context):
 
 
 def get_configmap_description(path=None, context=None, namespace=None, configmap_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     try:
         configmaps = v1.list_namespaced_config_map(namespace=namespace).items
@@ -60,7 +60,7 @@ def get_configmap_description(path=None, context=None, namespace=None, configmap
         return {"error": f"Failed to fetch ConfigMap details: {e.reason}"}
 
 def get_configmap_events(path, context, namespace, configmap_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     configmap_events = [
@@ -70,7 +70,7 @@ def get_configmap_events(path, context, namespace, configmap_name):
 
 
 def get_configmap_yaml(path, context, namespace, configmap_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     configmaps = v1.read_namespaced_config_map(configmap_name, namespace=namespace)
     # Filtering Annotations

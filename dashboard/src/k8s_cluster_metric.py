@@ -1,8 +1,8 @@
 from kubernetes import client, config
-
+from .utils import configure_k8s
 def getMetrics(path, context):
     try:
-        config.load_kube_config(config_file=path, context = context)
+        configure_k8s(path, context)
 
         api = client.CustomObjectsApi()
         core_api = client.CoreV1Api()

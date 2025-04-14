@@ -42,7 +42,6 @@ function renderGaugeChart(canvasId, chartData, object_name) {
       options: {
           responsive: true,
           maintainAspectRatio: false,
-        //   cutout: '90%',
           plugins: {
               legend: { display: false },
               title: {

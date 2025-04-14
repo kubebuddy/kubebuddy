@@ -1,11 +1,11 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
-from ..utils import calculateAge, filter_annotations
+from ..utils import calculateAge, filter_annotations, configure_k8s
 import yaml
 
 def list_persistent_volumes(path: str, context: str):
     # Load Kubernetes configuration
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     
     v1 = client.CoreV1Api()
     pv_list = v1.list_persistent_volume().items
@@ -38,7 +38,7 @@ def list_persistent_volumes(path: str, context: str):
     return pv_details, len(pv_details)
 
 def get_pv_description(path=None, context=None, pv_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pv = v1.read_persistent_volume(name=pv_name)
 
@@ -73,7 +73,7 @@ def get_pv_description(path=None, context=None, pv_name=None):
 
 
 def get_pv_yaml(path, context, pv_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pv = v1.read_persistent_volume(name=pv_name)
     # Filtering Annotations

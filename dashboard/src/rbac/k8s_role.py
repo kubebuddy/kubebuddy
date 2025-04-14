@@ -1,11 +1,11 @@
 from kubernetes import client, config
 from datetime import datetime
 import yaml
-from ..utils import filter_annotations
+from ..utils import filter_annotations, configure_k8s
 
 def list_roles(path, context):
     # Load kubeconfig using the provided path and context
-    config.load_kube_config(path, context=context)
+    configure_k8s(path, context)
 
     # Initialize the Kubernetes API client for roles
     rbac_v1 = client.RbacAuthorizationV1Api()
@@ -29,7 +29,7 @@ def list_roles(path, context):
     return roles_data, len(roles_data)
 
 def get_role_description(path=None, context=None, namespace=None, role_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.RbacAuthorizationV1Api()
 
     try:
@@ -53,7 +53,7 @@ def get_role_description(path=None, context=None, namespace=None, role_name=None
         return {"error": f"Failed to fetch Role details: {e.reason}"}
     
 def get_role_events(path, context, namespace, role_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_namespaced_event(namespace=namespace).items
     role_events = [
@@ -63,7 +63,7 @@ def get_role_events(path, context, namespace, role_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in role_events])
 
 def get_role_yaml(path, context, namespace, role_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.RbacAuthorizationV1Api()
     try:
         role = v1.read_namespaced_role(name=role_name, namespace=namespace)

@@ -1,9 +1,9 @@
 from kubernetes import client, config
 import yaml
-from ..utils import filter_annotations
+from ..utils import filter_annotations, configure_k8s
 
 def get_cluster_role(path, context):
-    config.load_kube_config(path, context=context)
+    configure_k8s(path, context)
     rbac_api = client.RbacAuthorizationV1Api()
 
     clusterroles = []
@@ -24,7 +24,7 @@ def get_cluster_role(path, context):
     return clusterroles, len(clusterroles)
 
 def get_cluster_role_description(path=None, context=None, cluster_role_name=None):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.RbacAuthorizationV1Api()
 
     try:
@@ -48,7 +48,7 @@ def get_cluster_role_description(path=None, context=None, cluster_role_name=None
         return {"error": f"Failed to fetch Role details: {e.reason}"}
     
 def get_cluster_role_events(path, context, cluster_role_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.CoreV1Api()
     events = v1.list_event_for_all_namespaces().items
     cluster_role_events = [
@@ -58,7 +58,7 @@ def get_cluster_role_events(path, context, cluster_role_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in cluster_role_events])
 
 def get_cluster_role_yaml(path, context, cluster_role_name):
-    config.load_kube_config(path, context)
+    configure_k8s(path, context)
     v1 = client.RbacAuthorizationV1Api()
     try:
         cluster_role = v1.read_cluster_role(name=cluster_role_name)

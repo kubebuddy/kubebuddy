@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from kubernetes.config.config_exception import ConfigException
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 from ..utils import calculateAge, filter_annotations, configure_k8s
@@ -160,3 +161,43 @@ def get_yaml_job(path, context, namespace, job_name):
     if job.metadata:
         job.metadata.annotations = filter_annotations(job.metadata.annotations or {})
     return yaml.dump(job.to_dict(), default_flow_style=False)
+
+def get_job_details(namespace=None):
+    try:
+        config.load_incluster_config()
+    except config.ConfigException:
+        config.load_kube_config()
+
+    batch_v1 = client.BatchV1Api()
+    jobs = batch_v1.list_namespaced_job(namespace) if namespace else batch_v1.list_job_for_all_namespaces()
+
+    def get_age(creation_timestamp):
+        delta = datetime.now(timezone.utc) - creation_timestamp
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    def get_duration(start, end):
+        if start and end:
+            duration = end - start
+            minutes = duration.total_seconds() // 60
+            return f"{int(minutes)}m"
+        return "N/A"
+
+    job_details = []
+    for job in jobs.items:
+        start_time = job.status.start_time
+        completion_time = job.status.completion_time
+        duration = get_duration(start_time, completion_time)
+
+        job_info = {
+            'name': job.metadata.name,
+            'namespace': job.metadata.namespace,
+            'completions': job.status.succeeded if job.status.succeeded is not None else 0,
+            'duration': duration,
+            'age': get_age(job.metadata.creation_timestamp)
+        }
+        job_details.append(job_info)
+
+    return job_details
+

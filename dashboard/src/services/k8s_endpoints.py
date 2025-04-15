@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from kubernetes.config.config_exception import ConfigException
 from datetime import datetime, timezone
 import yaml
 from kubebuddy.appLogs import logger
@@ -111,3 +112,37 @@ def get_endpoint_yaml(path, context, namespace, endpoint_name):
     if endpoints.metadata:
         endpoints.metadata.annotations = filter_annotations(endpoints.metadata.annotations or {})
     return yaml.dump(endpoints.to_dict(), default_flow_style=False)
+
+def get_endpoint_details():
+    try:
+        config.load_incluster_config()
+    except ConfigException:
+        config.load_kube_config()
+
+    v1 = client.CoreV1Api()
+    endpoints = v1.list_endpoints_for_all_namespaces()
+
+    def get_age(creation_timestamp):
+        delta = datetime.now(timezone.utc) - creation_timestamp
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    endpoint_details = []
+    for ep in endpoints.items:
+        addresses = []
+        for subset in ep.subsets or []:
+            ports = [str(p.port) for p in subset.ports or []]
+            for addr in subset.addresses or []:
+                ip = addr.ip
+                for port in ports:
+                    addresses.append(f"{ip}:{port}")
+        endpoint_info = {
+            'name': ep.metadata.name,
+            'namespace': ep.metadata.namespace,
+            'addresses': ', '.join(addresses) if addresses else 'None',
+            'age': get_age(ep.metadata.creation_timestamp)
+        }
+        endpoint_details.append(endpoint_info)
+
+    return endpoint_details

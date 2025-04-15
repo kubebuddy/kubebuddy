@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KubeBuddy Report</title>
+  </head>
+
+<body>
+  <!-- Cover Page -->
+  <div class="cover-page">
+    <div class="heading">KubBuddy Report</div>
+    <h1 class="slogan">You Trust, We Deliver.</h1>
+    <div class="title-container">
+      <p class="title-text">
+        {{ cluster_name }}
+      </p>
+    </div>
+    <p>
+      The current Kubernetes cluster consists of {{ cluster_overview.nodes.total }} nodes, efficiently distributing workloads across the environment. There are {{ cluster_overview.deployments.total }} deployments actively managing {{ cluster_overview.pods.total }} pods, ensuring scalability and high availability of applications. The cluster operates with {{ cluster_overview.nodes.namespaces|join:", " }} namespaces, each logically separating workloads and resources for better management. Additionally, {{ cluster_overview.services.total }} services are configured to expose and load-balance the applications internally and externally as required. The overall cluster health is stable, with most components in a Running state. The cluster has been operational for approximately {{ node.age }}, and it is assigned Cluster IPs for internal communication, enabling smooth service discovery and interaction within the cluster.
+    </p>
+
+    <div class="footer-info">
+      <p style="color:dimgray">Generated on {% now "F j, Y, H:i" %}</p>
+      <!-- <p style="color:darkblue;">Cluster report {% now "F j, Y, H:i" %}</p> -->
+      <p style="margin: 30px 0 0 100px;">Thinknyx Support Team</p>
+    </div>
+    <div class="copyright">
+      <p>Copyright ©2025, Thinknyx technologies, All rights reserved</p>
+      <p>Confidential</p>
+    </div>
+  </div>
+
+  <!-- Cluster Overview Page -->
+  <div class="content-page">
+    <h2 class="section-title">Cluster Overview</h2>
+    <table>
+      <thead>
+        <tr>
+          <th width="30%">Category</th>
+          <th width="70%">Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Nodes</td>
+          <td>
+            <p>Total: {{ cluster_overview.nodes.total }}</p>
+            <p>Ready: {{ cluster_overview.nodes.ready }}</p>
+            <p>Namespace: {{ cluster_overview.nodes.namespaces|join:", " }}</p>
+          </td>
+        </tr>
+        <tr>
+          <td>Pods</td>
+          <td>
+            <p>Total: {{ cluster_overview.pods.total }}</p>
+            <p>Running: {{ cluster_overview.pods.running }}</p>
+            <p>Pending: {{ cluster_overview.pods.pending }}</p>
+            <p>Failed: {{ cluster_overview.pods.failed }}</p>
+            <p>Namespace: {{ cluster_overview.pods.namespaces|join:", " }}</p>
+          </td>
+        </tr>
+        <tr>
+          <td>Deployments</td>
+          <td>
+            <p>Total: {{ cluster_overview.deployments.total }}</p>
+            <p>Available: {{ cluster_overview.deployments.available }}</p>
+            <p>Namespace: {{ cluster_overview.deployments.namespaces|join:", " }}</p>
+          </td>
+        </tr>
+        <tr>
+          <td>Services</td>
+          <td>
+            <p>Total: {{ cluster_overview.services.total }}</p>
+            <p>ClusterIP: {{ cluster_overview.services.cluster_ip }}</p>
+            <p>LoadBalancer: {{ cluster_overview.services.load_balancer }}</p>
+            <p>NodePort: {{ cluster_overview.services.node_port }}</p>
+            <p>Namespace: {{ cluster_overview.services.namespaces|join:", " }}</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Namespace Page -->
+  <div class="content-page">
+    <h2 class="section-title">NameSpace</h2>
+    <table>
+      <thead>
+        <tr>
+          <th width="40%">Name</th>
+          <th width="30%">Status</th>
+          <th width="30%">Age</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for namespace in namespaces %}
+        <tr>
+          <td>{% if namespace.name %}{{ namespace.name }}{% else %} - {% endif %}</td>
+          <td>{{ namespace.status }}</td>
+          <td>{{ namespace.age }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="no-data">No namespaces found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Nodes Page -->
+  <div class="content-page">
+    <h2 class="section-title">Nodes</h2>
+    <table>
+      <thead>
+        <tr>
+          <th width="20%">Name</th>
+          <th width="15%">Status</th>
+          <th width="15%">Roles</th>
+          <th width="10%">Age</th>
+          <th width="15%">Version</th>
+          <th width="10%">CPU</th>
+          <th width="15%">Memory</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for node in nodes %}
+        <tr>
+          <td>{{ node.name }}</td>
+          <td>
+            <span class="{% if node.status == 'Ready' %}status-ready{% elif node.status == 'NotReady' %}status-notready{% else %}status-unknown{% endif %}">
+              {{ node.status }}
+            </span>
+          </td>
+          <td>{% if node.roles %}{{ node.roles }}{% else %} - {% endif %}</td>
+          <td>{{ node.age }}</td>
+          <td>{% if node.version %}{{ node.version }}{% else %} - {% endif %}</td>
+          <td>{{ node.cpu }}</td>
+          <td>{{ node.memory }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="no-data">No node data available.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Networking Page -->
+  <div class="content-page">
+    <h2 class="section-title">Networking</h2>
+    
+    <!-- Services Section -->
+    <h3 class="subsection-title">Services</h3>
+    <table>
+      <thead>
+        <tr>
+          <th width="15%">Name</th>
+          <th width="15%">Namespace</th>
+          <th width="10%">Type</th>
+          <th width="15%">Cluster IP</th>
+          <th width="15%">External IP</th>
+          <th width="15%">Ports</th>
+          <th width="15%">Age</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for service in services %}
+        <tr>
+          <td>{{ service.name }}</td>
+          <td>{{ service.namespace }}</td>
+          <td class="type-{{ service.type }}">{{ service.type }}</td>
+          <td>{{ service.cluster_ip }}</td>
+          <td>{{ service.external_ip|default:"None" }}</td>
+          <td>{{ service.ports }}</td>
+          <td>{{ service.age }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="no-data">No services found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    
+    <!-- Endpoints Section -->
+    <h3 class="subsection-title">Endpoints</h3>
+    <table>
+      <thead>
+        <tr>
+          <th width="20%">Name</th>
+          <th width="20%">Namespace</th>
+          <th width="20%">Type</th>
+          <th width="20%">Endpoint</th>
+          <th width="20%">Age</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for endpoint in endpoints %}
+        <tr>
+          <td>{{ endpoint.name }}</td>
+          <td>{{ endpoint.namespace }}</td>
+          <td class="type-{{ endpoint.type|default:'Unknown' }}">{{ endpoint.type|default:"Unknown" }}</td>
+          <td>{% if endpoint.endpoint %}{{ endpoint.endpoint }}{% else %} - {% endif %}</td>
+          <td>{{ endpoint.age }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="no-data">No endpoints found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    
+    <!-- Ingresses Section -->
+    <h3 class="subsection-title">Ingresses</h3>
+    <table>
+      <thead>
+        <tr>
+          <th width="15%">Name</th>
+          <th width="15%">Namespace</th>
+          <th width="30%">Hosts</th>
+          <th width="15%">Address</th>
+          <th width="15%">Ports</th>
+          <th width="10%">Age</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ingress in ingresses %}
+        <tr>
+          <td>{{ ingress.name }}</td>
+          <td>{{ ingress.namespace }}</td>
+          <td>
+            <ul class="host-list">
+              {% for host in ingress.hosts %}
+              <li>{{ host }}</li>
+              {% endfor %}
+            </ul>
+          </td>
+          <td>{{ ingress.address|default:"-" }}</td>
+          <td>{{ ingress.ports|default:"80" }}</td>
+          <td>{{ ingress.age }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="no-data">No ingresses found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

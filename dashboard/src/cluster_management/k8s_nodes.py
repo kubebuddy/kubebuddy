@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from kubernetes.config.config_exception import ConfigException
 from datetime import datetime, timezone
 from ..utils import calculateAge
 from ..utils import configure_k8s
@@ -189,3 +190,38 @@ def get_node_yaml(path, context, node_name):
     v1 = client.CoreV1Api()
     node = v1.read_node(name=node_name)
     return yaml.dump(node.to_dict(), default_flow_style=False)
+
+def get_node_details():
+    try:
+        config.load_incluster_config()
+    except ConfigException:
+        config.load_kube_config()
+
+    v1 = client.CoreV1Api()
+    nodes = v1.list_node()
+
+    def get_age(creation_timestamp):
+        delta = datetime.now(timezone.utc) - creation_timestamp
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    node_details = []
+    for node in nodes.items:
+        status = "NotReady"
+        for condition in node.status.conditions or []:
+            if condition.type == "Ready" and condition.status == "True":
+                status = "Ready"
+                break
+
+        node_info = {
+            'name': node.metadata.name,
+            'status': status,
+            'labels': node.metadata.labels,
+            'cpu': node.status.capacity.get('cpu'),
+            'memory': node.status.capacity.get('memory'),
+            'age': get_age(node.metadata.creation_timestamp)
+        }
+        node_details.append(node_info)
+
+    return node_details

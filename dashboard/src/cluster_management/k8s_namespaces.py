@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from kubernetes.config.config_exception import ConfigException
 from django.shortcuts import render
 from datetime import datetime, timezone
 from ..utils import calculateAge, filter_annotations, configure_k8s
@@ -70,3 +71,48 @@ def get_namespace_yaml(path, context, namespace_name):
     if namespace.metadata:
         namespace.metadata.annotations = filter_annotations(namespace.metadata.annotations or {})
     return yaml.dump(namespace.to_dict(), default_flow_style=False)
+
+def get_namespace_details():
+    try:
+        config.load_incluster_config()
+    except ConfigException:
+        config.load_kube_config()
+
+    v1 = client.CoreV1Api()
+    namespaces = v1.list_namespace()
+
+    def get_age(creation_timestamp):
+        delta = datetime.now(timezone.utc) - creation_timestamp
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    namespace_details = []
+
+    for namespace in namespaces.items:
+        # Fetch pods for the current namespace
+        pods = v1.list_namespaced_pod(namespace.metadata.name)
+        
+        for pod in pods.items:
+            # Determine the pod's status
+            status = pod.status.phase
+            # Get container status
+            container_statuses = pod.status.container_statuses or []
+            ready_count = sum(1 for cs in container_statuses if cs.ready)
+            total_count = len(container_statuses)
+            
+            # Create the details for the namespace row
+            pod_info = {
+                'namespace': namespace.metadata.name,
+                'name': pod.metadata.name,
+                'containers': f"{ready_count}/{total_count}",
+                'node': pod.spec.node_name if pod.spec.node_name else 'N/A',
+                'ip_address': pod.status.pod_ip or 'N/A',
+                'restarts': sum([cs.restart_count for cs in container_statuses]),
+                'age': get_age(pod.metadata.creation_timestamp),
+                'status': status
+            }
+
+            namespace_details.append(pod_info)
+
+    return namespace_details

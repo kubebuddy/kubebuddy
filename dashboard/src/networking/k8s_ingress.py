@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from kubernetes.config.config_exception import ConfigException
 import yaml
 from kubebuddy.appLogs import logger
 from datetime import datetime, timezone
@@ -94,3 +95,44 @@ def get_ingress_yaml(path, context, namespace, ingress_name):
     if ingress.metadata:
         ingress.metadata.annotations = filter_annotations(ingress.metadata.annotations or {})
     return yaml.dump(ingress.to_dict(), default_flow_style=False)
+
+def get_ingress_details():
+    try:
+        config.load_incluster_config()
+    except ConfigException:
+        config.load_kube_config()
+
+    networking_v1 = client.NetworkingV1Api()
+    ingresses = networking_v1.list_ingress_for_all_namespaces()
+
+    def get_age(creation_timestamp):
+        delta = datetime.now(timezone.utc) - creation_timestamp
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    ingress_details = []
+    for ingress in ingresses.items:
+        rules = ingress.spec.rules or []
+        paths = []
+        hosts = []
+        for rule in rules:
+            host = rule.host or "N/A"
+            hosts.append(host)
+            for path in rule.http.paths:
+                paths.append(path.path if path.path else "/")
+        tls_enabled = "Yes" if ingress.spec.tls else "No"
+        ingress_info = {
+            "name": ingress.metadata.name,
+            "namespace": ingress.metadata.namespace,
+            "hosts": ", ".join(hosts),
+            "paths": ", ".join(paths),
+            "service": ", ".join([
+                path.backend.service.name for rule in rules for path in rule.http.paths if path.backend.service
+            ]) if rules else "N/A",
+            "tls": tls_enabled,
+            "age": get_age(ingress.metadata.creation_timestamp)
+        }
+        ingress_details.append(ingress_info)
+
+    return ingress_details

@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from kubernetes.config.config_exception import ConfigException
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
@@ -203,3 +204,32 @@ def get_pod_yaml(path, context, namespace, pod_name):
     if pod.metadata:
         pod.metadata.annotations = filter_annotations(pod.metadata.annotations or {})
     return yaml.dump(pod.to_dict(), default_flow_style=False)
+
+def get_pod_details(namespace=None):
+    try:
+        config.load_incluster_config()
+    except ConfigException:
+        config.load_kube_config()
+
+    v1 = client.CoreV1Api()
+    pods = v1.list_namespaced_pod(namespace) if namespace else v1.list_pod_for_all_namespaces()
+
+    def get_age(creation_timestamp):
+        delta = datetime.now(timezone.utc) - creation_timestamp
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    pod_details = []
+    for pod in pods.items:
+        pod_info = {
+            'name': pod.metadata.name,
+            'namespace': pod.metadata.namespace,
+            'status': pod.status.phase,
+            'node': pod.spec.node_name if pod.spec.node_name else 'N/A',
+            'restarts': sum([cs.restart_count for cs in pod.status.container_statuses or []]),
+            'age': get_age(pod.metadata.creation_timestamp)
+        }
+        pod_details.append(pod_info)
+
+    return pod_details

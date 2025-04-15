@@ -120,3 +120,40 @@ def get_service_yaml(path, context, namespace, service_name):
     if service.metadata:
         service.metadata.annotations = filter_annotations(service.metadata.annotations or {})
     return yaml.dump(service.to_dict(), default_flow_style=False)
+
+def get_service_details(namespace=None):
+    try:
+        config.load_incluster_config()
+    except config.ConfigException:
+        config.load_kube_config()
+
+    v1 = client.CoreV1Api()
+    services = v1.list_namespaced_service(namespace) if namespace else v1.list_service_for_all_namespaces()
+
+    def get_age(created_at):
+        delta = datetime.now(timezone.utc) - created_at
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    service_details = []
+    for svc in services.items:
+        ports = ", ".join(
+            f"{p.port}/{p.protocol}" + (f" → {p.target_port}" if p.target_port else "")
+            for p in svc.spec.ports or []
+        )
+
+        external_ips = svc.status.load_balancer.ingress
+        external_ip = ", ".join(ip.ip if ip.ip else ip.hostname for ip in external_ips) if external_ips else "None"
+
+        service_details.append({
+            'name': svc.metadata.name,
+            'namespace': svc.metadata.namespace,
+            'type': svc.spec.type,
+            'cluster_ip': svc.spec.cluster_ip,
+            'external_ip': external_ip,
+            'ports': ports,
+            'age': get_age(svc.metadata.creation_timestamp)
+        })
+
+    return service_details

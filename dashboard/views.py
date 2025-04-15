@@ -3,7 +3,7 @@ import subprocess, os
 from django.shortcuts import render
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseBadRequest, HttpResponseServerError
+from django.http import HttpResponseBadRequest, HttpResponseServerError, HttpResponse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -22,6 +22,19 @@ from main.models import Cluster
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
 from .decorators import server_down_handler
+from .src.clusters_DB import get_cluster_names
+from .src.workloads.k8s_pods import get_pod_details
+from .src.workloads.k8s_deployments import get_deployment_details
+from .src.cluster_management.k8s_nodes import get_node_details
+from .src.cluster_management.k8s_namespaces import get_namespace_details
+from .src.services.k8s_endpoints import get_endpoint_details
+from .src.services.k8s_services import get_service_details
+from .src.networking.k8s_ingress import get_ingress_details
+from kubernetes.config.config_exception import ConfigException
+from django.template.loader import get_template
+from io import BytesIO
+import datetime
+import uuid
 
 ###### Utilities ######
 
@@ -753,3 +766,321 @@ def execute_command(request):
             output = f"Error: {str(e)}"
 
         return JsonResponse({'output': output})
+    
+################### Download report Function #############################    
+
+def get_cluster_name():
+    try:
+        contexts, current_context = config.list_kube_config_contexts()
+        if current_context:
+            return current_context['context']['cluster']
+    except ConfigException:
+        return "in-cluster"
+    return "unknown"
+
+def generate_reports(request):
+    try:
+        # Load kube config
+        try:
+            config.load_incluster_config()
+        except ConfigException:
+            config.load_kube_config()
+
+        # Fetch all resources
+        pods = get_pod_details()
+        pod_counts = len(pods)
+        nodes = get_node_details()
+        node_counts = len(nodes)
+        namespaces = get_namespace_details()
+        namespace_count = len(namespaces)
+        deployments = get_deployment_details()
+        deployment_counts = len(deployments)
+        services = get_service_details()
+        endpoints = get_endpoint_details()
+        ingresses = get_ingress_details()
+        cluster_name = get_cluster_name()
+
+        # Cluster Overview
+        v1 = client.CoreV1Api()
+        apps_v1 = client.AppsV1Api()
+
+        total_nodes = len(nodes)
+        ready_nodes = sum(1 for node in nodes if node['status'] == 'Ready')
+
+        running_pods = sum(1 for p in pods if p['status'] == "Running")
+        pending_pods = sum(1 for p in pods if p['status'] == "Pending")
+        failed_pods = sum(1 for p in pods if p['status'] == "Failed")
+        pod_namespaces = list(set(p['namespace'] for p in pods))
+
+        available_deployments = sum(1 for d in deployments if d.get('available_replicas', 0) > 0)
+        deployment_namespaces = list(set(d['namespace'] for d in deployments))
+
+        cluster_ip_services = sum(1 for s in services if s['type'] == "ClusterIP")
+        load_balancer_services = sum(1 for s in services if s['type'] == "LoadBalancer")
+        node_port_services = sum(1 for s in services if s['type'] == "NodePort")
+        service_namespaces = list(set(s['namespace'] for s in services))
+
+        cluster_overview = {
+            'nodes': {
+                'total': total_nodes,
+                'ready': ready_nodes,
+                'namespaces': pod_namespaces
+            },
+            'pods': {
+                'total': pod_counts,
+                'running': running_pods,
+                'pending': pending_pods,
+                'failed': failed_pods,
+                'namespaces': pod_namespaces
+            },
+            'deployments': {
+                'total': deployment_counts,
+                'available': available_deployments,
+                'namespaces': deployment_namespaces
+            },
+            'services': {
+                'total': len(services),
+                'cluster_ip': cluster_ip_services,
+                'load_balancer': load_balancer_services,
+                'node_port': node_port_services,
+                'namespaces': service_namespaces
+            }
+        }
+
+        context = {
+            'title': 'KubeBuddy Report',
+            'pods': pods,
+            'pod_counts': pod_counts,
+            'nodes': nodes,
+            'node_count': node_counts,
+            'namespaces': namespaces,
+            'namespace_count': namespace_count,
+            'deployments': deployments,
+            'deployment_counts': deployment_counts,
+            'services': services,
+            'endpoints': endpoints,
+            'ingresses': ingresses,
+            'cluster_name': cluster_name,
+        }
+
+        template = get_template('dashboard/generate_reports.html')
+        html = template.render(context)
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+
+        pdf_status = generate_pdf(html, response)
+        if not pdf_status:
+            return HttpResponse("Error generating PDF", status=500)
+
+        return response
+
+    except Exception as e:
+        return HttpResponse(f"Exception occurred: {e}", status=500)
+    
+from xhtml2pdf import pisa
+import io
+
+def generate_pdf(html, result):
+    # Define page options for A4 portrait - size is in mm
+    pdf_options = {
+        'page-size': 'A4',
+        'orientation': 'portrait',
+        'margin-top': '15mm',
+        'margin-right': '15mm',
+        'margin-bottom': '15mm',
+        'margin-left': '15mm',
+        'encoding': 'UTF-8',
+    }
+    
+    # Add necessary CSS for PDF compatibility
+    pdf_css = """
+    <style>
+        body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      font-size: 12px;
+    }
+    
+    .heading{
+          font-size: 48px;
+          color: navy;
+          text-align: center;
+    }
+
+    .cover-page {
+      width: 100%;
+      padding: 20px 0;
+      margin: 0;
+      display: block;
+      page-break-after: always;
+    }
+    
+    .logo {
+      display: block;
+      width: 250px;
+      height: auto;
+      margin: 20px auto;
+    }
+    
+    .title-container {
+      background: lightblue;
+      width: 80%;
+      margin: 20px auto;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .title-text {
+      color: white;
+      font-size: 24px;
+      text-align: center;
+      margin: 0;
+    }
+    
+    .slogan {
+      font-size: 18px;
+      color: midnightblue;
+      text-align: center;
+      margin: 15px 0;
+    }
+    
+    .footer-info {
+      margin-top: 50px;
+      text-align: right;
+      padding-right: 50px;
+    }
+    
+    .copyright {
+      font-size: 10px;
+      font-style: italic;
+      text-align: center;
+      margin-top: 30px;
+    }
+    
+    .content-page {
+      width: 100%;
+      margin: 0;
+      padding: 10px 0;
+      page-break-after: always;
+    }
+    
+    .section-title {
+      color: navy;
+      text-align: center;
+      font-size: 18px;
+      border-bottom: 2px solid darkblue;
+      padding-bottom: 5px;
+      margin-top: 20px;
+    }
+    
+    .subsection-title {
+      color: navy;
+      text-align: center;
+      font-size: 16px;
+      margin-top: 15px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 10px;
+    }
+    
+    th, td {
+      border: 1px solid lightgrey;
+      padding: 4px;
+      text-align: center;
+      word-wrap: break-word;
+    }
+    
+    .no-data {
+      text-align: center;
+    }
+    
+    .status-ready {
+      color: green;
+    }
+    
+    .status-notready {
+      color: red;
+    }
+    
+    .status-unknown {
+      color: orange;
+    }
+    
+    .host-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    /* Add page break controls */
+    .page-break {
+      page-break-after: always;
+    }
+    
+    /* Make sure tables don't overflow */
+    table {
+      table-layout: fixed;
+    }
+    
+    /* Ensure content fits within PDF */
+    @page {
+      size: a4 portrait;
+      margin: 15mm;
+    }
+    </style>
+    """
+    
+    # Insert the additional CSS into the HTML
+    modified_html = html
+    if '</head>' in html:
+        modified_html = html.replace('</head>', f'{pdf_css}</head>')
+    
+    # Handle different types of result objects
+    buffer = None
+    
+    try:
+        # If result is an HttpResponse
+        if isinstance(result, HttpResponse):
+            buffer = io.BytesIO()
+            # Convert HTML to PDF
+            pisa_status = pisa.CreatePDF(
+                modified_html,
+                dest=buffer,
+                options=pdf_options
+            )
+            # Write the PDF to the HttpResponse
+            if pisa_status.err == 0:
+                result.write(buffer.getvalue())
+                buffer.close()
+            return pisa_status.err == 0
+        
+        # If result is a file path string
+        elif isinstance(result, (str, bytes)) or hasattr(result, '__fspath__'):
+            with open(result, "wb") as output_file:
+                pisa_status = pisa.CreatePDF(
+                    modified_html,
+                    dest=output_file,
+                    options=pdf_options
+                )
+            return pisa_status.err == 0
+        
+        # If result is a file-like object
+        else:
+            pisa_status = pisa.CreatePDF(
+                modified_html,
+                dest=result,
+                options=pdf_options
+            )
+            return pisa_status.err == 0
+            
+    except Exception as e:
+        print(f"Error generating PDF: {e}")
+        if buffer:
+            buffer.close()
+        return False

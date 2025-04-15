@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from kubernetes.config.config_exception import ConfigException
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml
@@ -150,3 +151,32 @@ def get_yaml_deploy(path, context, namespace, deployment_name):
     if deployment.metadata:
         deployment.metadata.annotations = filter_annotations(deployment.metadata.annotations or {})
     return yaml.dump(deployment.to_dict(), default_flow_style=False)
+
+def get_deployment_details(namespace=None):
+    try:
+        config.load_incluster_config()
+    except ConfigException:
+        config.load_kube_config()
+
+    v1 = client.AppsV1Api()
+    deployments = v1.list_namespaced_deployment(namespace) if namespace else v1.list_deployment_for_all_namespaces()
+
+    def get_age(creation_timestamp):
+        delta = datetime.now(timezone.utc) - creation_timestamp
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    deployment_details = []
+    for deployment in deployments.items:
+        deployment_info = {
+            'name': deployment.metadata.name,
+            'namespace': deployment.metadata.namespace,
+            'replicas': deployment.spec.replicas,
+            'up_to_date': deployment.status.updated_replicas,
+            'available': deployment.status.available_replicas,
+            'age': get_age(deployment.metadata.creation_timestamp)
+        }
+        deployment_details.append(deployment_info)
+
+    return deployment_details

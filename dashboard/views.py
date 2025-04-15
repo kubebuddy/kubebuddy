@@ -861,6 +861,7 @@ def generate_reports(request):
             'endpoints': endpoints,
             'ingresses': ingresses,
             'cluster_name': cluster_name,
+            'cluster_overview': cluster_overview,
         }
 
         template = get_template('dashboard/generate_reports.html')

@@ -69,11 +69,20 @@ python manage.py runserver
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Feel free to fork this repository and submit pull requests with enhancements and bug fixes. Check out our:
+We welcome contributions from the community! Feel free to fork this repository and submit pull requests with enhancements, bug fixes, or improvements to code quality.
 
-<!-- - [Contribution Guidelines](https://<we need add a link here for contibution guidelnes>)  -->
+Check out our:
 
 - [Code of Conduct](./code-of-conduct.md)
+<!-- - [Contribution Guidelines](https://<add-your-guidelines-link-here>) -->
+
+### 🐞 Improving Code Quality with SonarQube
+
+We use [SonarCloud](https://sonarcloud.io/dashboard?id=kubebuddy_kubebuddy) to continuously analyze the code for issues like bugs, code smells, and coverage gaps. You can contribute by helping us fix reported issues:
+
+👉 [View open issues on SonarCloud](https://sonarcloud.io/project/issues?id=kubebuddy_kubebuddy)
+
+Your contributions not only improve the codebase but also help keep the project healthy and maintainable. ❤️
 
 ## 📜 License
 

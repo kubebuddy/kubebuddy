@@ -85,6 +85,14 @@ We use [SonarCloud](https://sonarcloud.io/dashboard?id=kubebuddy_kubebuddy) to c
 
 Your contributions not only improve the codebase but also help keep the project healthy and maintainable. ❤️
 
+## Community
+
+Find us on [Slack](https://join.slack.com/t/kubebuddy/shared_invite/zt-34bgxngb6-uV63uZT_g1SjGaGS2NdFIQ)
+
+<a href="https://github.com/kubebuddy/kubebuddy/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=kubebuddy/kubebuddy" />
+</a>
+
 ## 📜 License
 
 This project is licensed under the [Apache 2.0](./LICENSE) license.

@@ -5,6 +5,7 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/kubebuddy/kubebuddy)
 [![📘 Documentation](https://img.shields.io/static/v1?label=%F0%9F%93%96&message=Documentation&color=blue)](https://kubebuddy.org/documents/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python](https://img.shields.io/badge/python-3.10%2B-yellow.svg)](https://www.python.org/downloads/release/python-3100/)
 ![Last Commit](https://img.shields.io/github/last-commit/kubebuddy/kubebuddy/main)
 [![Issues](https://img.shields.io/github/issues/kubebuddy/kubebuddy.svg)](https://github.com/kubebuddy/kubebuddy/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/kubebuddy/kubebuddy.svg)](https://github.com/kubebuddy/kubebuddy/pulls)

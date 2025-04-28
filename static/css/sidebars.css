@@ -198,8 +198,6 @@ main {
 }
 
 .cluster-chart-container canvas{
-  /* display: block; 
-  margin: auto; */
   width: 60%; 
   height: auto;
 }
@@ -221,7 +219,6 @@ main {
   width: 18vw;
   padding: 2rem 1rem;
   border-radius: 3px;
-  text-align: center;
   background: #e6f7ff;
   text-align: left;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -238,7 +235,6 @@ main {
 .dark-mode {
   background-color: #121212 !important;
   color: #e4e4e4;
-  /* transition: background-color .5s ease; */
 }
 
 .dark-mode .navbar {
@@ -314,7 +310,6 @@ main {
 
 /* Tables */
 .dark-mode .table {
-  /* background-color: #1a1a1a !important; */
   color: #e4e4e4 !important;
   border-color: #333 !important;
 }
@@ -500,7 +495,7 @@ main {
 }
 
 .table th, .table td {
-  text-align: center;
+  text-align: left;
   vertical-align: middle;
 }
 .dropdown-menu {
@@ -516,9 +511,6 @@ main {
   color: white;
   border-radius: 8px;
   transition: 0.3s;
-}
-.btn-custom:hover {
-  background-color: #0056b3;
 }
 
 .stats-card {
@@ -543,10 +535,6 @@ main {
 table th, td {
   font-family:Verdana, Geneva, Tahoma, sans-serif;
   font-size: .9em;
-}
-
-.table th, .table td {
-  text-align: left;
 }
 
 .table th {

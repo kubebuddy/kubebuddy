@@ -428,7 +428,7 @@ function getCookie(name) {
 
     sidebarLinks.forEach(link => {
         if (link.innerText === currentCluster) {
-            searchbar = document.querySelector("#search-bar");
+            let searchbar = document.querySelector("#search-bar");
             searchbar.value = currentCluster;
           }
       });

@@ -7,7 +7,6 @@ def get_limit_ranges(path, context):
     # Load Kubernetes configuration
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
-    api = client.ApiextensionsV1Api()
     
     # Get all namespaces
     namespaces = [ns.metadata.name for ns in v1.list_namespace().items]

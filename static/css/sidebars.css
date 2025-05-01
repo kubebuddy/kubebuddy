@@ -447,6 +447,17 @@ main {
   background: #555;
 }
 
+/* test dark */
+.dark-mode .navbar {
+  background-color: #1e1e1e !important;
+  color: white !important;
+}
+.dark-mode table {
+  background-color: #121212 !important;
+  color: #e4e4e4 !important;
+}
+
+
 /* -------------------------- Pods CSS -------------------------- */
 
 .running-pod {

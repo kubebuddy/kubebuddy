@@ -19,16 +19,16 @@
 
     <div class="container mt-3">
             <form>
-                <div class="form-group d-flex align-items-center" style="float:left;width: 30%;">
+                <div class="form-group d-flex align-items-center" style="width: 30%;">
                     <select id="categorySelect" class="form-control mr-2">
                         <option value="all">All Namespaces</option>
                         {% for ns in namespaces %}
                             <option value="{{ ns }}" {% if ns == selected_namespace %}selected{% endif %} >{{ ns }}</option>
                         {% endfor %}
                     </select>
-                    <button type="submit" class="btn btn-primary ms-3">Go</button>
+                    <button type="submit" class="btn btn-primary  ms-3">Go</button>
                 </div>
-                <div style="float: right; width: 150px; "><a href="/generate_reports" style="background-color: #0d6efd; color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; text-decoration: none; display: inlineblock; margin-bottom:10px;" type="submit">Download PDF</a></div>
+                <!-- <div style="float: right; width: 150px; "><a href="/generate_reports" style="background-color: #0d6efd; color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; text-decoration: none; display: inlineblock; margin-bottom:10px;" type="submit">Download PDF</a></div> -->
             </form>
     </div>
 
@@ -206,7 +206,7 @@
             {% endfor %}
             </tbody>
         </table>
-        <a type="button" class="btn btn-primary w-auto mt-auto mb-3" href="/{{cluster_id}}/events?cluster_id={{cluster_id}}">
+        <a type="button" class="btn btn-primary  w-auto mt-auto mb-3" href="/{{cluster_id}}/events?cluster_id={{cluster_id}}">
             More Events
         </a>
     </div>

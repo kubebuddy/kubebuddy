@@ -20,6 +20,19 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="{% static 'js/breadcrumb.js' %}"></script>
 
+  <style>
+    html { visibility: hidden; }
+  </style>
+  <script>
+    (function () {
+      const theme = localStorage.getItem("theme");
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark-mode");
+      }
+      document.documentElement.style.visibility = "visible";
+    })();
+  </script>
+
   <!-- Custom styles for this template -->
   <link rel="stylesheet" href="{% static 'css/sidebars.css' %}">
 </head>
@@ -47,7 +60,7 @@
       <!-- Cluster dropdown -->
       <div class="my-2 p-0">
         <div class="dropdown">
-          <input type="text" id="search-bar" class="form-control fw-bold bg-primary" style="color: #fff; cursor:pointer; width: 15vw;" placeholder={{current_cluster}} onkeyup="searchClusters()" readOnly>
+          <input type="text" id="search-bar" class="form-control fw-bold bg-primary " style="color: #fff; cursor:pointer; width: 15vw;" placeholder={{current_cluster}} onkeyup="searchClusters()" readOnly>
           <i class="bi bi-caret-down-fill position-absolute" style="right: 15px; top: 50%; transform: translateY(-50%); color: white; pointer-events: none;"></i>
           <ul class="dropdown-menu" id="cluster-list" style="width: 15vw;">
             {% for cluster in registered_clusters %}
@@ -62,17 +75,10 @@
       </div>
   
       <!-- Refresh Button -->
-      <button id="reload-btn" class="btn btn-primary">
+      <button id="reload-btn" class="btn btn-primary ">
         <i class="bi bi-arrow-clockwise"></i>
       </button>
       
-      <!-- Dark Mode Toggle -->
-      <div class="ms-auto">
-        <button id="darkModeToggle" class="btn btn-outline-secondary">
-          <i class="bi bi-moon-stars"></i>
-        </button>
-      </div>
-  
       <!-- Account Dropdown -->
       <div class="dropdown">
         <button class="btn btn-link dropdown-toggle d-flex align-items-center" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="true">
@@ -96,7 +102,7 @@
     <!-- Sidebar -->
     <div id="sidebar" class="sidebar p-3 bg-white border-end">
       
-      <a href="/{{cluster_id}}/dashboard?cluster_id={{cluster_id}}" class="btn btn-primary text-decoration-none text-white d-flex align-items-center mb-2">
+      <a href="/{{cluster_id}}/dashboard?cluster_id={{cluster_id}}" class="btn btn-primary  text-decoration-none text-white d-flex align-items-center mb-2">
         <i class="bi bi-speedometer pe-2"></i>
         <b>Dashboard</b>
       </a>

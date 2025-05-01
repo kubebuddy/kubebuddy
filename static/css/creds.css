@@ -7,10 +7,10 @@ body {
     transition: background-color 0.3s ease;
   }
   
-  body.dark-mode {
-    background-color: #121212;
-    color: #fff;
-  }
+body.dark-mode {
+  background-color: #121212;
+  color: #fff;
+}
   
   /* Common container styles */
   .login-container,

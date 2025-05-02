@@ -2,6 +2,7 @@
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,35 +12,41 @@
     <link rel="icon" type="image/x-icon" href="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png">
 
     <style>
-        html { visibility: hidden; }
-      </style>
-    <script>
-    (function () {
-        const theme = localStorage.getItem("theme");
-        if (theme === "dark") {
-        document.documentElement.classList.add("dark-mode");
+        html {
+            visibility: hidden;
         }
-        document.documentElement.style.visibility = "visible";
-    })();
+    </style>
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") {
+                document.documentElement.classList.add("dark-mode");
+            }
+            document.documentElement.style.visibility = "visible";
+        })();
     </script>
 
     <!-- Custom styles for this template -->
     <link rel="stylesheet" href="{% static 'css/settings.css' %}">
 </head>
+
 <body>
     <div class="d-flex box">
         <!-- side bar -->
-        <div class="sidebar p-3 flex-shrink-0 bg-white border-end d-flex flex-column" style="width: 20rem; height:100vh">
+        <div class="sidebar p-3 flex-shrink-0 bg-white border-end d-flex flex-column"
+            style="width: 20rem; height:100vh">
             <div class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
                 <a href="/KubeBuddy" class="d-flex align-items-center link-dark text-decoration-none">
-                    <img src="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png" width="30" height="30" alt="KubeBuddy Logo">
+                    <img src="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png" width="30"
+                        height="30" alt="KubeBuddy Logo">
                     <span class="fs-5 p-2 fw-semibold">KubeBuddy</span>
                 </a>
             </div>
             <div class="card-body d-flex flex-column">
-                <input type="text" id="search-bar" class="form-control" placeholder="Search Clusters" onkeyup="searchClusters()">
+                <input type="text" id="search-bar" class="form-control" placeholder="Search Clusters"
+                    onkeyup="searchClusters()">
             </div>
-            
+
             <!-- Bottom sidebar links -->
             <div class="sidebar-bottom mt-auto">
                 <a href="/settings" class="sidebar-bottom-link link-dark">
@@ -71,64 +78,68 @@
                         <i class="bi bi-arrow-clockwise"></i>
                     </button>
                 </div>
-    
+
             </div>
             <br>
             <div class="row">
                 <!-- Cluster Cards -->
                 <div class="col-md-4 mb-4">
                     <a href="{% url 'integrate' %}">
-                    <div class="card shadow-sm d-flex justify-content-center align-items-center" style="min-height:18rem;">
-                        <h1><i class="bi bi-plus-square"></i></h1>
-                    </div>
+                        <div class="card shadow-sm d-flex justify-content-center align-items-center"
+                            style="min-height:18rem;">
+                            <h1><i class="bi bi-plus-square"></i></h1>
+                        </div>
                     </a>
                 </div>
                 {% for cluster in registered_clusters %}
                 <div class="col-md-4 mb-2 cluster-card" id="{{ cluster.id }}">
                     <div class="card shadow-sm d-flex flex-column" style="min-height:17rem;">
-                        <div class="card-header d-flex justify-content-between bg-light-subtle" id="card-head">
-                        <span id="cluster_tag" class="w-100">{{ cluster.cluster_name }}</span>
+                        <div class="card-header d-flex justify-content-between bg-light-subtle text-dark"
+                            id="card-head">
+                            <span id="cluster_tag" class="w-100">{{ cluster.cluster_name }}</span>
                         </div>
-                        <a href="#" class="text-decoration-none" style="text-decoration: none; pointer-events: none; cursor: default;">
-                        <div class="card-body d-flex flex-column h-100">
-                            <p class="card-text text-black lh-sm">
-                                <strong>Name:</strong>
-                                {% if cluster.cluster_name %}
+                        <a href="#" class="text-decoration-none"
+                            style="text-decoration: none; pointer-events: none; cursor: default;">
+                            <div class="card-body d-flex flex-column h-100">
+                                <p class="card-text text-black lh-sm">
+                                    <strong>Name:</strong>
+                                    {% if cluster.cluster_name %}
                                     {{ cluster.cluster_name }}
-                                {% else %}
-                                    <span>Error</span>
-                                {% endif %}
-                            </p>
-                            <p class="card-text text-black lh-sm">
-                                <strong>Nodes:</strong>
-                                <span id="cluster_nodes">
-                                    {% if cluster.number_of_nodes %}
-                                        {{ cluster.number_of_nodes }}
                                     {% else %}
-                                        N/A
+                                    <span>Error</span>
                                     {% endif %}
-                                </span>
-                            </p>
-                            <p class="card-text text-black lh-sm">
-                                <strong>Control Plane : </strong>
-                                <span class="text-primary">Checking...</span>
-                            </p>
-                            <p class="card-text text-black lh-sm">
-                                <strong>CoreDNS : </strong>
+                                </p>
+                                <p class="card-text text-black lh-sm">
+                                    <strong>Nodes:</strong>
+                                    <span id="cluster_nodes">
+                                        {% if cluster.number_of_nodes %}
+                                        {{ cluster.number_of_nodes }}
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
+                                    </span>
+                                </p>
+                                <p class="card-text text-black lh-sm">
+                                    <strong>Control Plane : </strong>
                                     <span class="text-primary">Checking...</span>
-                            </p>
-                            <p class="card-text text-black lh-sm">
-                                <strong>Kube config:</strong>
-                                <span class="d-block text-truncate" style="max-width: 100%;"
-                                      title="{{ cluster.kube_config.path }}">
-                                    {{ cluster.kube_config__path|default:"Path not available" }}
-                                </span>
-                            </p>
+                                </p>
+                                <p class="card-text text-black lh-sm">
+                                    <strong>CoreDNS : </strong>
+                                    <span class="text-primary">Checking...</span>
+                                </p>
+                                <p class="card-text text-black lh-sm">
+                                    <strong>Kube config:</strong>
+                                    <span class="d-block text-truncate" style="max-width: 100%;"
+                                        title="{{ cluster.kube_config.path }}">
+                                        {{ cluster.kube_config__path|default:"Path not available" }}
+                                    </span>
+                                </p>
+                            </div>
+                        </a>
+                        <div class="d-flex justify-content-end mb-3 me-3">
+                            <button class="btn btn-danger btn-sm " onclick="deleteCluster(event,'{{ cluster.id }}')"><i
+                                    class="bi bi-trash"></i></button>
                         </div>
-                    </a>
-                    <div class="d-flex justify-content-end mb-3 me-3">
-                        <button class="btn btn-danger btn-sm " onclick="deleteCluster(event,'{{ cluster.id }}')"><i class="bi bi-trash"></i></button>
-                    </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -141,8 +152,8 @@
     <script src="{% static 'js/clusterStatus.js' %}"></script>
 
     <script>
-        const clusters = {{ registered_clusters|safe }};
-        
+        const clusters = {{ registered_clusters| safe }};
+
         // tooltip
         document.addEventListener("DOMContentLoaded", function () {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -175,20 +186,20 @@
                 location.reload();  // Reload the page
             }, 30000);  // Every 30 seconds
         }
-    
+
         function stopAutoReload() {
             clearInterval(reloadInterval);
         }
-    
+
         window.onload = function () { // Check localStorage on page load
             const autoReloadEnabled = localStorage.getItem("autoReload") === "true";
             const switchElement = document.getElementById("reloadSwitch");
-    
+
             if (autoReloadEnabled) {
                 switchElement.checked = true;
                 startAutoReload();
             }
-            
+
             switchElement.addEventListener("change", function () { // Listen for switch toggle
                 if (this.checked) {
                     localStorage.setItem("autoReload", "true");
@@ -204,7 +215,7 @@
         function searchClusters() {
             let input = document.getElementById("search-bar").value.toLowerCase();
             let clusters = document.getElementsByClassName("cluster-card");
-    
+
             for (let i = 0; i < clusters.length; i++) {
                 let clusterName = clusters[i].querySelector("#cluster_tag").textContent.toLowerCase();
                 if (clusterName.includes(input)) {
@@ -217,4 +228,5 @@
 
     </script>
 </body>
+
 </html>

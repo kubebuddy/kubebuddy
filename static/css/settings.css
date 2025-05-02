@@ -1,7 +1,6 @@
 html, body {
     height: 100%;
     overflow: hidden;
-    transition: background-color 0.3s ease;
     font-size: .875em;
 }
 
@@ -9,38 +8,77 @@ html, body {
     background-color: #fff;
 }
 
+body .dark-mode {
+    background-color: #121212 !important;
+}
+
+.dark-mode .box{
+    background-color: #121212 !important;
+    color: #e4e4e4 !important;
+  }
+
 /* Custom styles for dark mode */
-[data-bs-theme="dark"] .sidebar {
+.dark-mode .sidebar {
     background-color: #121212 !important;
     border-color: #495057 !important;
 }
 
-[data-bs-theme="dark"] .link-dark {
+.dark-mode .link-dark {
     color: #f8f9fa !important;
 }
 
-[data-bs-theme="dark"] .card {
+.dark-mode .card,
+.dark-mode .card-header {
     background-color: #121212;
     border-color: #495057;
+    color: #e4e4e4;
 }
 
-[data-bs-theme="dark"] .text-black {
-    color: #f8f9fa !important;
+.dark-mode select,
+.dark-mode input{
+    border-color: #4d4d4d;
+    background-color: #252525d2;
+    color: #e4e4e4;
+}
+
+.dark-mode input::placeholder {
+    color: #bbb; 
+}
+.dark-mode .text-black,
+.dark-mode .form-text,
+.dark-mode .text-muted {
+    color: #a9a9a9 !important;
 }
 
 /* Buttons & Interactive Elements */
-[data-bs-theme="dark"] .btn-primary,
-[data-bs-theme="dark"] .bg-primary {
+.dark-mode .btn-primary,
+.dark-mode .bg-primary {
   background-color: #0db5fd !important;
   border-color: #0db5fd !important;
   color: #fff !important;
 }
 
 
-[data-bs-theme="dark"] .nav-link.active{
+.dark-mode .nav-link.active{
     background-color: #0db5fd !important;
     border-color: #0db5fd !important;
     color: #fff !important;
+}
+
+.dark-mode table {
+    background-color: #333;
+    color: #fff;
+}
+.dark-mode th, .dark-mode td {
+    background-color: #252525d2;
+    color: #fff;
+    border-color: #666;
+}
+.dark-mode th {
+    background-color: #252525;
+}
+.dark-mode td {
+    background-color: #252525d2;
 }
 
 /* Animation for theme transition */
@@ -85,13 +123,7 @@ html.transition *:after {
     display: block;
 }
 
-
-body .dark-mode {
-    background-color: #121212 !important;
-}
-
-
-[data-bs-theme="dark"] .form-switch .form-check-input:checked {
+.dark-mode .form-switch .form-check-input:checked {
     background-color: #0db5fd !important; /* Change the color */
     border-color: #0db5fd !important;
 }

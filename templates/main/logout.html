@@ -11,39 +11,43 @@
   <link rel="icon" type="image/x-icon" href="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png">
   <title>Logout - KubeBuddy</title>
 
+  <style>
+    html { visibility: hidden; }
+  </style>
   <script>
-    (function() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark-mode');
+  (function () {
+      const theme = localStorage.getItem("theme");
+      if (theme === "dark") {
+      document.documentElement.classList.add("dark-mode");
       }
-    })();
+      document.documentElement.style.visibility = "visible";
+  })();
   </script>
-  
+
   <!-- Custom styles for this template -->
   <link rel="stylesheet" href="{% static 'css/creds.css' %}">
 
 </head>
 <body>
-  
-  <div class="logout-container">
-    <div class="logout-card">
-      <div class="logout-brand">
-        <img class="logo" src="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png" width="40" height="40" alt="KubeBuddy Logo">
+  <div class="box d-flex w-100 h-100">
+    <div class="logout-container">
+      <div class="logout-card">
+        <div class="logout-brand">
+          <img class="logo" src="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png" width="40" height="40" alt="KubeBuddy Logo">
+        </div>
+        <h2 class="logout-title">You are Logged Out!</h2>
+        
+        <a href="/" class="btn btn-primary bg-gradient logout-btn">Click here to login again</a>
       </div>
-      <h2 class="logout-title">You are Logged Out!</h2>
-      
-      <a href="/" class="btn btn-primary bg-gradient logout-btn">Click here to login again</a>
     </div>
-  </div>
-
-  <div class="footer">
-    <p class="mb-0">Powered by Thinknyx Technologies LLP</p>
+  
+    <div class="footer">
+      <p class="mb-0">Powered by Thinknyx Technologies LLP</p>
+    </div>
   </div>
 
   <!-- Include Bootstrap JS and dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{% static 'js/dark_mode.js' %}"></script>
 </body>
 </html>

@@ -25,12 +25,19 @@
   </style>
   <script>
     (function () {
-      const theme = localStorage.getItem("theme");
-      if (theme === "dark") {
-        document.documentElement.classList.add("dark-mode");
-      }
-      document.documentElement.style.visibility = "visible";
-    })();
+  const theme = localStorage.getItem("theme");
+  if (theme === "dark") {
+    document.documentElement.classList.add("dark-mode");
+    
+    if (document.querySelectorAll("table")) {
+      document.querySelectorAll("table").forEach(table => {
+        table.classList.add("table-dark");
+      });
+    }
+  }
+  document.documentElement.style.visibility = "visible";
+})();
+
   </script>
 
   <!-- Custom styles for this template -->

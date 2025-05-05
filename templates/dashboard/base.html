@@ -3,16 +3,6 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <script>
-    (function () {
-      const theme = localStorage.getItem("theme");
-      if (theme === "dark") {
-        document.documentElement.classList.add("dark-mode");
-        document.documentElement.style.backgroundColor = "#121212";
-      }
-    })();
-  </script>
-
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Dheeraj Sain">
@@ -30,7 +20,24 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="{% static 'js/breadcrumb.js' %}"></script>
 
-
+  <style>
+    html { visibility: hidden; }
+  </style>
+  <script>
+    (function () {
+      const theme = localStorage.getItem("theme");
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark-mode");
+        
+        if (document.querySelectorAll("table")) {
+          document.querySelectorAll("table").forEach(table => {
+            table.classList.add("table-dark");
+          });
+        }
+      }
+      document.documentElement.style.visibility = "visible";
+    })();
+  </script>
 
   <!-- Custom styles for this template -->
   <link rel="stylesheet" href="{% static 'css/sidebars.css' %}">

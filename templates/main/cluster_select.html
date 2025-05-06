@@ -50,6 +50,12 @@
                     <i class="bi bi-file-text-fill"></i>
                     <span>Documentation</span>
                 </a>
+                
+                <a href="https://github.com/kubebuddy/kubebuddy/releases" target="_blank" class="sidebar-bottom-link link-dark">
+                    <i class="bi bi-git"></i>
+                    <span>Current Version: v2.0.0</span>
+                </a>
+                
             </div>
         </div>
         <!-- main page  -->
@@ -86,7 +92,7 @@
                 {% for cluster in registered_clusters %}
                 <div class="col-md-4 mb-2 cluster-card" id="{{ cluster.id }}">
                     <div class="card shadow-sm d-flex flex-column" style="min-height:17rem;">
-                        <div class="card-header d-flex justify-content-between bg-light-subtle" id="card-head">
+                        <div class="card-header d-flex justify-content-between bg-light-subtle text-dark" id="card-head">
                         <span id="cluster_tag" class="w-100">{{ cluster.cluster_name }}</span>
                         </div>
                         <a href="#" class="text-decoration-none" style="text-decoration: none; pointer-events: none; cursor: default;">

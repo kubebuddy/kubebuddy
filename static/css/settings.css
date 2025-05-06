@@ -47,7 +47,7 @@ body .dark-mode {
 .dark-mode .text-black,
 .dark-mode .form-text,
 .dark-mode .text-muted {
-    color: #a9a9a9 !important;
+    color: #dbdbdb !important;
 }
 
 /* Buttons & Interactive Elements */

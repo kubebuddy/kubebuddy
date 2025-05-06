@@ -1,0 +1,28 @@
+@echo off
+
+echo Installing KubeBuddy: AI Powered Kubernetes Dashboard
+
+echo Creating Virtual Environment...
+
+python -m venv buddyenv
+
+call .\buddyenv\Scripts\activate.bat
+
+echo Installing dependencies...
+
+pip install -r requirements.txt
+
+echo Installation complete!
+
+echo Setting up project
+
+python manage.py makemigrations main
+
+echo Creating Database
+
+python manage.py migrate
+echo -----------------------------------------------------------------------------------------------
+echo KubeBuddy is ready to go! Run the following command to start the server:
+echo "run.bat --port <port_number> --host <host_address>"
+echo "Both --host and --port are optional. Defaults are host=127.0.0.1 and port=8000."
+echo "Example: run.bat --port 8080 --host 0.0.0.0"

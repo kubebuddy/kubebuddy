@@ -121,14 +121,31 @@ def get_service_yaml(path, context, namespace, service_name):
         service.metadata.annotations = filter_annotations(service.metadata.annotations or {})
     return yaml.dump(service.to_dict(), default_flow_style=False)
 
-def get_service_details(namespace=None):
+def get_service_details(cluster_id=None, namespace=None):
     try:
-        config.load_incluster_config()
-    except config.ConfigException:
-        config.load_kube_config()
+        if cluster_id:
+            # Get cluster context from database
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            # Fallback to default config loading
+            try:
+                config.load_incluster_config()
+            except config.ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
 
     v1 = client.CoreV1Api()
-    services = v1.list_namespaced_service(namespace) if namespace else v1.list_service_for_all_namespaces()
+    try:
+        services = v1.list_namespaced_service(namespace) if namespace else v1.list_service_for_all_namespaces()
+    except Exception as e:
+        logger.error(f"Error fetching services: {str(e)}")
+        return []
 
     def get_age(created_at):
         delta = datetime.now(timezone.utc) - created_at

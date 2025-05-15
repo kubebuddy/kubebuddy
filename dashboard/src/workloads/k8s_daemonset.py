@@ -164,3 +164,47 @@ def get_daemonset_yaml(path, context, namespace, daemonset_name):
     if daemonset.metadata:
         daemonset.metadata.annotations = filter_annotations(daemonset.metadata.annotations or {})
     return yaml.dump(daemonset.to_dict(), default_flow_style=False)
+
+def get_daemonset_details(cluster_id=None, namespace=None):
+    try:
+        if cluster_id:
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            try:
+                config.load_incluster_config()
+            except ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
+
+    v1 = client.AppsV1Api()
+    try:
+        daemonsets = v1.list_namespaced_daemon_set(namespace) if namespace else v1.list_daemon_set_for_all_namespaces()
+    except Exception as e:
+        logger.error(f"Error fetching daemonsets: {str(e)}")
+        return []
+
+    def get_age(creation_timestamp):
+        delta = datetime.now(timezone.utc) - creation_timestamp
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    daemonset_details = []
+    for daemonset in daemonsets.items:
+        daemonset_info = {
+            'name': daemonset.metadata.name,
+            'namespace': daemonset.metadata.namespace,
+            'desired': daemonset.status.desired_number_scheduled,
+            'current': daemonset.status.current_number_scheduled,
+            'ready': daemonset.status.number_ready,
+            'age': get_age(daemonset.metadata.creation_timestamp)
+        }
+        daemonset_details.append(daemonset_info)
+
+    return daemonset_details

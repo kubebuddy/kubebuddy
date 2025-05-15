@@ -21,7 +21,7 @@ urlpatterns = [
     path('execute/', execute_command, name='execute_command'),
 
     # Download Report
-    path('generate_reports/', generate_reports, name='generate_reports'),
+    path('<int:cluster_id>/generate_reports/', generate_reports, name='generate_reports'),
     
     # Workloads
     path('<int:cluster_id>/pods', pods, name='pods'),

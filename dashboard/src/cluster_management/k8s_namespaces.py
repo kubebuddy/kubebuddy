@@ -4,6 +4,9 @@ from django.shortcuts import render
 from datetime import datetime, timezone
 from ..utils import calculateAge, filter_annotations, configure_k8s
 import yaml
+import logging
+
+logger = logging.getLogger(__name__)
 
 def get_namespace(path, context):
     try:
@@ -72,47 +75,74 @@ def get_namespace_yaml(path, context, namespace_name):
         namespace.metadata.annotations = filter_annotations(namespace.metadata.annotations or {})
     return yaml.dump(namespace.to_dict(), default_flow_style=False)
 
-def get_namespace_details():
+def get_namespace_details(cluster_id=None, namespace=None):
     try:
-        config.load_incluster_config()
-    except ConfigException:
-        config.load_kube_config()
+        if cluster_id:
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            try:
+                config.load_incluster_config()
+            except ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return {}
 
     v1 = client.CoreV1Api()
-    namespaces = v1.list_namespace()
 
-    def get_age(creation_timestamp):
+    try:
+        namespaces = v1.list_namespace().items
+    except Exception as e:
+        logger.error(f"Error fetching namespaces: {str(e)}")
+        return {}
+
+    def get_age_data(creation_timestamp):
         delta = datetime.now(timezone.utc) - creation_timestamp
         days = delta.days
         hours = delta.seconds // 3600
-        return f"{days}d {hours}h" if days else f"{hours}h"
+        return {
+            "age_str": f"{days}d {hours}h" if days else f"{hours}h",
+            "age_seconds": delta.total_seconds()
+        }
 
-    namespace_details = []
+    all_ns = []
+    active_ns = []
+    inactive_ns = []
 
-    for namespace in namespaces.items:
-        # Fetch pods for the current namespace
-        pods = v1.list_namespaced_pod(namespace.metadata.name)
-        
-        for pod in pods.items:
-            # Determine the pod's status
-            status = pod.status.phase
-            # Get container status
-            container_statuses = pod.status.container_statuses or []
-            ready_count = sum(1 for cs in container_statuses if cs.ready)
-            total_count = len(container_statuses)
-            
-            # Create the details for the namespace row
-            pod_info = {
-                'namespace': namespace.metadata.name,
-                'name': pod.metadata.name,
-                'containers': f"{ready_count}/{total_count}",
-                'node': pod.spec.node_name if pod.spec.node_name else 'N/A',
-                'ip_address': pod.status.pod_ip or 'N/A',
-                'restarts': sum([cs.restart_count for cs in container_statuses]),
-                'age': get_age(pod.metadata.creation_timestamp),
-                'status': status
-            }
+    for ns in namespaces:
+        age_data = get_age_data(ns.metadata.creation_timestamp)
+        item = {
+            'name': ns.metadata.name,
+            'status': ns.status.phase,
+            'age': age_data["age_str"],
+            'age_seconds': age_data["age_seconds"]
+        }
+        all_ns.append(item)
+        if ns.status.phase == "Active":
+            active_ns.append(item)
+        else:
+            inactive_ns.append(item)
 
-            namespace_details.append(pod_info)
+    # Find oldest and newest by age_seconds
+    if all_ns:
+        oldest = max(all_ns, key=lambda x: x["age_seconds"])
+        newest = min(all_ns, key=lambda x: x["age_seconds"])
+        oldest_age = oldest["age"]
+        newest_age = newest["age"]
+    else:
+        oldest_age = newest_age = "N/A"
 
-    return namespace_details
+    return {
+        "all": all_ns,
+        "active": active_ns,
+        "not_active": inactive_ns,
+        "oldest_age": oldest_age,
+        "newest_age": newest_age,
+        "total_namespaces": len(all_ns),
+        "active_count": len(active_ns),
+        "not_active_count": len(inactive_ns)
+    }

@@ -96,14 +96,31 @@ def get_ingress_yaml(path, context, namespace, ingress_name):
         ingress.metadata.annotations = filter_annotations(ingress.metadata.annotations or {})
     return yaml.dump(ingress.to_dict(), default_flow_style=False)
 
-def get_ingress_details():
+def get_ingress_details(cluster_id=None):
     try:
-        config.load_incluster_config()
-    except ConfigException:
-        config.load_kube_config()
+        if cluster_id:
+            # Get cluster context from database
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            # Fallback to default config loading
+            try:
+                config.load_incluster_config()
+            except ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
 
     networking_v1 = client.NetworkingV1Api()
-    ingresses = networking_v1.list_ingress_for_all_namespaces()
+    try:
+        ingresses = networking_v1.list_ingress_for_all_namespaces()
+    except Exception as e:
+        logger.error(f"Error fetching ingresses: {str(e)}")
+        return []
 
     def get_age(creation_timestamp):
         delta = datetime.now(timezone.utc) - creation_timestamp

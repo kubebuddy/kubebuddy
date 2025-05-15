@@ -80,3 +80,60 @@ def get_pv_yaml(path, context, pv_name):
     if pv.metadata:
         pv.metadata.annotations = filter_annotations(pv.metadata.annotations or {})
     return yaml.dump(pv.to_dict(), default_flow_style=False)
+
+
+def get_persistent_volume_details(cluster_id=None, namespace=None):
+    try:
+        if cluster_id:
+            # Get cluster context from database
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            # Fallback to default config loading
+            try:
+                config.load_incluster_config()
+            except config.ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
+
+    v1 = client.CoreV1Api()
+    try:
+        pvs = v1.list_persistent_volume()
+    except Exception as e:
+        logger.error(f"Error fetching persistent volumes: {str(e)}")
+        return []
+
+    def get_age(created_at):
+        delta = datetime.now(timezone.utc) - created_at
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    pv_details = []
+    for pv in pvs.items:
+        access_modes = ", ".join(
+            "RWO" if mode == "ReadWriteOnce" else
+            "ROX" if mode == "ReadOnlyMany" else
+            "RWX" if mode == "ReadWriteMany" else
+            "RWOP" if mode == "ReadWriteOncePod" else
+            "Unknown"
+            for mode in pv.spec.access_modes
+        )
+
+        pv_details.append({
+            'name': pv.metadata.name,
+            'capacity': pv.spec.capacity.get("storage", "-"),
+            'access_modes': access_modes,
+            'reclaim_policy': pv.spec.persistent_volume_reclaim_policy,
+            'status': pv.status.phase,
+            'claim': f"{pv.spec.claim_ref.namespace}/{pv.spec.claim_ref.name}" if pv.spec.claim_ref else "-",
+            'storage_class': pv.spec.storage_class_name if pv.spec.storage_class_name else "-",
+            'age': get_age(pv.metadata.creation_timestamp)
+        })
+
+    return pv_details

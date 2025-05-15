@@ -205,30 +205,45 @@ def get_pod_yaml(path, context, namespace, pod_name):
         pod.metadata.annotations = filter_annotations(pod.metadata.annotations or {})
     return yaml.dump(pod.to_dict(), default_flow_style=False)
 
-def get_pod_details(namespace=None):
+def get_pod_details(cluster_id=None, namespace=None):
     try:
-        config.load_incluster_config()
-    except ConfigException:
-        config.load_kube_config()
+        if cluster_id:
+            # Get cluster context from database
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            configure_k8s(path, context_name)
+        else:
+            # Fallback to default config loading
+            try:
+                config.load_incluster_config()
+            except ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
 
     v1 = client.CoreV1Api()
-    pods = v1.list_namespaced_pod(namespace) if namespace else v1.list_pod_for_all_namespaces()
-
-    def get_age(creation_timestamp):
-        delta = datetime.now(timezone.utc) - creation_timestamp
-        days = delta.days
-        hours = delta.seconds // 3600
-        return f"{days}d {hours}h" if days else f"{hours}h"
+    try:
+        pods = v1.list_namespaced_pod(namespace=namespace) if namespace else v1.list_pod_for_all_namespaces()
+    except Exception as e:
+        logger.error(f"Error fetching pods: {str(e)}")
+        return []
 
     pod_details = []
     for pod in pods.items:
+        status = getPodStatus(pod)
+        ready_count = sum(1 for cs in pod.status.container_statuses or [] if cs.ready)
+        total_count = len(pod.status.container_statuses or [])
+        ready_status = f"{ready_count}/{total_count}"
         pod_info = {
             'name': pod.metadata.name,
             'namespace': pod.metadata.namespace,
-            'status': pod.status.phase,
-            'node': pod.spec.node_name if pod.spec.node_name else 'N/A',
-            'restarts': sum([cs.restart_count for cs in pod.status.container_statuses or []]),
-            'age': get_age(pod.metadata.creation_timestamp)
+            'status': status,
+            'ready': ready_status,
+            'restarts': sum(cs.restart_count for cs in pod.status.container_statuses or []),
+            'age': calculateAge(datetime.now(timezone.utc) - pod.metadata.creation_timestamp)
         }
         pod_details.append(pod_info)
 

@@ -4,6 +4,9 @@ from datetime import datetime, timezone
 from ..utils import calculateAge
 from ..utils import configure_k8s
 import yaml
+import logging
+
+logger = logging.getLogger(__name__)
 
 def getnodes(path, cluster_name):
     configure_k8s(path, cluster_name)
@@ -191,14 +194,31 @@ def get_node_yaml(path, context, node_name):
     node = v1.read_node(name=node_name)
     return yaml.dump(node.to_dict(), default_flow_style=False)
 
-def get_node_details():
+def get_node_details(cluster_id=None, namespace=None):
     try:
-        config.load_incluster_config()
-    except ConfigException:
-        config.load_kube_config()
+        if cluster_id:
+            # Get cluster context from database
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            # Fallback to default config loading
+            try:
+                config.load_incluster_config()
+            except ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
 
     v1 = client.CoreV1Api()
-    nodes = v1.list_node()
+    try:
+        nodes = v1.list_node()
+    except Exception as e:
+        logger.error(f"Error fetching nodes: {str(e)}")
+        return []
 
     def get_age(creation_timestamp):
         delta = datetime.now(timezone.utc) - creation_timestamp
@@ -214,13 +234,20 @@ def get_node_details():
                 status = "Ready"
                 break
 
+        roles = ", ".join(
+            [label.replace("node-role.kubernetes.io/", "") for label in node.metadata.labels if label.startswith("node-role.kubernetes.io/")]
+        )
+        version = node.status.node_info.kubelet_version if node.status.node_info.kubelet_version else "-"
+
         node_info = {
             'name': node.metadata.name,
             'status': status,
             'labels': node.metadata.labels,
             'cpu': node.status.capacity.get('cpu'),
             'memory': node.status.capacity.get('memory'),
-            'age': get_age(node.metadata.creation_timestamp)
+            'age': get_age(node.metadata.creation_timestamp),
+            'roles': roles if roles else "-",
+            'version': version
         }
         node_details.append(node_info)
 

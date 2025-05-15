@@ -1,8 +1,12 @@
 from kubernetes import client, config
 from datetime import datetime, timezone
+from kubernetes.config.config_exception import ConfigException
 from kubebuddy.appLogs import logger
+import logging 
 import yaml
 from ..utils import calculateAge, filter_annotations, configure_k8s
+
+logger = logging.getLogger(__name__)
 
 def getReplicaSetsInfo(path, context, namespace="all"):
     configure_k8s(path, context)
@@ -141,3 +145,51 @@ def get_yaml_rs(path, context, namespace, rs_name):
     if rs.metadata:
         rs.metadata.annotations = filter_annotations(rs.metadata.annotations or {})
     return yaml.dump(rs.to_dict(), default_flow_style=False)
+
+
+def get_replica_set_details(cluster_id=None, namespace=None):
+    try:
+        if cluster_id:
+            # Get cluster context from database
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            # Fallback to default config loading
+            try:
+                config.load_incluster_config()
+            except ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
+
+    apps_v1 = client.AppsV1Api()
+    try:
+        replica_sets = apps_v1.list_replica_set_for_all_namespaces()
+    except Exception as e:
+        logger.error(f"Error fetching replica sets: {str(e)}")
+        return []
+
+    def get_age(creation_timestamp):
+        delta = datetime.now(timezone.utc) - creation_timestamp
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    replica_set_details = []
+    for rs in replica_sets.items:
+        rs_info = {
+            "name": rs.metadata.name,
+            "namespace": rs.metadata.namespace,
+            "desired_replicas": rs.spec.replicas or 0,
+            "current_replicas": rs.status.replicas or 0,
+            "ready_replicas": rs.status.ready_replicas or 0,
+            "available_replicas": rs.status.available_replicas or 0,
+            "age": get_age(rs.metadata.creation_timestamp)
+        }
+        replica_set_details.append(rs_info)
+
+    return replica_set_details

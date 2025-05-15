@@ -1,5 +1,6 @@
 from kubernetes import client, config
 from .utils import configure_k8s
+from main.models import Cluster
 def getMetrics(path, context):
     try:
         configure_k8s(path, context)
@@ -44,3 +45,5 @@ def getMetrics(path, context):
     
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch endpoint details: {e.reason}"}
+    
+

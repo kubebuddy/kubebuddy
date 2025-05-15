@@ -152,14 +152,29 @@ def get_yaml_deploy(path, context, namespace, deployment_name):
         deployment.metadata.annotations = filter_annotations(deployment.metadata.annotations or {})
     return yaml.dump(deployment.to_dict(), default_flow_style=False)
 
-def get_deployment_details(namespace=None):
+def get_deployment_details(cluster_id=None, namespace=None):
     try:
-        config.load_incluster_config()
-    except ConfigException:
-        config.load_kube_config()
+        if cluster_id:
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            try:
+                config.load_incluster_config()
+            except ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
 
     v1 = client.AppsV1Api()
-    deployments = v1.list_namespaced_deployment(namespace) if namespace else v1.list_deployment_for_all_namespaces()
+    try:
+        deployments = v1.list_namespaced_deployment(namespace) if namespace else v1.list_deployment_for_all_namespaces()
+    except Exception as e:
+        logger.error(f"Error fetching deployments: {str(e)}")
+        return []
 
     def get_age(creation_timestamp):
         delta = datetime.now(timezone.utc) - creation_timestamp

@@ -88,3 +88,62 @@ def get_pvc_yaml(path, context, namespace, pvc_name):
     if pvc.metadata:
         pvc.metadata.annotations = filter_annotations(pvc.metadata.annotations or {})
     return yaml.dump(pvc.to_dict(), default_flow_style=False)
+
+
+def get_persistent_volume_claims_details(cluster_id=None, namespace=None):
+    try:
+        if cluster_id:
+            # Get cluster context from database
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            # Fallback to default config loading
+            try:
+                config.load_incluster_config()
+            except config.ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
+
+    v1 = client.CoreV1Api()
+    try:
+        pvcs = v1.list_persistent_volume_claim_for_all_namespaces() if not namespace else v1.list_namespaced_persistent_volume_claim(namespace=namespace)
+    except Exception as e:
+        logger.error(f"Error fetching persistent volume claims: {str(e)}")
+        return []
+
+    def get_age(created_at):
+        delta = datetime.now(timezone.utc) - created_at
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    pvc_details = []
+    for pvc in pvcs.items:
+        access_modes = ", ".join(
+            "RWO" if mode == "ReadWriteOnce" else
+            "ROX" if mode == "ReadOnlyMany" else
+            "RWX" if mode == "ReadWriteMany" else
+            "RWOP" if mode == "ReadWriteOncePod" else
+            "Unknown"
+            for mode in (pvc.spec.access_modes if pvc.spec.access_modes else [])
+        ).upper()
+
+        volume_attributes = pvc.metadata.annotations.get("volume.beta.kubernetes.io/storage-provisioner", "-") if pvc.metadata.annotations else "-"
+
+        pvc_details.append({
+            'NAME': pvc.metadata.name,
+            'STATUS': pvc.status.phase,
+            'VOLUME': pvc.spec.volume_name if pvc.spec.volume_name else "-",
+            'CAPACITY': pvc.status.capacity.get("storage", "-") if pvc.status.capacity else "-",
+            'ACCESS MODES': access_modes,
+            'STORAGECLASS': pvc.spec.storage_class_name if pvc.spec.storage_class_name else "-",
+            'VOLUMEATTRIBUTESCLASS': volume_attributes,
+            'AGE': get_age(pvc.metadata.creation_timestamp)
+        })
+
+    return pvc_details

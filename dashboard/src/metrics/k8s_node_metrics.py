@@ -2,6 +2,7 @@ from kubernetes import config, client
 from kubebuddy.appLogs import logger
 from kubernetes.client.rest import ApiException
 from ..utils import configure_k8s
+from kubernetes.config.config_exception import ConfigException
 
 def get_node_metrics(path=None, context=None):
     configure_k8s(path, context)
@@ -65,3 +66,77 @@ def get_node_metrics(path=None, context=None):
 
     except ApiException as e:
         return {"error": f"Failed to fetch node list: {e.reason}"}, 0, False
+
+
+def get_cluster_metrics(config_path, context_name):
+    try:
+        config.load_kube_config(config_file=config_path, context=context_name)
+        api = client.CustomObjectsApi()
+
+        # Fetch metrics from Metrics Server
+        node_metrics = api.list_cluster_custom_object(
+            group="metrics.k8s.io",
+            version="v1beta1",
+            plural="nodes"
+        )
+
+        def parse_cpu(cpu_value):
+            if cpu_value.endswith('n'):
+                return int(cpu_value.strip('n')) / 1_000_000  # nanocores to millicores
+            elif cpu_value.endswith('m'):
+                return int(cpu_value.strip('m'))  # already in millicores
+            else:
+                return int(cpu_value) * 1000  # cores to millicores
+
+        def parse_memory(mem_value):
+            try:
+                if mem_value.endswith('Ki'):
+                    return int(mem_value.strip('Ki')) / 1024 / 1024  # Ki to Gi
+                elif mem_value.endswith('Mi'):
+                    return int(mem_value.strip('Mi')) / 1024  # Mi to Gi
+                elif mem_value.endswith('Gi'):
+                    return float(mem_value.strip('Gi'))  # already in Gi
+                elif mem_value.endswith('Ti'):
+                    return float(mem_value.strip('Ti')) * 1024  # Ti to Gi
+                else:
+                    return int(mem_value) / 1024 / 1024  # fallback: assume Ki
+            except Exception:
+                return 0
+
+        total_cpu = 0
+        total_memory = 0
+        cpu_usage = 0
+        memory_usage = 0
+
+        for node in node_metrics.get('items', []):
+            usage = node['usage']
+            cpu = usage['cpu']      # e.g., '146162782n' or '350m'
+            mem = usage['memory']   # e.g., '123456Ki'
+            cpu_usage += parse_cpu(cpu)
+            memory_usage += parse_memory(mem)
+
+        # Now, get actual total allocatable capacity
+        v1 = client.CoreV1Api()
+        nodes = v1.list_node().items
+
+        for node in nodes:
+            alloc_cpu = node.status.allocatable['cpu']
+            alloc_mem = node.status.allocatable['memory']
+            total_cpu += parse_cpu(alloc_cpu)
+            total_memory += parse_memory(alloc_mem)
+
+        cpu_percentage = round((cpu_usage / total_cpu) * 100, 2) if total_cpu else 0
+        memory_percentage = round((memory_usage / total_memory) * 100, 2) if total_memory else 0
+
+        return {
+            "cpu_usage": cpu_percentage,
+            "memory_usage": memory_percentage,
+            "cpu_total": round(total_cpu / 1000, 2),  # millicores to cores
+            "memory_total": round(total_memory, 2)    # in Gi
+        }
+
+    except ConfigException as ce:
+        return {"error": str(ce)}
+    except Exception as e:
+        return {"error": str(e)}
+

@@ -77,3 +77,48 @@ def get_sc_yaml(path, context, sc_name):
         return yaml.dump(sc.to_dict(), default_flow_style=False)
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch Storage Class details: {e.reason}"}
+    
+def get_storage_class_details(cluster_id=None, namespace=None):
+    try:
+        if cluster_id:
+            # Get cluster context from database
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            # Fallback to default config loading
+            try:
+                config.load_incluster_config()
+            except config.ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
+
+    v1 = client.StorageV1Api()
+    try:
+        storage_classes = v1.list_storage_class().items
+    except Exception as e:
+        logger.error(f"Error fetching storage classes: {str(e)}")
+        return []
+
+    def get_age(created_at):
+        delta = datetime.now(timezone.utc) - created_at
+        days = delta.days
+        hours = delta.seconds // 3600
+        return f"{days}d {hours}h" if days else f"{hours}h"
+
+    sc_details = []
+    for sc in storage_classes:
+        sc_details.append({
+            'NAME': sc.metadata.name,
+            'PROVISIONER': sc.provisioner,
+            'RECLAIMPOLICY': sc.reclaim_policy,
+            'VOLUMEBINDINGMODE': sc.volume_binding_mode,
+            'ALLOWVOLUMEEXPANSION': sc.allow_volume_expansion,
+            'AGE': get_age(sc.metadata.creation_timestamp)
+        })
+
+    return sc_details

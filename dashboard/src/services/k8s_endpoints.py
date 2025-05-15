@@ -113,14 +113,31 @@ def get_endpoint_yaml(path, context, namespace, endpoint_name):
         endpoints.metadata.annotations = filter_annotations(endpoints.metadata.annotations or {})
     return yaml.dump(endpoints.to_dict(), default_flow_style=False)
 
-def get_endpoint_details():
+def get_endpoint_details(cluster_id=None, namespace=None):
     try:
-        config.load_incluster_config()
-    except ConfigException:
-        config.load_kube_config()
+        if cluster_id:
+            # Get cluster context from database
+            from main.models import Cluster
+            current_cluster = Cluster.objects.get(id=cluster_id)
+            path = current_cluster.kube_config.path
+            context_name = current_cluster.context_name
+            config.load_kube_config(config_file=path, context=context_name)
+        else:
+            # Fallback to default config loading
+            try:
+                config.load_incluster_config()
+            except ConfigException:
+                config.load_kube_config()
+    except Exception as e:
+        logger.error(f"Error loading kubeconfig: {str(e)}")
+        return []
 
     v1 = client.CoreV1Api()
-    endpoints = v1.list_endpoints_for_all_namespaces()
+    try:
+        endpoints = v1.list_endpoints_for_all_namespaces()
+    except Exception as e:
+        logger.error(f"Error fetching endpoints: {str(e)}")
+        return []
 
     def get_age(creation_timestamp):
         delta = datetime.now(timezone.utc) - creation_timestamp
@@ -131,16 +148,19 @@ def get_endpoint_details():
     endpoint_details = []
     for ep in endpoints.items:
         addresses = []
+        ip_port_count = 0
         for subset in ep.subsets or []:
             ports = [str(p.port) for p in subset.ports or []]
             for addr in subset.addresses or []:
                 ip = addr.ip
                 for port in ports:
                     addresses.append(f"{ip}:{port}")
+                    ip_port_count += 1
         endpoint_info = {
             'name': ep.metadata.name,
             'namespace': ep.metadata.namespace,
             'addresses': ', '.join(addresses) if addresses else 'None',
+            'endp': ip_port_count,  # Send the count of IP:Port pairs
             'age': get_age(ep.metadata.creation_timestamp)
         }
         endpoint_details.append(endpoint_info)

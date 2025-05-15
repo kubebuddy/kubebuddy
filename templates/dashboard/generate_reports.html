@@ -1,255 +1,1469 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KubeBuddy Report</title>
-  </head>
+</head>
 
-<body>
+<body
+  style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; color: #333; line-height: 1.6;">
+  {% load custom_filters %}
+  {% load static %}
   <!-- Cover Page -->
-  <div class="cover-page">
-    <div class="heading">KubBuddy Report</div>
-    <h1 class="slogan">You Trust, We Deliver.</h1>
-    <div class="title-container">
-      <p class="title-text">
-        {{ cluster_name }}
-      </p>
+  <div style="display: flex; height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <!-- Left panel with image -->
+    <div style="width: 50%; overflow: hidden; position: relative;">
+      <!-- <img src="{% static 'image/KubeBuddy_logo.png' %}" alt="Cover Image"
+           style="height: 100%; width: 100%; object-fit: cover; filter: grayscale(100%) brightness(0.9);"> -->
+      <div
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(74,144,226,0.4) 0%, rgba(32,63,99,0.6) 100%);">
+      </div>
     </div>
-    <p>
-      The current Kubernetes cluster consists of {{ cluster_overview.nodes.total }} nodes, efficiently distributing workloads across the environment. There are {{ cluster_overview.deployments.total }} deployments actively managing {{ cluster_overview.pods.total }} pods, ensuring scalability and high availability of applications. The cluster operates with {{ cluster_overview.nodes.namespaces|join:", " }} namespaces, each logically separating workloads and resources for better management. Additionally, {{ cluster_overview.services.total }} services are configured to expose and load-balance the applications internally and externally as required. The overall cluster health is stable, with most components in a Running state. The cluster has been operational for approximately {{ node.age }}, and it is assigned Cluster IPs for internal communication, enabling smooth service discovery and interaction within the cluster.
+
+    <!-- Right panel with text -->
+    <div style="width: 50%; background: linear-gradient(135deg, #4a90e2 0%, #2c6ec1 100%); color: white;
+                display: flex; justify-content: center; align-items: center;">
+      <div style="text-align: left; max-width: 75%; padding: 1rem;">
+        <h2
+          style="font-size: 2.5rem; margin: 0; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.85);">
+          {{ current_year }}</h2>
+        <h1
+          style="font-size: 4.2rem; margin: 0.5rem 0 1.5rem 0; font-weight: 700; line-height: 1.1; letter-spacing: -1px; position: relative; padding-bottom: 1rem;">
+          KUBEBUDDY<br>REPORT
+          <span style="display: block; width: 80px; height: 4px; background-color: white; margin-top: 15px;"></span>
+        </h1>
+
+        <div style="margin-top: 2.5rem;">
+          <p style="margin: 1.2rem 0; font-size: 1.6rem; line-height: 1.5; font-weight: 300;">
+            <span
+              style="opacity: 0.9; display: block; font-weight: 500; text-transform: uppercase; font-size: 2.2rem; margin-bottom: 0.3rem;">CLUSTER</span>
+            <b>{{ cluster_name }}</b>
+          </p>
+          <p style="margin: 1.2rem 0; font-size: 1.6rem; line-height: 1.5; font-weight: 300;">
+            <span
+              style="opacity: 0.9; display: block; font-weight: 500; text-transform: uppercase; font-size: 2.2rem; margin-bottom: 0.3rem;">GENERATED
+              ON</span>
+            <b>{% now "F j, Y" %}</b>
+          </p>
+          <p style="margin: 1.2rem 0; font-size: 1.6rem; line-height: 1.5; font-weight: 300;">
+            <span
+              style="opacity: 0.9; display: block; font-weight: 500; text-transform: uppercase; font-size: 2.2rem; margin-bottom: 0.3rem;">PREPARED
+              BY</span>
+            <b>Thinknyx KubeBuddy Support Team</b>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Index Page -->
+  <div
+    style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);">
+    <h1
+      style="font-size: 4rem; color: #0d6efd; margin-bottom: 30px; text-align: center; font-weight: 600; position: relative; padding-bottom: 15px;">
+      KubeBuddy Report Index
+      <span style="display: block; width: 100px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+    </h1>
+    <ul style="list-style-type: none; padding: 0; font-size: 2rem; color: #343a40; width: 60%; max-width: 600px;">
+      <li
+        style="margin-bottom: 18px; padding: 12px 20px; border-radius: 8px; transition: transform 0.2s, background-color 0.2s; background-color: rgba(13, 110, 253, 0.05); border-left: 4px solid #0d6efd;">
+        <a href="#cluster-overview"
+          style="text-decoration: none; color: #0d6efd; display: block; font-weight: 500;">Cluster Overview</a>
+      </li>
+      <li
+        style="margin-bottom: 18px; padding: 12px 20px; border-radius: 8px; transition: transform 0.2s, background-color 0.2s; background-color: rgba(13, 110, 253, 0.05); border-left: 4px solid #0d6efd;">
+        <a href="#cluster-overview"
+          style="text-decoration: none; color: #0d6efd; display: block; font-weight: 500;">Current Usage</a>
+      </li>
+      <li
+        style="margin-bottom: 18px; padding: 12px 20px; border-radius: 8px; transition: transform 0.2s, background-color 0.2s; background-color: rgba(13, 110, 253, 0.05); border-left: 4px solid #0d6efd;">
+        <a href="#cluster-overview"
+          style="text-decoration: none; color: #0d6efd; display: block; font-weight: 500;">Metric Usage</a>
+      </li>
+      <li
+        style="margin-bottom: 18px; padding: 12px 20px; border-radius: 8px; transition: transform 0.2s, background-color 0.2s; background-color: rgba(13, 110, 253, 0.05); border-left: 4px solid #0d6efd;">
+        <a href="#cluster-overview"
+          style="text-decoration: none; color: #0d6efd; display: block; font-weight: 500;">Namespaces</a>
+      </li>
+      <li
+        style="margin-bottom: 18px; padding: 12px 20px; border-radius: 8px; transition: transform 0.2s, background-color 0.2s; background-color: rgba(13, 110, 253, 0.05); border-left: 4px solid #0d6efd;">
+        <a href="#node-details" style="text-decoration: none; color: #0d6efd; display: block; font-weight: 500;">Nodes
+          Details</a>
+      </li>
+      <li
+        style="margin-bottom: 18px; padding: 12px 20px; border-radius: 8px; transition: transform 0.2s, background-color 0.2s; background-color: rgba(13, 110, 253, 0.05); border-left: 4px solid #0d6efd;">
+        <a href="#pod-details" style="text-decoration: none; color: #0d6efd; display: block; font-weight: 500;">Pods
+          Details</a>
+      </li>
+      <li
+        style="margin-bottom: 18px; padding: 12px 20px; border-radius: 8px; transition: transform 0.2s, background-color 0.2s; background-color: rgba(13, 110, 253, 0.05); border-left: 4px solid #0d6efd;">
+        <a href="#deployment-details"
+          style="text-decoration: none; color: #0d6efd; display: block; font-weight: 500;">Replica Sets</a>
+      </li>
+      <li
+        style="margin-bottom: 18px; padding: 12px 20px; border-radius: 8px; transition: transform 0.2s, background-color 0.2s; background-color: rgba(13, 110, 253, 0.05); border-left: 4px solid #0d6efd;">
+        <a href="#service-details"
+          style="text-decoration: none; color: #0d6efd; display: block; font-weight: 500;"> Persistent Storage</a>
+      </li>
+      <li
+        style="margin-bottom: 18px; padding: 12px 20px; border-radius: 8px; transition: transform 0.2s, background-color 0.2s; background-color: rgba(13, 110, 253, 0.05); border-left: 4px solid #0d6efd;">
+        <a href="#service-details"
+          style="text-decoration: none; color: #0d6efd; display: block; font-weight: 500;">Networking</a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Overview Page -->
+  <div style="width: 100%; max-width: 100vw; overflow-x: hidden; padding: 10px; box-sizing: border-box;">
+    <h2
+      style="font-size: 34px; font-weight: bold; text-align: center; margin-bottom: 30px; color: #0d6efd; position: relative; padding-bottom: 15px;">
+      Overview
+      <span style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+    </h2>
+    <p
+      style="font-size: 26px; line-height: 1.8; color: #0c63e4; text-align: center; margin-bottom: 50px; max-width: 900px; margin-left: auto; margin-right: auto; background-color: rgba(13, 110, 253, 0.05); padding: 20px 30px; border-radius: 8px; box-shadow: 0 2px 6px rgba(13, 110, 253, 0.1); text-align:justify">
+      The Kubernetes cluster comprises 
+      {% if cluster_overview.nodes.total %}
+        {{ cluster_overview.nodes.total }} 
+        {% if cluster_overview.nodes.total == 1 %}
+          node
+        {% else %}
+          nodes
+        {% endif %}
+      {% else %}
+        no nodes
+      {% endif %}, efficiently distributing workloads.
+
+      {% if cluster_overview.deployments.total %}
+        It manages {{ cluster_overview.deployments.total }} 
+        {% if cluster_overview.deployments.total == 1 %}
+          deployment
+        {% else %}
+          deployments
+        {% endif %}
+      {% endif %}
+      {% if cluster_overview.deployments.total and cluster_overview.pods.total %}
+        and 
+      {% endif %}
+      {% if cluster_overview.pods.total %}
+        {{ cluster_overview.pods.total }} 
+        {% if cluster_overview.pods.total == 1 %}
+          pod
+        {% else %}
+          pods
+        {% endif %}
+      {% endif %}
+      {% if cluster_overview.deployments.total or cluster_overview.pods.total %}
+        , ensuring scalability and high availability.
+      {% endif %}
+
+      {% if cluster_overview.nodes.namespaces|length > 0 %}
+        The cluster operates across {{ cluster_overview.nodes.namespaces|length }} 
+        {% if cluster_overview.nodes.namespaces|length == 1 %}
+          namespace
+        {% else %}
+          namespaces
+        {% endif %}
+        ({{ cluster_overview.nodes.namespaces|join:", "}}), logically separating workloads for better management.
+      {% endif %}
+
+      {% if cluster_overview.services.total %}
+        It also has {{ cluster_overview.services.total }} 
+        {% if cluster_overview.services.total == 1 %}
+          service
+        {% else %}
+          services
+        {% endif %}
+        configured for internal and external application exposure and load balancing.
+      {% endif %}
+
+      {% if node.age %}
+        Operational for approximately {{ node.age }}, it uses Cluster IPs for seamless internal communication and service discovery.
+      {% endif %}
     </p>
 
-    <div class="footer-info">
-      <p style="color:dimgray">Generated on {% now "F j, Y, H:i" %}</p>
-      <!-- <p style="color:darkblue;">Cluster report {% now "F j, Y, H:i" %}</p> -->
-      <p style="margin: 30px 0 0 100px;">Thinknyx Support Team</p>
-    </div>
-    <div class="copyright">
-      <p>Copyright ©2025, Thinknyx technologies, All rights reserved</p>
-      <p>Confidential</p>
-    </div>
-  </div>
-
-  <!-- Cluster Overview Page -->
-  <div class="content-page">
-    <h2 class="section-title">Cluster Overview</h2>
-    <table>
+    <table
+      style="width: 100%; border-collapse: separate; border-spacing: 0; margin: 20px auto; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 900px;">
       <thead>
-        <tr>
-          <th width="30%">Category</th>
-          <th width="70%">Details</th>
-        </tr>
+      <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+        <th
+        style="width: 30%; padding: 15px 22px; text-align: left; border-bottom: 2px solid #0d6efd; font-size: 24px; color: #0a58ca; font-weight: 600;">
+        Category</th>
+        <th
+        style="width: 70%; padding: 15px 22px; text-align: left; border-bottom: 2px solid #0d6efd; font-size: 24px; color: #0a58ca; font-weight: 600;">
+        Details</th>
+      </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>Nodes</td>
-          <td>
-            <p>Total: {{ cluster_overview.nodes.total }}</p>
-            <p>Ready: {{ cluster_overview.nodes.ready }}</p>
-            <p>Namespace: {{ cluster_overview.nodes.namespaces|join:", " }}</p>
-          </td>
-        </tr>
-        <tr>
-          <td>Pods</td>
-          <td>
-            <p>Total: {{ cluster_overview.pods.total }}</p>
-            <p>Running: {{ cluster_overview.pods.running }}</p>
-            <p>Pending: {{ cluster_overview.pods.pending }}</p>
-            <p>Failed: {{ cluster_overview.pods.failed }}</p>
-            <p>Namespace: {{ cluster_overview.pods.namespaces|join:", " }}</p>
-          </td>
-        </tr>
-        <tr>
-          <td>Deployments</td>
-          <td>
-            <p>Total: {{ cluster_overview.deployments.total }}</p>
-            <p>Available: {{ cluster_overview.deployments.available }}</p>
-            <p>Namespace: {{ cluster_overview.deployments.namespaces|join:", " }}</p>
-          </td>
-        </tr>
-        <tr>
-          <td>Services</td>
-          <td>
-            <p>Total: {{ cluster_overview.services.total }}</p>
-            <p>ClusterIP: {{ cluster_overview.services.cluster_ip }}</p>
-            <p>LoadBalancer: {{ cluster_overview.services.load_balancer }}</p>
-            <p>NodePort: {{ cluster_overview.services.node_port }}</p>
-            <p>Namespace: {{ cluster_overview.services.namespaces|join:", " }}</p>
-          </td>
-        </tr>
+      <tr style="background-color: rgba(204, 229, 255, 0.5); transition: background-color 0.2s;">
+        <td
+        style="padding: 15px 24px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 24px; color: #0b5ed7; font-weight: 500;">
+        Nodes</td>
+        <td
+        style="padding: 15px 24px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 24px; color: #0b5ed7;">
+        <div style="display: flex; flex-direction: column; gap: 5px; max-width: 550px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">Total:</span>
+          <span
+            style="background-color: rgba(13, 110, 253, 0.1); padding: 2px 10px; border-radius: 12px; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.nodes.total }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">Ready:</span>
+          <span
+            style="background-color: rgba(25, 135, 84, 0.1); padding: 2px 10px; border-radius: 12px; color: #198754; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.nodes.ready }}</span>
+          </div>
+        </div>
+        </td>
+      </tr>
+      <tr style="background-color: rgba(224, 247, 255, 0.5); transition: background-color 0.2s;">
+        <td
+        style="padding: 15px 24px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 24px; color: #0b5ed7; font-weight: 500;">
+        Pods</td>
+        <td
+        style="padding: 15px 24px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 24px; color: #0b5ed7;">
+        <div style="display: flex; flex-direction: column; gap: 5px; max-width: 550px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">Total:</span>
+          <span
+            style="background-color: rgba(13, 110, 253, 0.1); padding: 2px 10px; border-radius: 12px; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.pods.total }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">Running:</span>
+          <span
+            style="background-color: rgba(25, 135, 84, 0.1); padding: 2px 10px; border-radius: 12px; color: #198754; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.pods.running }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">Pending:</span>
+          <span
+            style="background-color: rgba(255, 193, 7, 0.1); padding: 2px 10px; border-radius: 12px; color: #ffc107; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.pods.pending }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">Failed:</span>
+          <span
+            style="background-color: rgba(220, 53, 69, 0.1); padding: 2px 10px; border-radius: 12px; color: #dc3545; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.pods.failed }}</span>
+          </div>
+        </div>
+        </td>
+      </tr>
+      <tr style="background-color: rgba(204, 229, 255, 0.5); transition: background-color 0.2s;">
+        <td
+        style="padding: 15px 24px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 24px; color: #0b5ed7; font-weight: 500;">
+        Deployments</td>
+        <td
+        style="padding: 15px 24px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 24px; color: #0b5ed7;">
+        <div style="display: flex; flex-direction: column; gap: 5px; max-width: 550px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">Total:</span>
+          <span
+            style="background-color: rgba(13, 110, 253, 0.1); padding: 2px 10px; border-radius: 12px; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.deployments.total }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">Available:</span>
+          <span
+            style="background-color: rgba(25, 135, 84, 0.1); padding: 2px 10px; border-radius: 12px; color: #198754; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.deployments.available }}</span>
+          </div>
+        </div>
+        </td>
+      </tr>
+      <tr style="background-color: rgba(224, 247, 255, 0.5); transition: background-color 0.2s;">
+        <td
+        style="padding: 15px 24px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 24px; color: #0b5ed7; font-weight: 500;">
+        Services</td>
+        <td
+        style="padding: 15px 24px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 24px; color: #0b5ed7;">
+        <div style="display: flex; flex-direction: column; gap: 5px; max-width: 550px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">Total:</span>
+          <span
+            style="background-color: rgba(13, 110, 253, 0.1); padding: 2px 10px; border-radius: 12px; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.services.total }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">ClusterIP:</span>
+          <span
+            style="background-color: rgba(25, 135, 84, 0.1); padding: 2px 10px; border-radius: 12px; color: #198754; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.services.cluster_ip }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">LoadBalancer:</span>
+          <span
+            style="background-color: rgba(13, 110, 253, 0.1); padding: 2px 10px; border-radius: 12px; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.services.load_balancer }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; min-width: 100px;">NodePort:</span>
+          <span
+            style="background-color: rgba(255, 193, 7, 0.1); padding: 2px 10px; border-radius: 12px; color: #ffc107; font-weight: 600; min-width: 60px; text-align: center;">{{ cluster_overview.services.node_port }}</span>
+          </div>
+        </div>
+        </td>
+      </tr>
       </tbody>
     </table>
   </div>
+
+  <!-- Health Summary Page -->
+  <div class="content-page" style="page-break-before: always; padding: 40px; ">
+    <h2 class="section-title"
+      style="color: #0d6efd; font-size: 32px; text-align: center; margin-bottom: 24px; font-weight: 600; position: relative;">
+      Current Usage
+      <span style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+    </h2>
+    <hr
+      style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;">
+
+    <div class="overview"
+      style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f0ff 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.1); margin-bottom: 30px;">
+      <h3
+        style="color: #0a58ca; font-size: 32px; margin-bottom: 20px; border-bottom: 2px solid rgba(13, 110, 253, 0.2); padding-bottom: 10px;">
+        Health Summary</h3>
+
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px;">
+        <div
+          style="flex: 1; min-width: 200px; background-color: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #4CAF50;">
+          <h4 style="margin: 0 0 10px 0; color: #4CAF50;">Healthy Nodes</h4>
+          <p style="color: #4CAF50; font-size: 28px; font-weight: bold; margin: 0;">{{ health_summary.nodes.healthy }}
+          </p>
+        </div>
+        <div
+          style="flex: 1; min-width: 200px; background-color: rgba(244, 67, 54, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #F44336;">
+          <h4 style="margin: 0 0 10px 0; color: #F44336;">Unhealthy Nodes</h4>
+          <p style="color: #F44336; font-size: 28px; font-weight: bold; margin: 0;">{{ health_summary.nodes.unhealthy }}
+          </p>
+        </div>
+        <div
+          style="flex: 1; min-width: 200px; background-color: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #4CAF50;">
+          <h4 style="margin: 0 0 10px 0; color: #4CAF50;">Healthy Pods</h4>
+          <p style="color: #4CAF50; font-size: 28px; font-weight: bold; margin: 0;">{{ health_summary.pods.healthy }}
+          </p>
+        </div>
+        <div
+          style="flex: 1; min-width: 200px; background-color: rgba(244, 67, 54, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #F44336;">
+          <h4 style="margin: 0 0 10px 0; color: #F44336;">Unhealthy Pods</h4>
+          <p style="color: #F44336; font-size: 28px; font-weight: bold; margin: 0;">{{ health_summary.pods.unhealthy }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="health-bar-chart"
+      style="width: 100%; height: 450px; background-color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 10px; box-sizing: border-box;">
+    </div>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', { 'packages': ['corechart'] });
+      google.charts.setOnLoadCallback(drawHealthChart);
+
+      function drawHealthChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Category', 'Healthy', 'Unhealthy'],
+          ['Nodes', {{ health_summary.nodes.healthy|default:"0" }}, {{ health_summary.nodes.unhealthy|default:"0" }}],
+      ['Pods', {{ health_summary.pods.healthy|default:"0" }}, {{ health_summary.pods.unhealthy|default:"0" }}]
+        ]);
+
+      var options = {
+        title: 'Cluster Health Overview',
+        subtitle: 'Healthy vs Unhealthy Resources',
+        titleTextStyle: {
+          color: '#0d6efd',
+          fontSize: 22,
+          fontWeight: 'bold'
+        },
+        width: '70%',
+        height: 400,
+        chartArea: { width: '50%', height: '70%' },
+        hAxis: {
+          title: 'Count',
+          textPosition: 'none',
+          minValue: 0,
+          textStyle: { color: '#666' },
+          titleTextStyle: { color: '#333', italic: false }
+        },
+        vAxis: {
+          title: 'Resource Type',
+          textStyle: { color: '#666' },
+          titleTextStyle: { color: '#333', italic: false },
+          format: 'percent'
+        },
+        colors: ['#4CAF50', '#F44336'],
+        legend: { position: 'top', maxLines: 3, textStyle: { color: '#666' } },
+        bar: { groupWidth: '100%' },
+        isStacked: false,
+        animation: {
+          startup: true,
+          duration: 1000,
+          easing: 'out'
+        }
+      };
+
+      var chart = new google.visualization.BarChart(document.getElementById('health-bar-chart'));
+      chart.draw(data, options);
+      }
+    </script>
+  </div>
+
+  <!-- Metric Usage Page -->
+  <div class="content-page" style="page-break-before: always; padding: 40px;">
+    <h2 class="section-title"
+      style="color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative;">
+      Metric Usage
+      <span style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+    </h2>
+    <hr
+      style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;">
+
+    <table
+      style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+      <thead>
+        <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+          <th
+            style="width: 25%; padding: 15px; text-align: left; border-bottom: 2px solid #0d6efd; font-size: 22px; color: #0a58ca; font-weight: 600;">
+            Metric</th>
+          <th
+            style="width: 25%; padding: 15px; text-align: left; border-bottom: 2px solid #0d6efd; font-size: 22px; color: #0a58ca; font-weight: 600;">
+            Usage</th>
+          <th
+            style="width: 25%; padding: 15px; text-align: left; border-bottom: 2px solid #0d6efd; font-size: 22px; color: #0a58ca; font-weight: 600;">
+            Total</th>
+          <th
+            style="width: 25%; padding: 15px; text-align: left; border-bottom: 2px solid #0d6efd; font-size: 22px; color: #0a58ca; font-weight: 600;">
+            Percentage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background-color: rgba(204, 229, 255, 0.5); transition: background-color 0.2s;">
+          <td
+            style="padding: 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+            CPU</td>
+          <td style="padding: 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ cluster_metrics.cpu_usage }} %</td>
+          <td style="padding: 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ cluster_metrics.cpu_total }} cores </td>
+          <td style="padding: 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ cluster_metrics.cpu_usage }} %</td>
+        </tr>
+        <tr style="background-color: rgba(224, 247, 255, 0.5); transition: background-color 0.2s;">
+          <td
+            style="padding: 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+            Memory</td>
+          <td style="padding: 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ cluster_metrics.memory_usage }} %</td>
+          <td style="padding: 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ cluster_metrics.memory_total }} Gi</td>
+          <td style="padding: 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ cluster_metrics.memory_usage }} %</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div id="cluster-metrics-bar-chart"
+      style="width: 100%; height: 450px; background-color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 10px; box-sizing: border-box;">
+    </div>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', { 'packages': ['corechart'] });
+      google.charts.setOnLoadCallback(drawClusterMetricsChart);
+
+      function drawClusterMetricsChart() {
+      var data = google.visualization.arrayToDataTable([
+        ['Metric', 'Percentage', { role: 'annotation' }],
+        ['CPU', parseFloat('{{ cluster_metrics.cpu_usage|default:"0" }}'), '{{ cluster_metrics.cpu_usage|default:"0" }}%'],
+        ['Memory', parseFloat('{{ cluster_metrics.memory_usage|default:"0" }}'), '{{ cluster_metrics.memory_usage|default:"0" }}%']
+      ]);
+
+      var options = {
+        title: 'Cluster Metrics Usage (%)',
+        titleTextStyle: {
+        color: '#0d6efd',
+        fontSize: 30,
+        fontWeight: 'bold'
+        },
+        width: 700,
+        height: 400,
+        chartArea: { width: '80%', height: '70%' },
+        hAxis: {
+        title: 'Usage (%)',
+        fontSize: 22,
+        textPosition: 'none',
+        minValue: 0,
+        maxValue: 100,
+        textStyle: { color: '#666' },
+        titleTextStyle: { color: '#333' }
+        },
+        vAxis: {
+        title: 'Resource',
+        fontSize: 22,
+        textStyle: { color: '#666' },
+        titleTextStyle: { color: '#333' }
+        },
+        colors: ['#4CAF50'],
+        legend: { position: 'none' },
+        bar: { groupWidth: '75%' },
+        annotations: {
+        alwaysOutside: true,
+        textStyle: {
+          fontSize: 22,
+          color: '#000',
+          auraColor: 'none'
+        }
+        }
+      };
+
+      var chart = new google.visualization.BarChart(document.getElementById('cluster-metrics-bar-chart'));
+      chart.draw(data, options);
+      }
+    </script>
+
+
+
+    <div style="text-align: center; margin-top: 20px;">
+      <h3 style="color: #0d6efd; font-size:22px;">CPU Usage: {{ cluster_metrics.cpu_usage }} %</h3>
+      <h3 style="color: #0d6efd; font-size:22px;">Memory Usage: {{ cluster_metrics.memory_usage }} %</h3>
+    </div>
+  </div>
+
 
   <!-- Namespace Page -->
-  <div class="content-page">
-    <h2 class="section-title">NameSpace</h2>
-    <table>
-      <thead>
-        <tr>
-          <th width="40%">Name</th>
-          <th width="30%">Status</th>
-          <th width="30%">Age</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for namespace in namespaces %}
-        <tr>
-          <td>{% if namespace.name %}{{ namespace.name }}{% else %} - {% endif %}</td>
-          <td>{{ namespace.status }}</td>
-          <td>{{ namespace.age }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="3" class="no-data">No namespaces found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="content-page" style="page-break-before: always;"></div>
+  <h2 class="section-title"
+    style="color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 15px;">
+    Namespaces
+    <span style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+  </h2>
+  <hr
+    style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;">
+
+  <table
+    style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+    <thead>
+      <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+        <th
+          style="width: 40%; padding: 15px 20px; text-align: left; border-bottom: 2px solid #0d6efd; font-size: 22px; color: #0a58ca; font-weight: 600;">
+          Name</th>
+        <th
+          style="width: 30%; padding: 15px 20px; text-align: left; border-bottom: 2px solid #0d6efd; font-size: 22px; color: #0a58ca; font-weight: 600;">
+          Status</th>
+        <th
+          style="width: 30%; padding: 15px 20px; text-align: left; border-bottom: 2px solid #0d6efd; font-size: 22px; color: #0a58ca; font-weight: 600;">
+          Age</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for namespace in namespaces.all %}
+      <tr
+        style="background-color: {% cycle 'rgba(204, 229, 255, 0.5)' 'rgba(224, 247, 255, 0.5)' %}; transition: background-color 0.2s;">
+        <td
+          style="padding: 15px 20px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+          {% if namespace.name %}{{ namespace.name }}{% else %} - {% endif %}</td>
+        <td style="padding: auto; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 18px; ">
+          <span style="display: inline-block; padding: 4px 10px; border-radius: 12px; font-weight: 500; background-color: {% if namespace.status == 'Active' %}rgba(25, 135, 84, 0.1){% else %}rgba(220, 53, 69, 0.1){% endif %}; 
+        color: {% if namespace.status == 'Active' %}#198754{% else %}#dc3545{% endif %};">
+            {{ namespace.status }}
+          </span>
+        </td>
+        <td
+          style="padding: 15px 20px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7;">
+          {{ namespace.age }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3" class="no-data"
+          style="padding: 30px; text-align: center; font-size: 21px; color: #6c757d; background-color: rgba(224, 247, 255, 0.3);">
+          No namespaces found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="overview"
+    style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f0ff 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.1); margin-bottom: 30px; padding: 25px; {% if namespaces.all|length > 10 %}page-break-before: always;{% endif %}">
+    <h3
+      style="color: #0a58ca; font-size: 34px; margin-bottom: 20px; border-bottom: 2px solid rgba(13, 110, 253, 0.2); padding-bottom: 10px;">
+      Overview</h3>
+
+    <p style="font-size: 22px; line-height: 1.8; color: #0c63e4; margin-bottom: 20px;">
+      <span
+        style="background-color: rgba(13, 110, 253, 0.1); padding: 5px 12px; border-radius: 12px; font-weight: 500;">
+        Total Namespaces: {{ namespaces.total_namespaces }}
+      </span>
+    </p>
+
+    <ul
+      style="list-style-type: disc; padding-left: 20px; margin: 0; font-size: 22px; line-height: 1.8; color: #495057;">
+      <li><span
+          style="background-color: rgba(25, 135, 84, 0.1); color: #198754; padding: 2px 8px; border-radius: 4px; font-weight: 500;">{{ namespaces.total_namespaces }} namespaces in total</span>.</li>
+      <li><span
+          style="background-color: rgba(25, 135, 84, 0.1); color: #198754; padding: 2px 8px; border-radius: 4px; font-weight: 500;">{{ namespaces.active_count }} active namespaces</span> and <span
+          style="background-color: rgba(220, 53, 69, 0.1); color: #dc3545; padding: 2px 8px; border-radius: 4px; font-weight: 500;">{{ namespaces.not_active_count }} not active namespaces</span>.</li>
+      <li>The oldest namespace has an age of <span style="font-weight: 500; color: #0d6efd;">{{ namespaces.oldest_age }}</span>.</li>
+      <li>The newest namespace has an age of <span style="font-weight: 500; color: #0d6efd;">{{ namespaces.newest_age }}</span>.</li>
+    </ul>
+  </div>
+
+
+  <div id="namespace-pie-chart"
+    style="{% if namespaces|length > 5 %}page-break-before: always;{% else %}display: none;{% endif %} width: 100%; height: 450px; background-color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); box-sizing: border-box;">
+  </div>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">
+    google.charts.load('current', { 'packages': ['corechart'] });
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+      var data = google.visualization.arrayToDataTable([
+        ['Status', 'Count'],
+        ['Active', {{ namespaces.active | length }}],
+    ['Not Active', {{ namespaces.not_active | length }}]
+      ]);
+
+    var options = {
+      title: 'Namespace Status Distribution',
+      titleTextStyle: {
+        color: '#0d6efd',
+        fontSize: 20,
+        fontWeight: 'bold'
+      },
+      pieHole: 0.7,
+      colors: ['#28a745', '#ffc107'],
+      chartArea: {
+        left: "3%",
+        top: "3%",
+        height: "94%",
+        width: "94%"
+        },
+      pieSliceText: 'none',
+      tooltip: { trigger: 'none' },
+      sliceVisibilityThreshold: 0.02,
+      legend: {
+        position: 'right',
+        alignment: 'center',
+        textStyle: { color: '#495057', fontSize: 18 }
+      }
+
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById('namespace-pie-chart'));
+    chart.draw(data, options);
+      }
+  </script>
   </div>
 
   <!-- Nodes Page -->
-  <div class="content-page">
-    <h2 class="section-title">Nodes</h2>
-    <table>
+  <div style="page-break-before: always;">
+  <div class="content-page" style="padding: 40px; ">
+    <h2 class="section-title"
+      style="color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 15px;">
+      Nodes
+      <span style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+    </h2>
+    <hr
+      style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;">
+
+    <table
+      style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
       <thead>
-        <tr>
-          <th width="20%">Name</th>
-          <th width="15%">Status</th>
-          <th width="15%">Roles</th>
-          <th width="10%">Age</th>
-          <th width="15%">Version</th>
-          <th width="10%">CPU</th>
-          <th width="15%">Memory</th>
+        <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+          <th
+            style="width: 20%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+            Name</th>
+          <th
+            style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+            Status</th>
+          <th
+            style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+            Roles</th>
+          <th
+            style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+            Age</th>
+          <th
+            style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+            Version</th>
+          <th
+            style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+            CPU</th>
+          <th
+            style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+            Memory</th>
         </tr>
       </thead>
       <tbody>
         {% for node in nodes %}
-        <tr>
-          <td>{{ node.name }}</td>
-          <td>
-            <span class="{% if node.status == 'Ready' %}status-ready{% elif node.status == 'NotReady' %}status-notready{% else %}status-unknown{% endif %}">
+        <tr
+          style="background-color: {% cycle 'rgba(204, 229, 255, 0.5)' 'rgba(224, 247, 255, 0.5)' %}; transition: background-color 0.2s;">
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+            {{ node.name }}</td>
+          <td style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px;">
+            <span
+              style="display: inline-block; padding: 4px 10px; border-radius: 12px; font-weight: 500; 
+                        background-color: {% if node.status == 'Ready' %}rgba(25, 135, 84, 0.1){% elif node.status == 'NotReady' %}rgba(220, 53, 69, 0.1){% else %}rgba(108, 117, 125, 0.1){% endif %}; 
+                        color: {% if node.status == 'Ready' %}#198754{% elif node.status == 'NotReady' %}#dc3545{% else %}#6c757d{% endif %};">
               {{ node.status }}
             </span>
           </td>
-          <td>{% if node.roles %}{{ node.roles }}{% else %} - {% endif %}</td>
-          <td>{{ node.age }}</td>
-          <td>{% if node.version %}{{ node.version }}{% else %} - {% endif %}</td>
-          <td>{{ node.cpu }}</td>
-          <td>{{ node.memory }}</td>
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {% if node.roles %}{{ node.roles }}{% else %} - {% endif %}</td>
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ node.age }}</td>
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {% if node.version %}{{ node.version }}{% else %} - {% endif %}</td>
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ node.cpu }}</td>
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ node.memory }}</td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="7" class="no-data">No node data available.</td>
+          <td colspan="7" class="no-data"
+            style="padding: 30px; text-align: center; font-size: 21px; color: #6c757d; background-color: rgba(224, 247, 255, 0.3);">
+            No node data available.</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+
+
+    <h2 class="section-title"
+      style="{% if nodes|length > 5 %}page-break-before: always;{% else %}display: none;{% endif %} color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 15px;">
+      Nodes
+      <span style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+    </h2>
+    <hr
+      style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;{% if nodes|length > 5 %}{% else %}display: none;{% endif %}">
+    <div class="overview"
+      style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f0ff 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.1); margin-bottom: 30px;">
+      <ul
+        style="list-style-type: disc; padding-left: 20px; margin: 0; font-size: 22px; line-height: 1.8; color: #495057;">
+        <li><span
+            style="background-color: rgba(25, 135, 84, 0.1); color: #198754; padding: 2px 8px; border-radius: 4px; font-weight: 500;">
+            {% if nodes|length <= 1 %}{{ nodes|length }} node{% else %}{{ nodes|length }} nodes{% endif %} in
+              total</span>.</li>
+        <li><span
+            style="background-color: rgba(25, 135, 84, 0.1); color: #198754; padding: 2px 8px; border-radius: 4px; font-weight: 500;">
+            {% if nodes|filter:"status=Ready"|length <= 1 %}{{ nodes|filter:"status=Ready"|length }} node{% else %}{{
+              nodes|filter:"status=Ready"|length }} nodes{% endif %} are ready</span>.</li>
+        <li><span
+            style="background-color: rgba(220, 53, 69, 0.1); color: #dc3545; padding: 2px 8px; border-radius: 4px; font-weight: 500;">
+            {% if nodes|filter:"status=NotReady"|length <= 1 %} {{ nodes|filter:"status=NotReady"|length }} node{% else %}{{ nodes|filter:"status=NotReady"|length }} nodes{% endif %} are not ready</span>.</li>
+        <li>The oldest node has an age of <span style="font-weight: 500; color: #0d6efd;">{{ nodes|map:"age"|max_value }}</span>.</li>
+        <li>The newest node has an age of <span style="font-weight: 500; color: #0d6efd;">{{ nodes|map:"age"|min_value }}</span>.</li>
+      </ul>
+    </div>
+
+    <div id="node-doughnut-chart"
+      style=" width: 100%; height: {% if nodes|length > 5 %}750px{% else %}450px{% endif %}; background-color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; box-sizing: border-box;">
+      <script type="text/javascript">
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(drawNodeChart);
+
+        function drawNodeChart() {
+          var data = google.visualization.arrayToDataTable([
+            ['Status', 'Count'],
+            ['Ready', {{ nodes|filter:"status=Ready"|length|default:"0"|safe }}],
+        ['NotReady', {{ nodes|filter:"status=NotReady"|length|default:"0"|safe }}],
+          ['Unknown', {{ nodes|filter:"status=Unknown"|length|default:"0"|safe }}]
+      ]);
+
+
+        var options = {
+          title: 'Node Distribution',
+          titleTextStyle: {
+            color: '#0d6efd',
+            fontSize: 22,
+            fontWeight: 'bold'
+          },
+          pieHole: 0.7,
+          colors: ['#28a745', '#ffc107', '#dc3545'],
+          chartArea: { width: '80%', height: '80%' },
+          legend: { position: 'right', textStyle: { color: '#495057', fontSize: 22 } },
+          tooltip: { trigger: 'none' },
+          pieSliceText: 'none',
+          animation: {
+            startup: true,
+            duration: 1000,
+            easing: 'out'
+          },
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('node-doughnut-chart'));
+        chart.draw(data, options);
+      }
+      </script>
+    </div>
   </div>
 
-  <!-- Networking Page -->
-  <div class="content-page">
-    <h2 class="section-title">Networking</h2>
-    
-    <!-- Services Section -->
-    <h3 class="subsection-title">Services</h3>
-    <table>
+    <!-- Pods Section -->
+    <div style="page-break-before: always;">
+    <div class="content-page" style="padding: 40px; ">
+      <h2 class="section-title"
+      style="color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 15px;">
+      Pods
+      <span style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+      </h2>
+      <hr
+      style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;">
+
+      <table
+      style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
       <thead>
-        <tr>
-          <th width="15%">Name</th>
-          <th width="15%">Namespace</th>
-          <th width="10%">Type</th>
-          <th width="15%">Cluster IP</th>
-          <th width="15%">External IP</th>
-          <th width="15%">Ports</th>
-          <th width="15%">Age</th>
+      <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+        <th
+        style="width: 20%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+        Name</th>
+        <th
+        style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+        Namespace</th>
+        <th
+        style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+        Status</th>
+        <th
+        style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+        Ready</th>
+        <th
+        style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+        Restarts</th>
+        <th
+        style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+        Age</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for pod in pods %}
+      <tr
+        style="background-color: {% cycle 'rgba(204, 229, 255, 0.5)' 'rgba(224, 247, 255, 0.5)' %}; transition: background-color 0.2s;">
+        <td
+        style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+        {{ pod.name }}</td>
+        <td
+        style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+        {{ pod.namespace }}</td>
+        <td style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px;">
+        <span
+          style="display: inline-block; padding: 4px 10px; border-radius: 12px; font-weight: 500; 
+              background-color: {% if pod.status == 'Running' %}rgba(25, 135, 84, 0.1){% elif pod.status == 'Pending' %}rgba(255, 193, 7, 0.1){% elif pod.status == 'Failed' %}rgba(220, 53, 69, 0.1){% else %}rgba(108, 117, 125, 0.1){% endif %}; 
+              color: {% if pod.status == 'Running' %}#198754{% elif pod.status == 'Pending' %}#ffc107{% elif pod.status == 'Failed' %}#dc3545{% else %}#6c757d{% endif %};">
+          {{ pod.status }}
+        </span>
+        </td>
+        <td
+        style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+        {{ pod.ready }}</td>
+        <td
+        style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+        {{ pod.restarts }}</td>
+        <td
+        style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+        {{ pod.age }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="no-data"
+        style="padding: 30px; text-align: center; font-size: 21px; color: #6c757d; background-color: rgba(224, 247, 255, 0.3);">
+        No pod data available.</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+      </table>
+
+      <h2 class="section-title"
+      style="{% if pods|length < 5 %}page-break-before: always;{% else %}display: none;{% endif %} color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 15px;">
+      Pods
+      <span style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+      </h2>
+      <hr
+      style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;{% if pods|length < 5 %}{% else %}display: none;{% endif %}">
+
+      <div class="overview"
+      style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f0ff 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.1); margin-bottom: 30px;">
+      <ul
+      style="list-style-type: disc; padding-left: 20px; margin: 0; font-size: 22px; line-height: 1.8; color: #495057;">
+      <li><span
+        style="background-color: rgba(25, 135, 84, 0.1); color: #198754; padding: 2px 8px; border-radius: 4px; font-weight: 500;">
+        {% if pods|length <= 1 %}{{ pods|length }} pod{% else %}{{ pods|length }} pods{% endif %} in
+          total</span>.</li>
+      <li><span
+        style="background-color: rgba(25, 135, 84, 0.1); color: #198754; padding: 2px 8px; border-radius: 4px; font-weight: 500;">
+        {% if pods|filter:"status=Running"|length <= 1 %}{{ pods|filter:"status=Running"|length }} pod{% else %}{{ pods|filter:"status=Running"|length }} pods{% endif %} are running</span>.</li>
+      <li><span
+        style="background-color: rgba(255, 193, 7, 0.1); color: #ffc107; padding: 2px 8px; border-radius: 4px; font-weight: 500;">
+        {% if pods|filter:"status=Pending"|length <= 1 %}{{ pods|filter:"status=Pending"|length }} pod{% else %}{{ pods|filter:"status=Pending"|length }} pods{% endif %} are pending</span>.</li>
+      <li><span
+        style="background-color: rgba(220, 53, 69, 0.1); color: #dc3545; padding: 2px 8px; border-radius: 4px; font-weight: 500;">
+        {% if pods|filter:"status=Failed"|length <= 1 %}{{ pods|filter:"status=Failed"|length }} pod{% else %}{{ pods|filter:"status=Failed"|length }} pods{% endif %} have failed</span>.</li>
+      <li>The oldest pod has an age of <span style="font-weight: 500; color: #0d6efd;">{{ pods|map:"age"|max_value }}</span>.</li>
+      <li>The newest pod has an age of <span style="font-weight: 500; color: #0d6efd;">{{ pods|map:"age"|min_value }}</span>.</li>
+      </ul>
+      </div>
+    </div>
+    
+
+    <!-- ReplicaSets Page -->
+    <div style="page-break-before: always;">
+      <div class="content-page">
+        <h2 class="section-title"
+          style="color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 15px;">
+          ReplicaSets
+          <span
+            style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+        </h2>
+        <hr
+          style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;">
+
+        <table
+          style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+          <thead>
+            <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+              <th
+                style="width: 20%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Name</th>
+              <th
+                style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Namespace</th>
+              <th
+                style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Desired</th>
+              <th
+                style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Current</th>
+              <th
+                style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Ready</th>
+              <th
+                style="width: 20%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Age</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for replicaset in replica_sets %}
+            <tr
+              style="background-color: {% cycle 'rgba(204, 229, 255, 0.5)' 'rgba(224, 247, 255, 0.5)' %}; transition: background-color 0.2s;">
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+                {{ replicaset.name }}</td>
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                {{ replicaset.namespace }}</td>
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                {{ replicaset.desired_replicas }}</td>
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                {{ replicaset.current_replicas }}</td>
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                {{ replicaset.ready_replicas }}</td>
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                {{ replicaset.age }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6"
+                style="padding: 30px; text-align: center; font-size: 21px; color: #6c757d; background-color: rgba(224, 247, 255, 0.3);">
+                No ReplicaSet data available.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+
+      <!-- Deployments Page -->
+      <div style="page-break-before: always;">
+        <div class="content-page">
+          <h2 class="section-title"
+        style="color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 15px;">
+        DaemonSets
+        <span
+          style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+          </h2>
+          <hr
+        style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;">
+
+          <table
+        style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+        <thead>
+          <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+            <th
+          style="width: 20%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Name</th>
+            <th
+          style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Namespace</th>
+            <th
+          style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Desired</th>
+            <th
+          style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Current</th>
+            <th
+          style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Ready</th>
+            <th
+          style="width: 20%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Age</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for daemonset in daemonsets %}
+          <tr
+            style="background-color: {% cycle 'rgba(204, 229, 255, 0.5)' 'rgba(224, 247, 255, 0.5)' %}; transition: background-color 0.2s;">
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+          {{ daemonset.name }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ daemonset.namespace }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ daemonset.desired }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ daemonset.current }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ daemonset.ready }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ daemonset.age }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6"
+          style="padding: 30px; text-align: center; font-size: 21px; color: #6c757d; background-color: rgba(224, 247, 255, 0.3);">
+          No DaemonSet data available.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+          </table>
+
+
+      <!-- persistent volumes Page -->
+      <div style="page-break-before: always;">
+        <div class="content-page">
+          <h2 class="section-title"
+        style="color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 15px;">
+        Persistent Storage
+        <span
+          style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+          </h2>
+          <hr
+        style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;">
+        <h3 class="subsection-title"
+        style="color: #0a58ca; font-size: 24px; margin: 30px 0 20px; position: relative; padding-left: 15px; border-left: 4px solid #0d6efd;">
+        Persistent Volume Claims</h3>
+
+          <table
+        style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+        <thead>
+          <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+            <th
+          style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Name</th>
+            <th
+          style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Capacity</th>
+            <th
+          style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Access Modes</th>
+            <th
+          style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Reclaim Policy</th>
+            <th
+          style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Status</th>
+            <th
+          style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Claim</th>
+            <th
+          style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Storage Class</th>
+            <th
+          style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+          Age</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pv in persistent_volumes %}
+          <tr
+            style="background-color: {% cycle 'rgba(204, 229, 255, 0.5)' 'rgba(224, 247, 255, 0.5)' %}; transition: background-color 0.2s;">
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+          {{ pv.name }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ pv.capacity }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ pv.access_modes }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ pv.reclaim_policy }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ pv.status }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ pv.claim }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ pv.storage_class }}</td>
+            <td
+          style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+          {{ pv.age }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8"
+          style="padding: 30px; text-align: center; font-size: 21px; color: #6c757d; background-color: rgba(224, 247, 255, 0.3);">
+          No Persistent Volume data available.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+          </table>
+        </div>
+
+
+
+      <!-- Persistent Volume Claims Page -->
+        <div class="content-page">
+          <h3 class="subsection-title"
+            style="color: #0a58ca; font-size: 24px; margin: 30px 0 20px; position: relative; padding-left: 15px; border-left: 4px solid #0d6efd;">
+            Persistent Volume Claims</h3>
+
+          <table
+            style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <thead>
+              <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+                <th
+                  style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                  Name</th>
+                <th
+                  style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                  Capacity</th>
+                <th
+                  style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                  Access Modes</th>
+                <th
+                  style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                  Storage Class</th>
+                <th
+                  style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                  Volume Attributes</th>
+                <th
+                  style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                  Status</th>
+                <th
+                  style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                  Age</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pvc in persistent_volume_claims %}
+              <tr
+                style="background-color: {% cycle 'rgba(204, 229, 255, 0.5)' 'rgba(224, 247, 255, 0.5)' %}; transition: background-color 0.2s;">
+                <td
+                  style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+                  {{ pvc.NAME }}</td>
+                <td
+                  style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                  {{ pvc.CAPACITY }}</td>
+                <td
+                  style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                  {{ pvc.ACCESS_MODES }}</td>
+                <td
+                  style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                  {{ pvc.STORAGECLASS }}</td>
+                <td
+                  style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                  {{ pvc.VOLUMEATTRIBUTESCLASS }}</td>
+                <td
+                  style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                  {{ pvc.STATUS }}</td>
+                <td
+                  style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                  {{ pvc.AGE }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7"
+                  style="padding: 30px; text-align: center; font-size: 21px; color: #6c757d; background-color: rgba(224, 247, 255, 0.3);">
+                  No Persistent Volume Claims data available.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+
+
+      <!-- Storage class Page -->
+      <div class="content-page">
+        <h3 class="subsection-title"
+        style="color: #0a58ca; font-size: 24px; margin: 30px 0 20px; position: relative; padding-left: 15px; border-left: 4px solid #0d6efd;">
+        Storage Classes</h3>
+        <table
+          style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+          <thead>
+            <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+              <th
+                style="width: 20%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Name</th>
+              <th
+                style="width: 20%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Provisioner</th>
+              <th
+                style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Reclaim Policy</th>
+              <th
+                style="width: 20%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Volume Binding Mode</th>
+              <th
+                style="width: 15%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Allow Volume Expansion</th>
+              <th
+                style="width: 10%; padding: 15px; border-bottom: 2px solid #0d6efd; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left;">
+                Age</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sc in storage_classes %}
+            <tr
+              style="background-color: {% cycle 'rgba(204, 229, 255, 0.5)' 'rgba(224, 247, 255, 0.5)' %}; transition: background-color 0.2s;">
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+                {{ sc.NAME }}</td>
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                {{ sc.PROVISIONER }}</td>
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                {{ sc.RECLAIMPOLICY }}</td>
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                {{ sc.VOLUMEBINDINGMODE }}</td>
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                {{ sc.ALLOWVOLUMEEXPANSION|yesno:"Yes,No" }}</td>
+              <td
+                style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+                {{ sc.AGE }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6"
+                style="padding: 30px; text-align: center; font-size: 21px; color: #6c757d; background-color: rgba(224, 247, 255, 0.3);">
+                No Storage Classes found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div style="page-break-before: always;">
+      <h2 class="section-title"
+        style="color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 15px;">
+        Persistent Storage Overview
+        <span style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+      </h2>
+      <hr
+        style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 30px;">
+
+      <div class="overview"
+        style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f0ff 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.1); margin-bottom: 30px;">
+        <h3 style="color: #0a58ca; font-size: 28px; margin-bottom: 20px; border-bottom: 2px solid rgba(13, 110, 253, 0.2); padding-bottom: 10px;">
+          Summary
+        </h3>
+        <ul style="list-style-type: disc; padding-left: 20px; margin: 0; font-size: 22px; line-height: 1.8; color: #495057;">
+          <li>Total Persistent Volumes: <span style="font-weight: 600; color: #0d6efd;">{{ persistent_volumes|length }}</span></li>
+          <li>Total Persistent Volume Claims: <span style="font-weight: 600; color: #0d6efd;">{{ persistent_volume_claims|length }}</span></li>
+          <li>Total Storage Classes: <span style="font-weight: 600; color: #0d6efd;">{{ storage_classes|length }}</span></li>
+        </ul>
+      </div>
+    </div>
+  
+
+
+    <!-- Networking Page -->
+    <div class="content-page" style="page-break-before: always;">
+    <h2 class="section-title"
+      style="color: #0d6efd; font-size: 34px; text-align: center; margin-bottom: 20px; font-weight: 600; position: relative; padding-bottom: 15px;">
+      Networking
+      <span style="display: block; width: 80px; height: 3px; background-color: #0d6efd; margin: 15px auto 0;"></span>
+    </h2>
+    <hr
+      style="border: none; height: 1px; background: linear-gradient(to right, transparent, #0d6efd, transparent); margin-bottom: 20px;">
+
+    <!-- Services Section -->
+    <h3 class="subsection-title"
+      style="color: #0a58ca; font-size: 24px; margin: 30px 0 20px; position: relative; padding-left: 15px; border-left: 4px solid #0d6efd;">
+      Services</h3>
+    <table
+      style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+      <thead>
+        <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+          <th
+            style="width: 15%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+            Name</th>
+          <th
+            style="width: 15%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+            Namespace</th>
+          <th
+            style="width: 10%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+            Type</th>
+          <th
+            style="width: 15%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+            Cluster IP</th>
+          <th
+            style="width: 15%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+            External IP</th>
+          <th
+            style="width: 15%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+            Ports</th>
+          <th
+            style="width: 15%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+            Age</th>
         </tr>
       </thead>
       <tbody>
         {% for service in services %}
-        <tr>
-          <td>{{ service.name }}</td>
-          <td>{{ service.namespace }}</td>
-          <td class="type-{{ service.type }}">{{ service.type }}</td>
-          <td>{{ service.cluster_ip }}</td>
-          <td>{{ service.external_ip|default:"None" }}</td>
-          <td>{{ service.ports }}</td>
-          <td>{{ service.age }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="7" class="no-data">No services found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    
-    <!-- Endpoints Section -->
-    <h3 class="subsection-title">Endpoints</h3>
-    <table>
-      <thead>
-        <tr>
-          <th width="20%">Name</th>
-          <th width="20%">Namespace</th>
-          <th width="20%">Type</th>
-          <th width="20%">Endpoint</th>
-          <th width="20%">Age</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for endpoint in endpoints %}
-        <tr>
-          <td>{{ endpoint.name }}</td>
-          <td>{{ endpoint.namespace }}</td>
-          <td class="type-{{ endpoint.type|default:'Unknown' }}">{{ endpoint.type|default:"Unknown" }}</td>
-          <td>{% if endpoint.endpoint %}{{ endpoint.endpoint }}{% else %} - {% endif %}</td>
-          <td>{{ endpoint.age }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="5" class="no-data">No endpoints found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    
-    <!-- Ingresses Section -->
-    <h3 class="subsection-title">Ingresses</h3>
-    <table>
-      <thead>
-        <tr>
-          <th width="15%">Name</th>
-          <th width="15%">Namespace</th>
-          <th width="30%">Hosts</th>
-          <th width="15%">Address</th>
-          <th width="15%">Ports</th>
-          <th width="10%">Age</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for ingress in ingresses %}
-        <tr>
-          <td>{{ ingress.name }}</td>
-          <td>{{ ingress.namespace }}</td>
-          <td>
-            <ul class="host-list">
-              {% for host in ingress.hosts %}
-              <li>{{ host }}</li>
-              {% endfor %}
-            </ul>
+        <tr
+          style="background-color: {% cycle 'rgba(204, 229, 255, 0.5)' 'rgba(224, 247, 255, 0.5)' %}; transition: background-color 0.2s;">
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+            {{ service.name }}</td>
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ service.namespace }}</td>
+          <td style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px;">
+            <span
+              style="display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 20px; font-weight: 500; 
+              background-color: {% if service.type == 'ClusterIP' %}rgba(25, 135, 84, 0.1){% elif service.type == 'LoadBalancer' %}rgba(13, 110, 253, 0.1){% elif service.type == 'NodePort' %}rgba(255, 193, 7, 0.1){% else %}rgba(108, 117, 125, 0.1){% endif %}; 
+              color: {% if service.type == 'ClusterIP' %}#198754{% elif service.type == 'LoadBalancer' %}#0d6efd{% elif service.type == 'NodePort' %}#fd7e14{% else %}#6c757d{% endif %};">
+              {{ service.type }}
+            </span>
           </td>
-          <td>{{ ingress.address|default:"-" }}</td>
-          <td>{{ ingress.ports|default:"80" }}</td>
-          <td>{{ ingress.age }}</td>
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ service.cluster_ip }}</td>
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ service.external_ip|default:"None" }}</td>
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ service.ports }}</td>
+          <td
+            style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+            {{ service.age }}</td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="6" class="no-data">No ingresses found.</td>
+          <td colspan="7" class="no-data"
+            style="padding: 30px; text-align: center; font-size: 16px; color: #6c757d; background-color: rgba(224, 247, 255, 0.3);">
+            No services found.</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+
+      <!-- Endpoints Section -->
+      <h3 class="subsection-title"
+        style="color: #0a58ca; font-size: 24px; margin: 30px 0 20px; position: relative; padding-left: 15px; border-left: 4px solid #0d6efd;">
+        Endpoints</h3>
+      <table
+        style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 30px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+        <thead>
+          <tr style="background: linear-gradient(90deg, #e0f7ff 0%, #cce5ff 100%);">
+            <th
+              style="width: 20%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+              Name</th>
+            <th
+              style="width: 20%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+              Namespace</th>
+            <th
+              style="width: 20%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+              Endpoint</th>
+            <th
+              style="width: 20%; padding: 15px; color: #0a58ca; font-weight: 600; font-size: 22px; text-align: left; border-bottom: 2px solid #0d6efd;">
+              Age</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for endpoint in endpoints %}
+          <tr
+            style="background-color: {% cycle 'rgba(204, 229, 255, 0.5)' 'rgba(224, 247, 255, 0.5)' %}; transition: background-color 0.2s;">
+            <td
+              style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #0b5ed7; font-weight: 500;">
+              {{ endpoint.name }}</td>
+            <td
+              style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+              {{ endpoint.namespace }}</td>
+            <td
+              style=" padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+              {% if endpoint.endp %}{{ endpoint.endp }}{% else %} - {% endif %}</td>
+            <td
+              style="padding: 12px 15px; border-bottom: 1px solid rgba(13, 110, 253, 0.2); font-size: 21px; color: #495057;">
+              {{ endpoint.age }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="no-data"
+              style="padding: 30px; text-align: center; font-size: 16px; color: #6c757d; background-color: rgba(224, 247, 255, 0.3);">
+              No endpoints found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+    <div class="overview"
+      style="{% if services|length > 10 or endpoints|length > 10 %}page-break-before: always;{% endif %}background: linear-gradient(135deg, #f0f8ff 0%, #e6f0ff 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.1); margin-bottom: 30px;">
+      <h3 style="color: #0a58ca; font-size: 28px; margin-bottom: 20px; border-bottom: 2px solid rgba(13, 110, 253, 0.2); padding-bottom: 10px;">
+      Overview
+      </h3>
+      <ul
+      style="list-style-type: disc; padding-left: 20px; margin: 0; font-size: 22px; line-height: 1.8; color: #495057;">
+      <li>This table summarizes <span style="font-weight: 600; color: #0d6efd;">{{ services|length }} service{% if services|length != 1 %}s{% endif %}</span> and <span style="font-weight: 600; color: #0d6efd;">{{ endpoints|length }} endpoint{% if endpoints|length != 1 %}s{% endif %}</span> available in the network.</li>
+      <li>Services are categorized by <span
+        style="background-color: rgba(25, 135, 84, 0.1); color: #198754; padding: 2px 8px; border-radius: 4px; font-weight: 500;">type</span>,
+        <span
+        style="background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; padding: 2px 8px; border-radius: 4px; font-weight: 500;">namespace</span>,
+        and <span
+        style="background-color: rgba(108, 117, 125, 0.1); color: #6c757d; padding: 2px 8px; border-radius: 4px; font-weight: 500;">age</span>.</li>
+      <li>Endpoints are organized by <span
+        style="background-color: rgba(25, 135, 84, 0.1); color: #198754; padding: 2px 8px; border-radius: 4px; font-weight: 500;">namespace</span>,
+        <span
+        style="background-color: rgba(13, 110, 253, 0.1); color: #0d6efd; padding: 2px 8px; border-radius: 4px; font-weight: 500;">endpoint</span>,
+        and <span
+        style="background-color: rgba(108, 117, 125, 0.1); color: #6c757d; padding: 2px 8px; border-radius: 4px; font-weight: 500;">age</span>.</li>
+      <li>The overview provides a quick reference for <span style="font-weight: 500; color: #0d6efd;">network service and endpoint distribution</span>.</li>
+      </ul>
+    </div>
+
+
+
+  <div
+    style="page-break-before: always; height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; margin-top: 40px; padding: 40px; background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+    <h2 style="color: #0d6efd; font-size: 34px; font-weight: 600; margin-bottom: 20px;">Thank You for Using KubeBuddy!
+    </h2>
+
+    <p style="font-size: 24px; line-height: 1.8; color: #495057; margin-bottom: 20px; max-width: 800px;">
+      KubeBuddy is an AI-powered Kubernetes dashboard built by Thinknyx Technologies LLP, offering a simple, accessible,
+      and intelligent platform for efficient cluster management. With seamless AI integration for faster
+      troubleshooting, KubeBuddy eliminates the need for in-cluster installations and provides a clean, user-friendly
+      interface.
+    </p>
+
+    <p style="font-size: 24px; line-height: 1.8; color: #495057; margin-bottom: 20px; max-width: 800px;">
+      We appreciate your support and hope you find our tool helpful in managing your Kubernetes clusters.
+    </p>
+
+    <p style="font-size: 24px; line-height: 1.8; color: #495057; max-width: 800px;">
+      If you have any feedback or suggestions, feel free to reach out to us.
+    </p>
   </div>
+
 </body>
+
 </html>

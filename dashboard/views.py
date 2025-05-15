@@ -23,13 +23,19 @@ from kubebuddy.appLogs import logger
 from kubernetes import config, client
 from .decorators import server_down_handler
 from .src.clusters_DB import get_cluster_names
+from .src.metrics.k8s_node_metrics import get_cluster_metrics
 from .src.workloads.k8s_pods import get_pod_details
 from .src.workloads.k8s_deployments import get_deployment_details
+from .src.workloads.k8s_daemonset import get_daemonset_details
+from .src.workloads.k8s_replicaset import get_replica_set_details
 from .src.cluster_management.k8s_nodes import get_node_details
 from .src.cluster_management.k8s_namespaces import get_namespace_details
 from .src.services.k8s_endpoints import get_endpoint_details
 from .src.services.k8s_services import get_service_details
 from .src.networking.k8s_ingress import get_ingress_details
+from .src.persistent_volume.k8s_pvc import get_persistent_volume_claims_details
+from .src.persistent_volume.k8s_pv import get_persistent_volume_details
+from .src.persistent_volume.k8s_storage_class import get_storage_class_details
 from kubernetes.config.config_exception import ConfigException
 from django.template.loader import get_template
 from io import BytesIO
@@ -779,53 +785,80 @@ def get_cluster_name():
         return "in-cluster"
     return "unknown"
 
-def generate_reports(request):
+def format_metrics_table(metrics):
+    """
+    Formats the metrics data into a dictionary suitable for rendering in the table.
+
+    Args:
+        metrics (dict): A dictionary containing CPU and memory usage and capacity.
+
+    Returns:
+        dict: A dictionary with formatted metrics for the table.
+    """
+    formatted_data = {
+        "cpu_usage": f"{metrics['cpu_usage']}",
+        "cpu_total": f"{metrics['cpu_total']}",
+        "memory_usage": f"{metrics['memory_usage']}",
+        "memory_total": f"{metrics['memory_total']}"
+    }
+    return formatted_data
+
+
+def generate_reports(request, cluster_id):
     try:
-        # Load kube config
+        # Get cluster context
+        current_cluster = Cluster.objects.get(id=cluster_id)
+        path = current_cluster.kube_config.path
+        context_name = current_cluster.context_name
+
+        # Load kube config with the specific cluster context
         try:
-            config.load_incluster_config()
+            config.load_kube_config(config_file=path, context=context_name)
         except ConfigException:
-            config.load_kube_config()
+            return HttpResponse("Error loading kubeconfig", status=500)
 
         # Fetch all resources
-        pods = get_pod_details()
+        pods = get_pod_details(cluster_id=cluster_id)
         pod_counts = len(pods)
-        nodes = get_node_details()
+        nodes = get_node_details(cluster_id=cluster_id)
         node_counts = len(nodes)
-        namespaces = get_namespace_details()
+        namespaces = get_namespace_details(cluster_id=cluster_id)
         namespace_count = len(namespaces)
-        deployments = get_deployment_details()
+        deployments = get_deployment_details(cluster_id=cluster_id)
         deployment_counts = len(deployments)
-        services = get_service_details()
-        endpoints = get_endpoint_details()
-        ingresses = get_ingress_details()
-        cluster_name = get_cluster_name()
+        services = get_service_details(cluster_id=cluster_id)
+        endpoints = get_endpoint_details(cluster_id=cluster_id)
+        ingresses = get_ingress_details(cluster_id=cluster_id)
+        cluster_name = context_name
+        replica_sets = get_replica_set_details(cluster_id=cluster_id)
+        replica_set_counts = len(replica_sets)
+        persistent_volumes = get_persistent_volume_details(cluster_id=cluster_id)
+        persistent_volume_claims = get_persistent_volume_claims_details(cluster_id=cluster_id)
+        storage_classes = get_storage_class_details(cluster_id=cluster_id)
+        daemonsets = get_daemonset_details(cluster_id=cluster_id)
+        daemonset_counts = len(daemonsets)
 
         # Cluster Overview
-        v1 = client.CoreV1Api()
-        apps_v1 = client.AppsV1Api()
+        total_nodes = node_counts
+        ready_nodes = sum(1 for node in nodes if node.get('status', '').lower() == 'ready')
 
-        total_nodes = len(nodes)
-        ready_nodes = sum(1 for node in nodes if node['status'] == 'Ready')
+        running_pods = sum(1 for pod in pods if pod.get('status', '').lower() == "running")
+        pending_pods = sum(1 for pod in pods if pod.get('status', '').lower() == "pending")
+        failed_pods = sum(1 for pod in pods if pod.get('status', '').lower() == "failed")
+        pod_namespaces = len(set(pod.get('namespace', '') for pod in pods))
 
-        running_pods = sum(1 for p in pods if p['status'] == "Running")
-        pending_pods = sum(1 for p in pods if p['status'] == "Pending")
-        failed_pods = sum(1 for p in pods if p['status'] == "Failed")
-        pod_namespaces = list(set(p['namespace'] for p in pods))
+        available_deployments = sum(1 for deployment in deployments if deployment.get('ready_replicas', 0) == deployment.get('desired_replicas', 0))
+        deployment_namespaces = len(set(deployment.get('namespace', '') for deployment in deployments))
 
-        available_deployments = sum(1 for d in deployments if d.get('available_replicas', 0) > 0)
-        deployment_namespaces = list(set(d['namespace'] for d in deployments))
-
-        cluster_ip_services = sum(1 for s in services if s['type'] == "ClusterIP")
-        load_balancer_services = sum(1 for s in services if s['type'] == "LoadBalancer")
-        node_port_services = sum(1 for s in services if s['type'] == "NodePort")
-        service_namespaces = list(set(s['namespace'] for s in services))
+        cluster_ip_services = sum(1 for service in services if service.get('type', '').lower() == "clusterip")
+        load_balancer_services = sum(1 for service in services if service.get('type', '').lower() == "loadbalancer")
+        node_port_services = sum(1 for service in services if service.get('type', '').lower() == "nodeport")
+        service_namespaces = len(set(service.get('namespace', '') for service in services))
 
         cluster_overview = {
             'nodes': {
                 'total': total_nodes,
                 'ready': ready_nodes,
-                'namespaces': pod_namespaces
             },
             'pods': {
                 'total': pod_counts,
@@ -845,8 +878,50 @@ def generate_reports(request):
                 'load_balancer': load_balancer_services,
                 'node_port': node_port_services,
                 'namespaces': service_namespaces
+            },
+            'daemonsets': {
+                'total': daemonset_counts,
+                'namespaces': len(set(ds.get('namespace', '') for ds in daemonsets))
             }
         }
+        
+        # Health Summary for your bar chart
+        healthy_nodes = ready_nodes
+        unhealthy_nodes = total_nodes - healthy_nodes
+
+        healthy_pods = running_pods
+        unhealthy_pods = pod_counts - healthy_pods
+
+        health_summary = {
+            'nodes': {
+                'healthy': healthy_nodes,
+                'unhealthy': unhealthy_nodes
+            },
+            'pods': {
+                'healthy': healthy_pods,
+                'unhealthy': unhealthy_pods
+            }
+        }
+        
+        # Prepare additional summary statistics
+        desired_list = [r['desired_replicas'] for r in replica_sets]
+        age_list = [r['age'] for r in replica_sets]
+
+        max_desired_replicas = max(desired_list) if desired_list else 0
+        oldest_replicaset_age = age_list[0] if age_list else "N/A"
+        newest_replicaset_age = age_list[-1] if age_list else "N/A"
+
+        # Fetch cluster metrics
+        metrics = k8s_node_metrics.get_cluster_metrics(path, context_name)
+        if "error" in metrics:
+            cluster_metrics = {
+            "cpu_usage": "N/A",
+            "memory_usage": "N/A",
+            "cpu_total": "N/A",
+            "memory_total": "N/A"
+            }
+        else:
+            cluster_metrics = format_metrics_table(metrics)
 
         context = {
             'title': 'KubeBuddy Report',
@@ -863,13 +938,25 @@ def generate_reports(request):
             'ingresses': ingresses,
             'cluster_name': cluster_name,
             'cluster_overview': cluster_overview,
+            'replica_set_counts': replica_set_counts,
+            'health_summary': health_summary,
+            'replica_sets': replica_sets,
+            'max_desired_replicas': max_desired_replicas,
+            'oldest_replicaset_age': oldest_replicaset_age,
+            'newest_replicaset_age': newest_replicaset_age,
+            'cluster_metrics': cluster_metrics,
+            'persistent_volumes': persistent_volumes,
+            'persistent_volume_claims': persistent_volume_claims,
+            'storage_classes': storage_classes,
+            'daemonsets': daemonsets,
+            'daemonset_counts': daemonset_counts,
         }
 
         template = get_template('dashboard/generate_reports.html')
         html = template.render(context)
 
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="KubeBuddy_{cluster_name}_report.pdf"'
 
         pdf_status = generate_pdf(html, response)
         if not pdf_status:
@@ -879,4 +966,3 @@ def generate_reports(request):
 
     except Exception as e:
         return HttpResponse(f"Exception occurred: {e}", status=500)
-    

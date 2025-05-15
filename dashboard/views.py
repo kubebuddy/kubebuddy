@@ -910,6 +910,33 @@ def generate_reports(request, cluster_id):
         max_desired_replicas = max(desired_list) if desired_list else 0
         oldest_replicaset_age = age_list[0] if age_list else "N/A"
         newest_replicaset_age = age_list[-1] if age_list else "N/A"
+        
+        replicaset_status = {
+            "Running": 0,
+            "Pending": 0,
+        }
+        # replicasets status
+        for replicaset in replica_sets:
+            if replicaset["ready_replicas"] == replicaset["desired_replicas"] != 0:
+                replicaset_status["Running"] += 1
+            else: 
+                replicaset_status["Pending"] += 1 
+
+        # daemonsets status
+
+        daemonset_status = {
+            "Running": 0,
+            "Pending": 0,
+        }
+        for daemonset in daemonsets:
+            if daemonset["desired"] == daemonset["ready"] != 0:
+                daemonset_status["Running"] += 1
+            else: 
+                daemonset_status["Pending"] += 1
+
+        age_list = [ds['age'] for ds in daemonsets]
+        oldest_daemonset = max(age_list) if age_list else "N/A"
+        newest_daemonset = min(age_list) if age_list else "N/A"
 
         # Fetch cluster metrics
         metrics = k8s_node_metrics.get_cluster_metrics(path, context_name)
@@ -944,12 +971,17 @@ def generate_reports(request, cluster_id):
             'max_desired_replicas': max_desired_replicas,
             'oldest_replicaset_age': oldest_replicaset_age,
             'newest_replicaset_age': newest_replicaset_age,
+            'replicaset_status': replicaset_status,
+            'replica_set_count': replica_set_counts,
             'cluster_metrics': cluster_metrics,
             'persistent_volumes': persistent_volumes,
             'persistent_volume_claims': persistent_volume_claims,
             'storage_classes': storage_classes,
             'daemonsets': daemonsets,
             'daemonset_counts': daemonset_counts,
+            'daemonset_status': daemonset_status,
+            'oldest_daemonset': oldest_daemonset,
+            'newest_daemonset': newest_daemonset,
         }
 
         template = get_template('dashboard/generate_reports.html')

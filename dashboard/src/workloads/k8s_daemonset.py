@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from kubernetes.config.config_exception import ConfigException
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
 import yaml

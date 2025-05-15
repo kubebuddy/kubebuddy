@@ -72,3 +72,12 @@ def length(value):
         return len(value)
     except (TypeError, AttributeError):
         return 0 
+    
+@register.filter
+def filter_running_replicasets(replicasets):
+    if not replicasets:
+        return []
+    return [
+        rs for rs in replicasets
+        if rs['desired_replicas'] == rs['current_replicas'] == rs['ready_replicas']
+    ]

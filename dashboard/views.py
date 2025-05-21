@@ -3,7 +3,7 @@ import subprocess, os
 from django.shortcuts import render
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseBadRequest, HttpResponseServerError, HttpResponse
+from django.http import HttpResponseBadRequest, HttpResponseServerError, HttpResponse, FileResponse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -36,7 +36,7 @@ from io import BytesIO
 import datetime
 import uuid
 from .src.generate_pdf import generate_pdf
-
+from .src import kube_bench
 ###### Utilities ######
 
 def get_utils_data(request):
@@ -880,3 +880,18 @@ def generate_reports(request):
     except Exception as e:
         return HttpResponse(f"Exception occurred: {e}", status=500)
     
+# kube-bench report views
+
+def kube_bench_report(request, cluster_id):
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
+    try:
+        kube_bench.kube_bench_report_generate(path, context_name)
+
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        file_path = os.path.join(BASE_DIR, 'static', 'fpdf', 'kube_bench_report.pdf')
+
+        return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='kube_bench_report.pdf')
+    except Exception as e:
+        print('Caught exception: ', e)
+        

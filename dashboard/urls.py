@@ -11,9 +11,8 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 secret_info, role_info, pv_info, storageclass_info, role_binding_info, \
                                 clusterrole_info, cluster_role_binding_info, serviceAccountInfo, \
                                 pod_metrics, node_metrics, pdb, pdb_info, np, np_info, ingress, \
-                                ingress_info, execute_command, generate_reports
+                                ingress_info, execute_command, generate_reports, kube_bench_report
                                 
-
 
 urlpatterns = [
     # Dashboard
@@ -22,6 +21,9 @@ urlpatterns = [
 
     # Download Report
     path('generate_reports/', generate_reports, name='generate_reports'),
+    
+    # Kube-bench CIS report
+    path('<int:cluster_id>/kube-bench/', kube_bench_report, name='kube_bench_report'),
     
     # Workloads
     path('<int:cluster_id>/pods', pods, name='pods'),

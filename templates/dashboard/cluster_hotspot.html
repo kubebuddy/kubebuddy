@@ -1,0 +1,108 @@
+{% extends 'dashboard/base.html' %}
+
+{% load static %}
+
+{% block title %}Cluster Hotspots{% endblock %}
+
+{% block favicon %} https://github.com/kubernetes/community/blob/master/icons/png/infrastructure_components/unlabeled/control-plane-128.png?raw=true {% endblock %}
+
+{% block content %}
+
+<div class="container">
+    {% if empty_namespaces %}
+    <div class="table-1">
+        <h2>Empty Namespaces</h2>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Status</th>
+                    <th>Labels</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for namespace in empty_namespaces %}
+                    <tr>
+                        <td>{{namespace.name}}</td>
+                        <td>{{namespace.status}}</td>
+                        <td>{{namespace.labels}}</td>
+                        <td>{{namespace.age}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    {% if latest_tag_pods %}
+    <div class="table-2">
+        <h2>Pods with latest tag</h2>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Pod</th>
+                    <th>Image</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pod in latest_tag_pods %}
+                    <tr>
+                        <td>{{pod.namespace}}</td>
+                        <td>{{pod.pod}}</td>
+                        <td>{{pod.image}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    {% if orphaned_configmaps %}
+    <div class="table-3">
+        <h2>Orphaned Configmaps</h2>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Configmap</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cm in orphaned_configmaps %}
+                    <tr>
+                        <td>{{cm.namespace}}</td>
+                        <td>{{cm.configmap}}</td>
+                        <td>{{cm.age}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    {% if orphaned_secrets %}
+    <div class="table-4">
+        <h2>Orphaned Secrets</h2>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Secret</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sc in orphaned_secrets %}
+                    <tr>
+                        <td>{{sc.namespace}}</td>
+                        <td>{{sc.secret}}</td>
+                        <td>{{sc.age}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

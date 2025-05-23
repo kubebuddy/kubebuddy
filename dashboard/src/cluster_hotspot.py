@@ -10,7 +10,6 @@ def get_cluster_hotspot(path, context):
         core_v1 = client.CoreV1Api()
         apps_v1 = client.AppsV1Api()
         batch_v1 = client.BatchV1Api()
-        rbac = client.RbacAuthorizationV1Api()
 
         empty_namespaces = []
         latest_tag_pods = []

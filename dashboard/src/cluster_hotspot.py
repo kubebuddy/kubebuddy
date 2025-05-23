@@ -22,61 +22,6 @@ def get_cluster_hotspot(path, context):
 
         namespaces = core_v1.list_namespace().items
 
-        # Find Roles, ClusterRoles, RoleBindings, and ClusterRoleBindings with "*" verbs/resources
-        roles_with_wildcard = []
-        clusterroles_with_wildcard = []
-        rolebindings_with_wildcard = []
-        clusterrolebindings_with_wildcard = []
-
-        # Check Roles
-        for role in rbac.list_role_for_all_namespaces().items:
-            for rule in role.rules or []:
-                if ("*" in (rule.verbs or [])) and ("*" in (rule.resources or [])):
-                    roles_with_wildcard.append({
-                        "namespace": role.metadata.namespace,
-                        "name": role.metadata.name,
-                        "verbs": rule.verbs,
-                        "resources": rule.resources
-                    })
-
-        # Check ClusterRoles
-        for cr in rbac.list_cluster_role().items:
-            for rule in cr.rules or []:
-                if ("*" in (rule.verbs or [])) and ("*" in (rule.resources or [])):
-                    clusterroles_with_wildcard.append({
-                        "name": cr.metadata.name,
-                        "verbs": rule.verbs,
-                        "resources": rule.resources
-                    })
-
-        # Check RoleBindings
-        for rb in rbac.list_role_binding_for_all_namespaces().items:
-            if rb.role_ref.kind == "Role":
-                roles = [r for r in roles_with_wildcard if r["namespace"] == rb.metadata.namespace and r["name"] == rb.role_ref.name]
-                if roles:
-                    rolebindings_with_wildcard.append({
-                        "namespace": rb.metadata.namespace,
-                        "name": rb.metadata.name,
-                        "role_ref": rb.role_ref.name
-                    })
-            elif rb.role_ref.kind == "ClusterRole":
-                crs = [cr for cr in clusterroles_with_wildcard if cr["name"] == rb.role_ref.name]
-                if crs:
-                    rolebindings_with_wildcard.append({
-                        "namespace": rb.metadata.namespace,
-                        "name": rb.metadata.name,
-                        "role_ref": rb.role_ref.name
-                    })
-
-        # Check ClusterRoleBindings
-        for crb in rbac.list_cluster_role_binding().items:
-            crs = [cr for cr in clusterroles_with_wildcard if cr["name"] == crb.role_ref.name]
-            if crs:
-                clusterrolebindings_with_wildcard.append({
-                    "name": crb.metadata.name,
-                    "role_ref": crb.role_ref.name
-                })
-
         for ns in namespaces:
             name = ns.metadata.name
 
@@ -101,7 +46,7 @@ def get_cluster_hotspot(path, context):
                 for container in pod_spec.containers:
                     # pods with privelidged containers
                     sc = container.security_context
-                    if sc and (sc.run_as_user == 0 or (sc.privileged if sc.privileged is not None else False)):
+                    if sc and (sc.privileged if sc.privileged is not None else False):
                         priviledged_containers.append({
                             "namespace": name,
                             "pod": pod.metadata.name,
@@ -205,7 +150,7 @@ def get_cluster_hotspot(path, context):
             if not has_resources:
                 empty_namespaces.append({'name': name, 'status': ns.status.phase, 'age': calculateAge(datetime.now(timezone.utc) - ns.metadata.creation_timestamp), 'labels': ns.metadata.labels})
 
-        return empty_namespaces, latest_tag_pods, orphaned_configmaps, orphaned_secrets, container_missing_probes, container_restart_count, priviledged_containers, roles_with_wildcard, clusterroles_with_wildcard, rolebindings_with_wildcard, clusterrolebindings_with_wildcard
+        return empty_namespaces, latest_tag_pods, orphaned_configmaps, orphaned_secrets, container_missing_probes, container_restart_count, priviledged_containers
     
     except Exception as e:
         print(f"Error: {e}")

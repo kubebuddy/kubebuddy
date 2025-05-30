@@ -255,7 +255,7 @@ def render_markdown(response_text):
     return safe_html
 
 # ChatBot Views
-def gemini_response(api_key, user_message):
+def gemini_response(api_key, model, user_message):
     
     try:
         client = genai.Client(api_key=api_key)
@@ -264,7 +264,7 @@ def gemini_response(api_key, user_message):
         try:
             # Newer method with system prompt support
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model= model,
                 contents=[
                     {"role": "system", "parts": [SYSTEM_PROMPT]},
                     {"role": "user", "parts": [user_message]}
@@ -282,12 +282,12 @@ def gemini_response(api_key, user_message):
     except Exception as e:
         return f"Error generating response: {str(e)}"
 
-def openai_response(api_key, user_message):
+def openai_response(api_key, model, user_message):
     """Generate a response using the OpenAI API with system prompt."""
     try:
         client = openai.OpenAI(api_key=api_key)
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model= model,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_message}
@@ -383,12 +383,13 @@ def chatbot_response(request):
         
         provider = config.provider
         api_key = config.api_key
+        model = config.model
 
         try:
             if provider == "gemini":
-                bot_response = gemini_response(api_key, user_message)
+                bot_response = gemini_response(api_key, model, user_message)
             elif provider == "openai":
-                bot_response = openai_response(api_key, user_message)
+                bot_response = openai_response(api_key, model, user_message)
             else:
                 bot_response = "Sorry, I couldn't process that request. Invalid provider."
 
@@ -399,13 +400,13 @@ def chatbot_response(request):
 
     return JsonResponse({"status": "error", "message": "Invalid request method."})
 
-def api_key_validation(provider, api_key):
+def api_key_validation(provider, api_key, model):
     try:
         # Gemini API validation
         if provider == "gemini":
             client = genai.Client(api_key=api_key)
             response = client.models.generate_content(
-                model="gemini-2.0-flash", 
+                model=model, 
                 contents="Test"
             )
             # If we get here, the key works
@@ -436,6 +437,7 @@ def settings(request):
         ai_configs[config.provider] = {
             'provider': config.provider,
             'api_key': config.api_key,
+            'model': config.model,
             'display_name': config.get_provider_display()
         }
     
@@ -444,9 +446,10 @@ def settings(request):
 
         provider = request.POST.get('provider')
         api_key = request.POST.get('api_key')
-        
+        model = request.POST.get('model')  # Get the selected model
+
         # Validate the API key before saving
-        validation_result = api_key_validation(provider, api_key)
+        validation_result = api_key_validation(provider, api_key, model)
 
         if validation_result["status"] == "invalid":
             return redirect('/settings?ai_config_failed=true&tab=ai-config')
@@ -455,7 +458,7 @@ def settings(request):
         else:
             obj, created = AIConfig.objects.update_or_create(
             provider=provider,
-            defaults={'api_key': api_key}
+            defaults={'api_key': api_key, 'model': model}
             )
             return redirect('/settings?ai_config_success=true&tab=ai-config')
             
@@ -493,11 +496,16 @@ def settings(request):
             
             success_message = "Password updated successfully."
     
+    gemini_models = AIConfig.MODELS_GEMINI
+    openai_models = AIConfig.MODELS_OPENAI
+
     return render(request, 'main/settings.html', {
         'username': username,
         'error_message': error_message,
         'success_message': success_message,
         'ai_configs': ai_configs,
+        'gemini_models_json': json.dumps(gemini_models),
+        'openai_models_json': json.dumps(openai_models),
         'active_tab': active_tab,  # Pass the active tab to the template
     })
 

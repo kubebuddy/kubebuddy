@@ -30,20 +30,6 @@ class Cluster(models.Model):
     def __str__(self):
         return self.cluster_name
     
-
-# class AIConfig(models.Model):
-#     PROVIDERS = [
-#         ('openai', 'OpenAI'),
-#         ('gemini', 'Google Gemini'),
-#     ]
-
-#     provider = models.CharField(max_length=10, choices=PROVIDERS, unique=True)
-#     api_key = models.CharField(max_length=255)
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.get_provider_display()} API Key"
-    
 class AIConfig(models.Model):
     PROVIDERS = [
         ('openai', 'OpenAI'),

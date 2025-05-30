@@ -16,7 +16,7 @@ from .src.workloads import k8s_cronjobs, k8s_daemonset, k8s_deployments, k8s_job
 from .src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
 from .src.rbac import k8s_role, k8s_cluster_role_bindings, k8s_cluster_roles, k8s_rolebindings, k8s_service_accounts
 from .src.metrics import k8s_pod_metrics, k8s_node_metrics
-from .src import dashData, clusters_DB
+from .src import dashData, clusters_DB, k8sgpt
 
 from main.models import Cluster
 from kubebuddy.appLogs import logger
@@ -880,3 +880,21 @@ def generate_reports(request):
     except Exception as e:
         return HttpResponse(f"Exception occurred: {e}", status=500)
     
+def k8sgpt_view(request, cluster_id):
+    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
+
+    if request.method == 'GET':
+        # Handle GET request to display the k8sgpt page
+        return render(request, 'dashboard/k8sgpt.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
+                                                         'namespaces': namespaces, 'current_cluster': current_cluster})
+    
+    else:
+        output = None
+
+        if request.POST.get('explain'):
+            output = k8sgpt.k8sgpt_analyze_explain()['results']
+        else:
+            output = k8sgpt.k8sgpt_analyze()['results']
+
+        return render(request, 'dashboard/k8sgpt.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters,
+                                                         'namespaces': namespaces, 'current_cluster': current_cluster,'output': output})

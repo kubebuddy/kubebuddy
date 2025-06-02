@@ -890,12 +890,13 @@ def k8sgpt_view(request, cluster_id):
     
     else:
         output = None
-        namespace = request.POST.get('namespace')
-
-        if request.POST.get('explain'):
-            output = k8sgpt.k8sgpt_analyze_explain(namespace)['results']
+        selected_namespace = request.POST.get('namespace')
+        explain = request.POST.get('explain')
+        if explain:
+            output = k8sgpt.k8sgpt_analyze_explain(selected_namespace)['results']
         else:
-            output = k8sgpt.k8sgpt_analyze(namespace)['results']
+            output = k8sgpt.k8sgpt_analyze(selected_namespace)['results']
 
         return render(request, 'dashboard/k8sgpt.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters,
-                                                         'namespaces': namespaces, 'current_cluster': current_cluster,'output': output})
+                                                         'namespaces': namespaces, 'current_cluster': current_cluster,'output': output,
+                                                         'selected_namespace': selected_namespace, 'explain': explain })

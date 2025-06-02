@@ -12,15 +12,15 @@
     {% csrf_token %}
 
         <div class="form-check me-3 d-flex align-items-center fs-6">
-            <input type="checkbox" class="form-check-input me-2" id="explain" name="explain">
+            <input type="checkbox" class="form-check-input me-2" id="explain" name="explain" {% if explain %} checked {% endif %}>
             <label class="form-check-label" for="explain">Explain</label>
         </div>
 
         <div class="d-flex align-items-center me-3">
             <select class="form-select" name="namespace" id="namespace">
-                <option selected>Select a namespace</option>
+                <option value="all" {% if selected_namespace == 'all' %}selected{% endif %}>All</option>
                 {% for namespace in namespaces %}
-                <option value="{{namespace}}">{{namespace}}</option>
+                <option value="{{namespace}}" {% if namespace == selected_namespace %}selected{% endif %}>{{namespace}}</option>
                 {% endfor %}
             </select>
         </div>
@@ -35,14 +35,13 @@
     <h3 class="mb-4">Kubernetes Analysis</h3>
 
     {% for item in output %}
-    <div class="card p-3 m-3">
+    <div class="card p-4 my-3">
         <p><b>Kind: {{item.kind}}</b></p>
-        <p>Name: {{item.name}}</p>
-        <p>Error: {{item.error.0.Text}}</p>
-        {% if item.details %}<p>Details: {{item.details|linebreaks}}</p>{% endif %}
+        <p><b>Name:</b> {{item.name}}</p>
+        <p><b>Error:</b> {{item.error.0.Text}}</p>
+        {% if item.details %}<p><b>Details:</b> {{item.details|linebreaks}}</p>{% endif %}
     </div>
     {% endfor %}
-    </div>
 
 </div>
 

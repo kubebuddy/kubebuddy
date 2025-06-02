@@ -2,7 +2,8 @@ import subprocess
 import json
 
 def k8sgpt_analyze_explain(namespace):
-    if namespace != "Select a namespace":
+
+    if namespace != 'all':
         command = ["k8sgpt", "analyze", "--explain", "-o", "json", "--anonymize", f"--namespace={namespace}"]
     else:
         command = ["k8sgpt", "analyze", "--explain", "-o", "json", "--anonymize"]
@@ -15,7 +16,7 @@ def k8sgpt_analyze_explain(namespace):
 
 def k8sgpt_analyze(namespace):
     
-    if namespace != "Select a namespace":
+    if namespace != 'all':
         command = ["k8sgpt", "analyze", "-o", "json", "--anonymize", f"--namespace={namespace}"]
     else:
         command = ["k8sgpt", "analyze", "-o", "json", "--anonymize"]

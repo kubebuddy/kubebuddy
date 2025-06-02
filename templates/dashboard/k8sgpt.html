@@ -8,33 +8,41 @@
 {% block content %}
 
 <div class="container">
-    <form method="POST" action="/{{cluster_id}}/k8sgpt?cluster_id={{cluster_id}}">
-        {% csrf_token %}
-        <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="explain" name="explain">
+    <form method="POST" action="/{{cluster_id}}/k8sgpt?cluster_id={{cluster_id}}" class="d-flex flex-wrap gap-3 align-items-center p-3">
+    {% csrf_token %}
+
+        <div class="form-check me-3 d-flex align-items-center fs-6">
+            <input type="checkbox" class="form-check-input me-2" id="explain" name="explain">
             <label class="form-check-label" for="explain">Explain</label>
         </div>
 
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <div class="d-flex align-items-center me-3">
+            <select class="form-select" name="namespace" id="namespace">
+                <option selected>Select a namespace</option>
+                {% for namespace in namespaces %}
+                <option value="{{namespace}}">{{namespace}}</option>
+                {% endfor %}
+            </select>
+        </div>
 
+        <div class="me-3">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
     </form>
+
 
     <div class="container mt-4">
     <h3 class="mb-4">Kubernetes Analysis</h3>
 
     {% for item in output %}
-    <div>
+    <div class="card p-3 m-3">
         <p><b>Kind: {{item.kind}}</b></p>
         <p>Name: {{item.name}}</p>
         <p>Error: {{item.error.0.Text}}</p>
-        {% if item.details %}
-        <p>Details: {{item.details|linebreaks}}</p>
-        {% endif %}
+        {% if item.details %}<p>Details: {{item.details|linebreaks}}</p>{% endif %}
     </div>
     {% endfor %}
-
     </div>
-
 
 </div>
 

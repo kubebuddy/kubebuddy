@@ -107,10 +107,13 @@
         <b>Dashboard</b>
       </a>
 
-      <a href="/{{cluster_id}}/k8sgpt?cluster_id={{cluster_id}}" class="btn btn-primary">K8sGPT</a>
-
-
       <ul class="list-unstyled ps-0 scrollable-list">
+        
+        <!-- k8sgpt button -->
+        <li>
+            <a href="/{{cluster_id}}/k8sgpt?cluster_id={{cluster_id}}" class="btn btn-primary rounded text-white w-100 mb-2">K8sGPT</a>
+        </li>
+
         <!-- Workloads Section -->
         <li class="mb-1">
           <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#workload-collapse" aria-expanded="true">

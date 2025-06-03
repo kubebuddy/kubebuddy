@@ -11,12 +11,13 @@
     <form method="POST" action="/{{cluster_id}}/k8sgpt?cluster_id={{cluster_id}}" class="d-flex flex-wrap gap-3 align-items-center p-3">
     {% csrf_token %}
 
-        <div class="form-check me-3 d-flex align-items-center fs-6">
+        <div class="form-check d-flex align-items-center fs-6">
             <input type="checkbox" class="form-check-input me-2" id="explain" name="explain" {% if explain %} checked {% endif %}>
             <label class="form-check-label" for="explain">Explain</label>
         </div>
 
-        <div class="d-flex align-items-center me-3">
+        <div class="d-flex align-items-center">
+            <label for="namespace" class="m-3 fs-6">Namespace</label>
             <select class="form-select" name="namespace" id="namespace">
                 <option value="all" {% if selected_namespace == 'all' %}selected{% endif %}>All</option>
                 {% for namespace in namespaces %}
@@ -26,22 +27,28 @@
         </div>
 
         <div class="me-3">
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary">Check</button>
         </div>
     </form>
 
 
     <div class="container mt-4">
     <h3 class="mb-4">Kubernetes Analysis</h3>
-
+    
+    {% if output == "Error" %}
+    <div class="alert alert-warning">
+        Could not retrieve information. Please make sure the backend is configured in K8sGPT.
+    </div>
+    {% elif output %}
     {% for item in output %}
-    <div class="card p-4 my-3">
+    <div class="bg-white border rounded-2 shadow-sm p-3 my-3">
         <p><b>Kind: {{item.kind}}</b></p>
         <p><b>Name:</b> {{item.name}}</p>
         <p><b>Error:</b> {{item.error.0.Text}}</p>
         {% if item.details %}<p><b>Details:</b> {{item.details|linebreaks}}</p>{% endif %}
     </div>
     {% endfor %}
+    {% endif %}
 
 </div>
 

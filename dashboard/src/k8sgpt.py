@@ -11,7 +11,7 @@ def k8sgpt_analyze_explain(namespace):
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         return json.loads(result.stdout)
     except subprocess.CalledProcessError as e:
-        print("Error running k8sGPT:", e.stderr)
+        return None
 
 
 def k8sgpt_analyze(namespace):
@@ -24,4 +24,4 @@ def k8sgpt_analyze(namespace):
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         return json.loads(result.stdout)
     except subprocess.CalledProcessError as e:
-        print("Error running k8sGPT:", e.stderr)
+        return None

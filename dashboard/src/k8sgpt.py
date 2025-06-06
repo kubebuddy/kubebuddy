@@ -10,9 +10,12 @@ def k8sgpt_analyze_explain(namespace):
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         return json.loads(result.stdout)
+    
+    except FileNotFoundError:
+        return None
+    
     except subprocess.CalledProcessError as e:
         return None
-
 
 def k8sgpt_analyze(namespace):
     
@@ -23,5 +26,9 @@ def k8sgpt_analyze(namespace):
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         return json.loads(result.stdout)
+    
+    except FileNotFoundError:
+        return None
+    
     except subprocess.CalledProcessError as e:
         return None

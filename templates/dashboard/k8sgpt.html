@@ -37,7 +37,11 @@
     
     {% if output == "Error" %}
     <div class="alert alert-warning">
-        Could not retrieve information. Please make sure K8sGPT is installed and the backend is configured for utilising `Explain` feature.
+        Could not retrieve information. Please make sure 
+        <ul>
+            <li>K8sGPT is installed and the `PATH` is setup in environment variable.</li>
+            <li>Backend is configured for utilising `Explain` feature.</li>
+        </ul>
     </div>
     {% elif output %}
     {% for item in output %}

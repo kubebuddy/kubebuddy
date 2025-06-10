@@ -894,7 +894,8 @@ def kube_bench_report(request, cluster_id):
 
         return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='kube_bench_report.pdf')
     except Exception as e:
-        print('Caught exception: ', e)
+        print('Caught exception:', e)
+        return HttpResponseServerError("Error generating report.")
 
 def cluster_hotspot(request, cluster_id):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)

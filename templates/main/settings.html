@@ -529,10 +529,11 @@
             form.submit();
         }
 
-        // back button logic
-        document.getElementById('back-btn').addEventListener('click', ()=>{
-            history.back()
-        })
+        // Back button logic - replace current page
+        document.getElementById('back-btn').addEventListener('click', () => {
+            const previousUrl = document.referrer || '/';
+            window.location.replace(previousUrl);
+        });
 
     </script>
 

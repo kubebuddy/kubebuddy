@@ -195,7 +195,7 @@ def change_pass(request):
             error_message = "User does not exist."
 
     logger.error(error_message)
-    return render(request, 'main/change_password.html', {'error_message': error_message})
+    return render(request, 'main/settings.html', {'error_message': error_message})
 
 @login_required
 def cluster_select(request):

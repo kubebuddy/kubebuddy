@@ -79,7 +79,7 @@
             <div class="pb-3 mb-4 border-bottom d-flex justify-content-between">
                 <div id="section-title" class="h4">General Settings</div>
                 <div class="ms-auto">
-                    <a href="/KubeBuddy" id="back-btn" class="btn-primary bg-gradient btn me-2">
+                    <a href="#" id="back-btn" class="btn-primary bg-gradient btn me-2">
                         <i class="bi bi-arrow-left"></i>
                         Back
                     </a>
@@ -514,6 +514,12 @@
             document.body.appendChild(form);
             form.submit();
         }
+
+        // back button logic
+        document.getElementById('back-btn').addEventListener('click', ()=>{
+            history.back()
+        })
+
     </script>
 </body>
 </html>

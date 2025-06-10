@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-Django==5.1.8
-kubernetes==32.0.1
-=======
 Django>=5.1.9
 kubernetes==32.0.0
->>>>>>> model-integration
 python-decouple==3.8
 google-genai==1.3.0
 openai==1.64.0

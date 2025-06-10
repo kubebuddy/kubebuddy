@@ -169,6 +169,20 @@
                                     <option value="openai" {% if 'openai' in ai_configs %}selected{% endif %}>OpenAI</option>
                                 </select>
                             </div>
+
+                            <div class="mb-3">
+                                <label for="model" class="form-label">AI Model</label>
+                                <select class="form-select" id="model" name="model">
+                                    <option value="" selected>-- Select Model --</option>
+                                    {% if 'gemini' in ai_configs and ai_configs.gemini.model %}
+                                        <option value="{{ ai_configs.gemini.model }}" data-provider="gemini" selected>{{ ai_configs.gemini.model }}</option>
+                                    {% endif %}
+                                    {% if 'openai' in ai_configs and ai_configs.openai.model %}
+                                        <option value="{{ ai_configs.openai.model }}" data-provider="openai" selected>{{ ai_configs.openai.model }}</option>
+                                    {% endif %}
+                                    </select>
+                                <div class="form-text">Select the specific AI model to use.</div>
+                            </div>
                             
                             <div class="mb-3">
                                 <label for="api_key" class="form-label">API Key</label>
@@ -521,5 +535,52 @@
         })
 
     </script>
+
+    <script>
+        const providerSelect = document.getElementById('provider');
+        const modelSelect = document.getElementById('model');
+
+        const geminiModels = {{ gemini_models_json|safe }};
+        const openaiModels = {{ openai_models_json|safe }};
+        const aiConfigs = {{ ai_configs|safe }}; // Pass the ai_configs dictionary
+
+        function updateModelOptions() {
+            const selectedProvider = providerSelect.value;
+            modelSelect.innerHTML = '<option value="" selected>-- Select Model --</option>';
+
+            let modelsToShow = [];
+
+            if (selectedProvider === 'gemini') {
+                modelsToShow = geminiModels;
+            } else if (selectedProvider === 'openai') {
+                modelsToShow = openaiModels;
+            }
+
+            modelsToShow.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model[0];
+                option.textContent = model[1];
+
+                // Attempt to pre-select based on ai_configs
+                let previouslySelected = false;
+                if (selectedProvider === 'gemini' && aiConfigs.hasOwnProperty('gemini') && model[0] === aiConfigs['gemini']['model']) {
+                    previouslySelected = true;
+                } else if (selectedProvider === 'openai' && aiConfigs.hasOwnProperty('openai') && model[0] === aiConfigs['openai']['model']) {
+                    previouslySelected = true;
+                }
+
+                if (previouslySelected) {
+                    option.selected = true;
+                }
+
+                modelSelect.appendChild(option);
+            });
+        }
+
+        // Initial load and when the provider changes
+        updateModelOptions();
+        providerSelect.addEventListener('change', updateModelOptions);
+    </script>
+
 </body>
 </html>

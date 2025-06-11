@@ -55,30 +55,6 @@ python manage.py makemigrations main
 echo "Creating Database..."
 python manage.py migrate
 
-# K8sGPT installation
-read -p "Do you want to install K8sGPT (Enter "yes" to confirm) ? " -r
-
-if [[ $REPLY =~ ^[Yy][Ee]?[Ss]?$ ]]
-then
-  echo "Installing K8sGPT..."
-	if command -v dpkg &> /dev/null; then
-      curl -LO https://github.com/k8sgpt-ai/k8sgpt/releases/download/v0.4.17/k8sgpt_amd64.deb
-      dpkg -i k8sgpt_amd64.deb
-      echo "K8sGPT installed successfully."
-  elif command -v rpm &> /dev/null; then
-      rpm -ivh https://github.com/k8sgpt-ai/k8sgpt/releases/download/v0.4.17/k8sgpt_amd64.rpm
-      echo "K8sGPT installed successfully."
-  elif command -v apk &> /dev/null; then
-      wget https://github.com/k8sgpt-ai/k8sgpt/releases/download/v0.4.17/k8sgpt_amd64.apk
-      apk add --allow-untrusted k8sgpt_amd64.apk
-      echo "K8sGPT installed successfully."
-  else
-      echo "Unknown or unsupported Linux distro. Please install K8sGPT manually."
-  fi
-else
-	echo
-fi
-
 echo "-----------------------------------------------------------------------------------------------"
 echo "KubeBuddy is ready to go! Run the following command to start the server:"
 echo "bash run.sh --port <port_number> --host <host_address>"

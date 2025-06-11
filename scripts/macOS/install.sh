@@ -22,20 +22,6 @@ echo "Creating Database"
 
 python3 manage.py migrate
 
-read -p "Do you want to install K8sGPT (Enter "yes" to confirm) ? " -r
-
-if [[ $REPLY =~ ^[Yy][Ee]?[Ss]?$ ]]
-then
-	if command -v brew &> /dev/null; then
-        brew install k8sgpt
-        echo "K8sGPT has been installed successfully!"
-    else
-        echo "Homebrew is not installed. Please install Homebrew and proceed with K8sGPT installation manually."
-    fi
-else
-    echo
-fi
-
 echo "-----------------------------------------------------------------------------------------------"
 echo "KubeBuddy is ready to go! Run the following command to start the server:"
 echo "bash run.sh --port <port_number> --host <host_address>"

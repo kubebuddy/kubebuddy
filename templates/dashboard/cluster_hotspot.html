@@ -82,7 +82,14 @@
     {% endif %}
     {% if orphaned_secrets %}
     <div class="table-4">
-        <h2>Orphaned Secrets</h2><br>
+        <div class="d-flex justify-content-start align-items-center">
+            <h2>Orphaned Secrets</h2>
+            <a href="#" data-bs-toggle="tooltip"
+                data-bs-title="Secrets with no known references. For informational purposes only."
+                disabled="disabled" class="text-decoration-none text-secondary ms-2">
+            <i class="bi bi-exclamation-circle fs-6">
+        </i></a>
+        </div><br>
         <table class="table table-bordered">
             <thead class="table-dark">
                 <tr>
@@ -105,7 +112,7 @@
     {% endif %}
     {% if container_missing_probes %}
     <div class="table-5">
-        <h2>Containers missing readiness/liveliness probes</h2><br>
+        <h2>Containers missing readiness/liveness probes</h2><br>
         <table class="table table-bordered">
             <thead class="table-dark">
                 <tr>
@@ -141,7 +148,14 @@
     {% endif %}
     {% if container_restart_count %}
     <div class="table-6">
-        <h2>Container Restart Count</h2><br>
+        <div class="d-flex justify-content-start align-items-center">
+            <h2>Container Restart Count</h2>
+            <a href="#" data-bs-toggle="tooltip"
+                data-bs-title="Top 5 containers with the highest restart count."
+                disabled="disabled" class="text-decoration-none text-secondary ms-2">
+            <i class="bi bi-exclamation-circle fs-6">
+        </i></a>
+        </div><br>
         <table class="table table-bordered">
             <thead class="table-dark">
                 <tr>

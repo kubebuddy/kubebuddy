@@ -925,13 +925,13 @@ def k8sgpt_view(request, cluster_id):
         selected_namespace = request.POST.get('namespace')
         explain = request.POST.get('explain')
         if explain:
-            output = k8sgpt.k8sgpt_analyze_explain(selected_namespace)
+            output = k8sgpt.k8sgpt_analyze_explain(selected_namespace, path, context_name)
             if output:
                 output = output['results']
             else:
                 output = "Error"
         else:
-            output = k8sgpt.k8sgpt_analyze(selected_namespace)
+            output = k8sgpt.k8sgpt_analyze(selected_namespace, path, context_name)
             if output:
                 output = output['results']
             else:

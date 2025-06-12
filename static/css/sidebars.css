@@ -897,3 +897,8 @@ table th, td {
   text-align: left !important;
   border: none !important;
 }
+
+body.dark-mode .card-body {
+  background-color: #212529;
+  color: #f8f9fa;
+}

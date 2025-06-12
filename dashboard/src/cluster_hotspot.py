@@ -146,7 +146,7 @@ def get_cluster_hotspot(path, context):
                 core_v1.list_namespaced_persistent_volume_claim(namespace=name).items
             )
 
-            if not has_resources and ns not in ['kube-system', 'kube-public', 'kube-node-lease', 'default']:
+            if not has_resources and ns.metadata.name not in ['kube-system', 'kube-public', 'kube-node-lease', 'default']:
                 empty_namespaces.append({'name': name, 'status': ns.status.phase, 'age': calculateAge(datetime.now(timezone.utc) - ns.metadata.creation_timestamp), 'labels': ns.metadata.labels})
 
         return empty_namespaces, latest_tag_pods, orphaned_configmaps, orphaned_secrets, container_missing_probes, container_restart_count, priviledged_containers

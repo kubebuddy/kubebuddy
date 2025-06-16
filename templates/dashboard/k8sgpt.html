@@ -26,6 +26,24 @@
             </select>
         </div>
 
+        <div>
+            <label for="filter" class="m-3 fs-6">Filter</label>
+            <select class="form-select" name="filter" id="filter">
+                <option value="all" {% if selected_filter == 'all' %}selected{% endif %}>All</option>
+                <option value="pods" {% if selected_filter == 'pods' %}selected{% endif %}>Pods</option>
+                <option value="deployments" {% if selected_filter == 'deployments' %}selected{% endif %}>Deployments</option>
+                <option value="services" {% if selected_filter == 'services' %}selected{% endif %}>Services</option>
+                <option value="ingresses" {% if selected_filter == 'ingresses' %}selected{% endif %}>Ingresses</option>
+                <option value="configmaps" {% if selected_filter == 'configmaps' %}selected{% endif %}>ConfigMaps</option>
+                <option value="secrets" {% if selected_filter == 'secrets' %}selected{% endif %}>Secrets</option>
+                <option value="nodes" {% if selected_filter == 'nodes' %}selected{% endif %}>Nodes</option>
+                <option value="persistentvolumes" {% if selected_filter == 'persistentvolumes' %}selected{% endif %}>Persistent Volumes</option>
+                <option value="persistentvolumeclaims" {% if selected_filter == 'persistentvolumeclaims' %}selected{% endif %}>Persistent Volume Claims</option>
+                <option value="statefulsets" {% if selected_filter == 'statefulsets' %}selected{% endif %}>Stateful Sets</option>
+                <option value="replicasets" {% if selected_filter == 'replicasets' %}selected{% endif %}>Replica Sets</option>
+                
+        </div>
+
         <div class="me-3">
             <button type="submit" class="btn btn-primary">Check</button>
         </div>

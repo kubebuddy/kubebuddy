@@ -3,6 +3,7 @@ from google.auth import default
 from google.cloud.container_v1 import ClusterManagerClient
 import tempfile
 import base64
+import os
 
 # Age calculation
 def calculateAge(timedelta_obj):
@@ -56,8 +57,8 @@ def configure_k8s(path: str, context: str):
     else:
         config.load_kube_config(config_file=path, context=context)
 
-    #     aws_token = os.getenv("AWS_EKS_TOKEN")
-    #     if aws_token:
-    #         configuration = client.Configuration.get_default_copy()
-    #         configuration.api_key = {"authorization": f"Bearer {aws_token}"}
-    #         client.Configuration.set_default(configuration)
+        aws_token = os.getenv("AWS_EKS_TOKEN")
+        if aws_token and context.startswith("arn:aws:eks"):
+            configuration = client.Configuration.get_default_copy()
+            configuration.api_key = {"authorization": f"Bearer {aws_token}"}
+            client.Configuration.set_default(configuration)

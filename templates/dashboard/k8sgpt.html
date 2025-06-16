@@ -7,6 +7,16 @@
 
 {% block content %}
 
+<style>
+  .rotate-icon {
+    transition: transform 0.3s ease;
+  }
+
+  .rotate-180 {
+    transform: rotate(180deg);
+  }
+</style>
+
 <div class="container">
     <form method="POST" action="/{{cluster_id}}/k8sgpt?cluster_id={{cluster_id}}" class="d-flex flex-wrap gap-3 align-items-center p-3">
     {% csrf_token %}
@@ -50,7 +60,7 @@
     </form>
 
 
-    <div class="container mt-4">
+    <div class="container my-5">
     <h3 class="mb-4">Kubernetes Analysis</h3>
     
     {% if output == "Error" %}
@@ -65,9 +75,14 @@
     {% for item in output %}
     <div class="mb-2 border rounded shadow-sm p-3">
         <div class="card-header">
-        <button class="btn btn-link text-start w-100" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
-            {{forloop.counter}}. {{ item.error.0.Text }}
-        </button>
+            <button class="btn btn-link text-start w-100 d-flex align-items-center"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{ forloop.counter }}"
+                    aria-expanded="false"
+                    aria-controls="collapse{{ forloop.counter }}">
+                <span>{{ forloop.counter }}. {{ item.error.0.Text }}</span>
+                <i class="bi bi-chevron-down rotate-icon ms-auto" id="icon-{{ forloop.counter }}"></i>
+            </button>
         </div>
         <div id="collapse{{ forloop.counter }}" class="collapse">
         <div class="p-3">
@@ -81,5 +96,25 @@
     {% endif %}
 
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const toggles = document.querySelectorAll('[data-bs-toggle="collapse"]');
+
+    toggles.forEach(function (toggle) {
+      const targetId = toggle.getAttribute('data-bs-target');
+      const icon = toggle.querySelector('.rotate-icon');
+      const collapseEl = document.querySelector(targetId);
+
+      collapseEl.addEventListener('show.bs.collapse', function () {
+        icon.classList.add('rotate-180');
+      });
+
+      collapseEl.addEventListener('hide.bs.collapse', function () {
+        icon.classList.remove('rotate-180');
+      });
+    });
+  });
+</script>
 
 {% endblock %}

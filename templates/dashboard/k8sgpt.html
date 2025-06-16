@@ -55,7 +55,7 @@
     
     {% if output == "Error" %}
     <div class="alert alert-warning">
-        Could not retrieve information. Please make sure 
+        Could not retrieve information. Please make sure :
         <ul>
             <li>K8sGPT is installed and the `PATH` is setup in environment variable.</li>
             <li>Backend is configured for utilising `Explain` feature.</li>
@@ -66,7 +66,7 @@
     <div class="mb-2 border rounded shadow-sm p-3">
         <div class="card-header">
         <button class="btn btn-link text-start w-100" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
-            {{ item.error.0.Text }}
+            {{forloop.counter}}. {{ item.error.0.Text }}
         </button>
         </div>
         <div id="collapse{{ forloop.counter }}" class="collapse">

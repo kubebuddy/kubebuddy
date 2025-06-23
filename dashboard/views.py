@@ -3,9 +3,10 @@ import subprocess, os
 from django.shortcuts import render
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseBadRequest, HttpResponseServerError, HttpResponse, FileResponse
+from django.http import HttpResponseServerError, HttpResponse, FileResponse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
 
 from .src.cluster_management import k8s_namespaces, k8s_nodes, k8s_limit_range, k8s_resource_quota, k8s_pdb
 from .src.services import k8s_endpoints, k8s_services
@@ -23,7 +24,6 @@ from main.models import Cluster
 from kubebuddy.appLogs import logger
 from kubernetes import config, client
 from .decorators import server_down_handler
-from .src.clusters_DB import get_cluster_names
 from .src.workloads.k8s_pods import get_pod_details
 from .src.workloads.k8s_deployments import get_deployment_details
 from .src.cluster_management.k8s_nodes import get_node_details
@@ -33,11 +33,9 @@ from .src.services.k8s_services import get_service_details
 from .src.networking.k8s_ingress import get_ingress_details
 from kubernetes.config.config_exception import ConfigException
 from django.template.loader import get_template
-from io import BytesIO
-import datetime
-import uuid
 from .src.generate_pdf import generate_pdf
 from .src import kube_bench
+from .src.utils import validate_and_patch_resource
 ###### Utilities ######
 
 def get_utils_data(request):
@@ -82,12 +80,31 @@ def pods(request, cluster_id):
 
 def pod_info(request, cluster_id, namespace, pod_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
+
     pod_info = {
         "describe": k8s_pods.get_pod_description(path, context_name, namespace, pod_name),
         "logs": k8s_pods.get_pod_logs(path, context_name, namespace, pod_name),
         "events": k8s_pods.get_pod_events(path, context_name, namespace, pod_name) or "< None >",
-        "yaml": k8s_pods.get_pod_yaml(path, context_name, namespace, pod_name)
+        "yaml": k8s_pods.get_pod_yaml(path, context_name, namespace, pod_name, managed_fields=True),
+        "edit": k8s_pods.get_pod_yaml(path, context_name, namespace, pod_name, managed_fields=False),
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('pod_yaml')
+        ret = validate_and_patch_resource(path, context_name, pod_name, namespace, pod_info["yaml"], yaml)
+
+        if ret["success"] == False:
+            pod_info["show_modal"] = True
+            pod_info["message"] = ret["message"]
+        else:
+            pod_info["show_modal"] = True
+            pod_info["changes"] = ret["changes"]
+            pod_info["message"] = ret["message"]
+            
+        new_yaml = k8s_pods.get_pod_yaml(path, context_name, namespace, pod_name, managed_fields=True)
+        new_edit = k8s_pods.get_pod_yaml(path, context_name, namespace, pod_name, managed_fields=False)
+        pod_info["yaml"] = new_yaml
+        pod_info["edit"] = new_edit
 
     return render(request, 'dashboard/workloads/pod_info.html', {"pod_info": pod_info, "cluster_id": cluster_id,
                                                         "pod_name": pod_name,

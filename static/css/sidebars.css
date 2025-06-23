@@ -902,3 +902,31 @@ body.dark-mode .card-body {
   background-color: #212529;
   color: #f8f9fa;
 }
+
+/* Textarea for YAML */
+
+body.dark-mode textarea {
+  background-color: #212529;
+  color: #f8f9fa;
+}
+
+body.dark-mode textarea:focus {
+  background-color: #212529;
+  color: #f8f9fa;
+  box-shadow: none;
+}
+
+body textarea:focus {
+  box-shadow: none;
+}
+
+textarea {
+  font-family: monospace;
+  white-space: pre;
+  font-size: 1rem;
+  line-height: 1.5;
+  tab-size: 2;
+  padding: 1rem;
+  resize: vertical;
+  overflow: auto;
+}

@@ -1,4 +1,4 @@
-from kubernetes import client, config
+from kubernetes import client, config, utils
 from kubernetes.config.config_exception import ConfigException
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
@@ -196,14 +196,26 @@ def get_pod_events(path, context, namespace, pod_name):
     
     return "\n".join([f"{e.reason}: {e.message}" for e in pod_events])
 
-def get_pod_yaml(path, context, namespace, pod_name):
+def get_pod_yaml(path, context, namespace, pod_name, managed_fields=True):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
     # Filtering Annotations
     if pod.metadata:
         pod.metadata.annotations = filter_annotations(pod.metadata.annotations or {})
-    return yaml.dump(pod.to_dict(), default_flow_style=False)
+
+    api_client = client.ApiClient()
+    pod_dict = api_client.sanitize_for_serialization(pod)
+
+    # Clean up metadata
+    if "metadata" in pod_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            pod_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(pod_dict, sort_keys=False)
+    # return yaml.dump(pod.to_dict(), default_flow_style=False)
 
 def get_pod_details(namespace=None):
     try:
@@ -233,3 +245,42 @@ def get_pod_details(namespace=None):
         pod_details.append(pod_info)
 
     return pod_details
+
+
+# def edit_pod(path, context, namespace,pod_name, yaml_str):
+#     configure_k8s(path, context)
+#     v1 = client.CoreV1Api()
+#     try:
+#         # Load the YAML content into a Pod object
+#         pod_dict = yaml.safe_load(yaml_str)
+#         # Remove system-managed fields that must not be set in replace
+#         # for field in ["resourceVersion", "uid", "selfLink", "creationTimestamp", "managedFields"]:
+#         #     pod_dict["metadata"].pop(field, None)
+#         # Ensure metadata.name and metadata.namespace are correct (making sure names and namespace are the original ones from my side, might need to tweak this logic here)
+#         # pod_dict["metadata"]["name"] = pod_name
+#         # pod_dict["metadata"]["namespace"] = namespace
+#         # Replace the pod
+#         v1.patch_namespaced_pod(
+#             name=pod_name,
+#             namespace=namespace,
+#             body=pod_dict,
+#             dry_run="All"
+#         )
+
+#         ret = v1.patch_namespaced_pod(
+#             name=pod_name,
+#             namespace=namespace,
+#             body=pod_dict,
+#         )
+
+#         return {"success": True, "message": "Patch applied successfully", "response": ret}
+
+#     except client.exceptions.ApiException as e:
+#         logger.error(f"Dry-run failed: {e.body}")
+#         return {"success": False, "message": f"Validation failed: {e.body}"}
+#     except yaml.YAMLError as e:
+#         logger.error(f"YAML parsing error: {str(e)}")
+#         return {"success": False, "message": f"YAML parsing error: {str(e)}"}
+#     except Exception as e:
+#         logger.error(f"An error occurred: {str(e)}")
+#         return {"success": False, "message": f"An error occurred: {str(e)}"}

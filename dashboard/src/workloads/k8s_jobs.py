@@ -6,7 +6,7 @@ from ..utils import calculateAge, filter_annotations, configure_k8s
 import yaml
 
 
-def getJobCount():
+def getJobCount(path, context):
     configure_k8s(path, context)
     v1 = client.BatchV1Api()
     jobs = v1.list_job_for_all_namespaces().items
@@ -153,14 +153,25 @@ def get_job_events(path, context, namespace, job_name):
     job_events = [event for event in events if event.involved_object.name == job_name and event.involved_object.kind == "Job"]
     return "\n".join([f"{e.reason}: {e.message}" for e in job_events])
 
-def get_yaml_job(path, context, namespace, job_name):
+def get_yaml_job(path, context, namespace, job_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.BatchV1Api()
     job = v1.read_namespaced_job(name=job_name, namespace=namespace)
     # Filtering Annotations
     if job.metadata:
         job.metadata.annotations = filter_annotations(job.metadata.annotations or {})
-    return yaml.dump(job.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    job_dict = api_client.sanitize_for_serialization(job)
+
+    # Clean up metadata
+    if "metadata" in job_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            job_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(job_dict, sort_keys=False)
 
 def get_job_details(namespace=None):
     try:

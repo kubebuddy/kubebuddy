@@ -74,14 +74,14 @@ K8S_RESOURCE_MAP = {
         "patch_func": "patch_namespaced_pod",
         "namespaced": True
     },
+    "ReplicaSet": {
+        "api": client.AppsV1Api,
+        "patch_func": "patch_namespaced_replica_set",
+        "namespaced": True
+    },
     "Deployment": {
         "api": client.AppsV1Api,
         "patch_func": "patch_namespaced_deployment",
-        "namespaced": True
-    },
-    "DaemonSet": {
-        "api": client.AppsV1Api,
-        "patch_func": "patch_namespaced_daemon_set",
         "namespaced": True
     },
     "StatefulSet": {
@@ -89,23 +89,26 @@ K8S_RESOURCE_MAP = {
         "patch_func": "patch_namespaced_stateful_set",
         "namespaced": True
     },
-    "Node": {
-        "api": client.CoreV1Api,
-        "patch_func": "patch_node",
-        "namespaced": False
+    "DaemonSet": {
+        "api": client.AppsV1Api,
+        "patch_func": "patch_namespaced_daemon_set",
+        "namespaced": True
     },
-    "PersistentVolume": {
-        "api": client.CoreV1Api,
-        "patch_func": "patch_persistent_volume",
-        "namespaced": False
+    "Job": {
+        "api": client.BatchV1Api,
+        "patch_func": "patch_namespaced_job",
+        "namespaced": True
     },
-    # Add more cluster-scoped resources as needed
+    "CronJob": {
+        "api": client.BatchV1Api,
+        "patch_func": "patch_namespaced_cron_job",
+        "namespaced": True
+    },
 }
 
 def validate_and_patch_resource(path, context, name, namespace=None, old_yaml=None, new_yaml=None):
     configure_k8s(path, context)
     k8s_client = client.ApiClient()
-
     try:
         resource_dict = yaml.safe_load(new_yaml)
         kind = resource_dict.get("kind")
@@ -149,7 +152,6 @@ def validate_and_patch_resource(path, context, name, namespace=None, old_yaml=No
         return {
             "success": True,
             "message": f"{kind} patched successfully.",
-
             "changes": changes
         }
     
@@ -173,11 +175,9 @@ def diff_yaml_dicts(yaml_a, yaml_b):
     
     # remove metafields
     for d in [dict_a, dict_b]:
-        if 'metadata' in d:
-            d['metadata'].pop('resourceVersion', None)
-            if 'managedFields' in d['metadata']:
-                for field in d['metadata']['managedFields']:
-                    field.pop("time", None)
+            if 'metadata' in d:
+                d['metadata'].pop('resourceVersion', None)
+                d['metadata'].pop('managedFields', None)
     
     # Perform deep diff
     diff = DeepDiff(dict_a, dict_b, ignore_order=True)
@@ -206,23 +206,3 @@ def diff_yaml_dicts(yaml_a, yaml_b):
     if not messages:
         return ["✅ No differences found."]
     return messages
-
-    # # Value changes
-    # for path, change in diff.get("values_changed", {}).items():
-    #     messages.append(f"🔄 Changed {path}: '{change['old_value']}' → '{change['new_value']}'")
-
-    # # Added keys
-    # for path in diff.get("dictionary_item_added", []):
-    #     messages.append(f"🟢 Added field: {path}")
-
-    # # Removed keys
-    # for path in diff.get("dictionary_item_removed", []):
-    #     messages.append(f"🔴 Removed field: {path}")
-
-    # # Type changes
-    # for path, change in diff.get("type_changes", {}).items():
-    #     messages.append(f"⚠️ Type change at {path}: {change['old_type']} → {change['new_type']}")
-
-    # if not messages:
-    #     return ["✅ No differences found."]
-    # return messages

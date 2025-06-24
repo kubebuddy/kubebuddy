@@ -98,13 +98,11 @@
                     <div>
                         {{pod_info.message}}
                     </div>
-                    <div>
                         <ul>
                         {% for changes in pod_info.changes %}
                             <li>{{changes}}</li>
                         {% endfor %}
                         </ul>
-                    </div>
                 </div>
                 {% endif %}
                 <form action="" method="POST">

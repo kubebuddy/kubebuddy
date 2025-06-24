@@ -125,8 +125,27 @@ def rs_info(request, cluster_id, namespace, rs_name):
     rs_info = {
         "describe": k8s_replicaset.get_replicaset_description(path, context_name, namespace, rs_name),
         "events": k8s_replicaset.get_replicaset_events(path, context_name, namespace, rs_name),
-        "yaml": k8s_replicaset.get_yaml_rs(path, context_name, namespace, rs_name)
+        "yaml": k8s_replicaset.get_yaml_rs(path, context_name, namespace, rs_name, managed_fields=True),
+        "edit": k8s_replicaset.get_yaml_rs(path, context_name, namespace, rs_name, managed_fields=False),
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('rs_yaml')
+        ret = validate_and_patch_resource(path, context_name, rs_name, namespace, rs_info["yaml"], yaml)
+
+        if ret["success"] == False:
+            rs_info["show_modal"] = True
+            rs_info["message"] = ret["message"]
+        else:
+            rs_info["show_modal"] = True
+            rs_info["changes"] = ret["changes"]
+            rs_info["message"] = ret["message"]
+            
+        new_yaml = k8s_replicaset.get_yaml_rs(path, context_name, namespace, rs_name, managed_fields=True)
+        new_edit = k8s_replicaset.get_yaml_rs(path, context_name, namespace, rs_name, managed_fields=False)
+        rs_info["yaml"] = new_yaml
+        rs_info["edit"] = new_edit
+
     return render(request, 'dashboard/workloads/rs_info.html', {"rs_info": rs_info, "cluster_id": cluster_id, "rs_name": rs_name, 
                                                                 "registered_clusters": registered_clusters, 'current_cluster': current_cluster})
 
@@ -144,8 +163,27 @@ def deploy_info(request, cluster_id, namespace, deploy_name):
     deploy_info = {
         "describe": k8s_deployments.get_deployment_description(path, context_name, namespace, deploy_name),
         "events": k8s_deployments.get_deploy_events(path, context_name, namespace, deploy_name),
-        "yaml": k8s_deployments.get_yaml_deploy(path, context_name, namespace, deploy_name)
+        "yaml": k8s_deployments.get_yaml_deploy(path, context_name, namespace, deploy_name, managed_fields=True),
+        "edit": k8s_deployments.get_yaml_deploy(path, context_name, namespace, deploy_name, managed_fields=False),
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('deploy_yaml')
+        ret = validate_and_patch_resource(path, context_name, deploy_name, namespace, deploy_info["yaml"], yaml)
+
+        if ret["success"] == False:
+            deploy_info["show_modal"] = True
+            deploy_info["message"] = ret["message"]
+        else:
+            deploy_info["show_modal"] = True
+            deploy_info["changes"] = ret["changes"]
+            deploy_info["message"] = ret["message"]
+            
+        new_yaml = k8s_deployments.get_yaml_deploy(path, context_name, namespace, deploy_name, managed_fields=True)
+        new_edit = k8s_deployments.get_yaml_deploy(path, context_name, namespace, deploy_name, managed_fields=False)
+        deploy_info["yaml"] = new_yaml
+        deploy_info["edit"] = new_edit
+
     return render(request, 'dashboard/workloads/deploy_info.html', {"deploy_info": deploy_info, "cluster_id": cluster_id, "deploy_name": deploy_name, 
                                                                     "registered_clusters": registered_clusters, 'current_cluster': current_cluster})
 
@@ -165,8 +203,26 @@ def sts_info(request, cluster_id, namespace, sts_name):
     sts_info = {
         "describe": k8s_statefulset.get_statefulset_description(path, context_name, namespace, sts_name),
         "events": k8s_statefulset.get_sts_events(path, context_name, namespace, sts_name),
-        "yaml": k8s_statefulset.get_yaml_sts(path, context_name, namespace, sts_name)
+        "yaml": k8s_statefulset.get_yaml_sts(path, context_name, namespace, sts_name, managed_fields = True),
+        "edit": k8s_statefulset.get_yaml_sts(path, context_name, namespace, sts_name, managed_fields = False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('sts_yaml')
+        ret = validate_and_patch_resource(path, context_name, sts_name, namespace, sts_info["yaml"], yaml)
+
+        if ret["success"] == False:
+            sts_info["show_modal"] = True
+            sts_info["message"] = ret["message"]
+        else:
+            sts_info["show_modal"] = True
+            sts_info["changes"] = ret["changes"]
+            sts_info["message"] = ret["message"]
+            
+        new_yaml = k8s_statefulset.get_yaml_sts(path, context_name, namespace, sts_name, managed_fields=True)
+        new_edit = k8s_statefulset.get_yaml_sts(path, context_name, namespace, sts_name, managed_fields=False)
+        sts_info["yaml"] = new_yaml
+        sts_info["edit"] = new_edit
     
     return render(request, 'dashboard/workloads/sts_info.html', {"sts_info": sts_info,"cluster_id": cluster_id,
                                                                  "sts_name": sts_name, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -184,12 +240,31 @@ def daemonset(request, cluster_id):
 
 def daemonset_info(request, cluster_id, namespace, daemonset_name):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
-    daemonset_info = {
+    ds_info = {
         "describe": k8s_daemonset.get_daemonset_description(path, context_name, namespace, daemonset_name),
         "events": k8s_daemonset.get_daemonset_events(path, context_name, namespace, daemonset_name),
-        "yaml": k8s_daemonset.get_daemonset_yaml(path, context_name, namespace, daemonset_name),
+        "yaml": k8s_daemonset.get_daemonset_yaml(path, context_name, namespace, daemonset_name, managed_fields = True),
+        "edit": k8s_daemonset.get_daemonset_yaml(path, context_name, namespace, daemonset_name, managed_fields = False)
     }
-    return render(request, 'dashboard/workloads/daemonset_info.html', {"daemonset_info": daemonset_info, "cluster_id": cluster_id,
+
+    if request.method == 'POST':
+        yaml = request.POST.get('daemonset_yaml')
+        ret = validate_and_patch_resource(path, context_name, daemonset_name, namespace, ds_info["yaml"], yaml)
+
+        if ret["success"] == False:
+            ds_info["show_modal"] = True
+            ds_info["message"] = ret["message"]
+        else:
+            ds_info["show_modal"] = True
+            ds_info["changes"] = ret["changes"]
+            ds_info["message"] = ret["message"]
+            
+        new_yaml = k8s_daemonset.get_daemonset_yaml(path, context_name, namespace, daemonset_name, managed_fields=True)
+        new_edit = k8s_daemonset.get_daemonset_yaml(path, context_name, namespace, daemonset_name, managed_fields=False)
+        ds_info["yaml"] = new_yaml
+        ds_info["edit"] = new_edit
+
+    return render(request, 'dashboard/workloads/daemonset_info.html', {"daemonset_info": ds_info, "cluster_id": cluster_id,
                                                                        "daemonset_name": daemonset_name, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
@@ -207,8 +282,27 @@ def jobs_info(request, cluster_id, namespace, job_name):
     job_info = {
         "describe": k8s_jobs.get_job_description(path, context_name, namespace, job_name),
         "events": k8s_jobs.get_job_events(path, context_name, namespace, job_name),
-        "yaml": k8s_jobs.get_yaml_job(path, context_name, namespace, job_name)
+        "yaml": k8s_jobs.get_yaml_job(path, context_name, namespace, job_name, managed_fields=True),
+        "edit": k8s_jobs.get_yaml_job(path, context_name, namespace, job_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('job_yaml')
+        ret = validate_and_patch_resource(path, context_name, job_name, namespace, job_info["yaml"], yaml)
+
+        if ret["success"] == False:
+            job_info["show_modal"] = True
+            job_info["message"] = ret["message"]
+        else:
+            job_info["show_modal"] = True
+            job_info["changes"] = ret["changes"]
+            job_info["message"] = ret["message"]
+            
+        new_yaml = k8s_jobs.get_yaml_job(path, context_name, namespace, job_name, managed_fields=True)
+        new_edit = k8s_jobs.get_yaml_job(path, context_name, namespace, job_name, managed_fields=False)
+        job_info["yaml"] = new_yaml
+        job_info["edit"] = new_edit
+
     return render(request, 'dashboard/workloads/job_info.html', { "job_info": job_info, "cluster_id": cluster_id,
                                                                  "job_name": job_name, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
@@ -228,8 +322,27 @@ def cronjob_info(request, cluster_id, namespace, cronjob_name):
     cronjob_info = {
         "describe": k8s_cronjobs.get_cronjob_description(path, context_name, namespace, cronjob_name),
         "events": k8s_cronjobs.get_cronjob_events(path, context_name, namespace, cronjob_name),
-        "yaml": k8s_cronjobs.get_yaml_cronjob(path, context_name, namespace, cronjob_name)
+        "yaml": k8s_cronjobs.get_yaml_cronjob(path, context_name, namespace, cronjob_name, managed_fields=True),
+        "edit": k8s_cronjobs.get_yaml_cronjob(path, context_name, namespace, cronjob_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('cronjob_yaml')
+        ret = validate_and_patch_resource(path, context_name, cronjob_name, namespace, cronjob_info["yaml"], yaml)
+
+        if ret["success"] == False:
+            cronjob_info["show_modal"] = True
+            cronjob_info["message"] = ret["message"]
+        else:
+            cronjob_info["show_modal"] = True
+            cronjob_info["changes"] = ret["changes"]
+            cronjob_info["message"] = ret["message"]
+            
+        new_yaml = k8s_cronjobs.get_yaml_cronjob(path, context_name, namespace, cronjob_name, managed_fields=True)
+        new_edit = k8s_cronjobs.get_yaml_cronjob(path, context_name, namespace, cronjob_name, managed_fields=False)
+        cronjob_info["yaml"] = new_yaml
+        cronjob_info["edit"] = new_edit
+        
     return render(request, 'dashboard/workloads/cronjob_info.html', {"cronjob_info": cronjob_info, "cluster_id": cluster_id,
                                                                      "cronjob_name": cronjob_name, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 

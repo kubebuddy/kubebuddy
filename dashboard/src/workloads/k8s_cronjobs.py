@@ -69,7 +69,6 @@ def getCronJobsList(path, context, namespace="all"):
                 'last_schedule': last_schedule,
                 'age': age
             })
-        
         return cronjobs_list
 
     except client.exceptions.ApiException as e:
@@ -141,11 +140,22 @@ def get_cronjob_events(path, context, namespace, cronjob_name):
     cronjob_events = [event for event in events if event.involved_object.name == cronjob_name and event.involved_object.kind == "CronJob"]
     return "\n".join([f"{e.reason}: {e.message}" for e in cronjob_events])
 
-def get_yaml_cronjob(path, context, namespace, cronjob_name):
+def get_yaml_cronjob(path, context, namespace, cronjob_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.BatchV1Api()
     cronjob = v1.read_namespaced_cron_job(name=cronjob_name, namespace=namespace)
     # Filtering Annotations
     if cronjob.metadata:
         cronjob.metadata.annotations = filter_annotations(cronjob.metadata.annotations or {})
-    return yaml.dump(cronjob.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    cronjob_dict = api_client.sanitize_for_serialization(cronjob)
+
+    # Clean up metadata
+    if "metadata" in cronjob_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            cronjob_dict["metadata"].pop(meta_field, None)
+            
+    return yaml.safe_dump(cronjob_dict, sort_keys=False)

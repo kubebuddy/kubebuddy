@@ -8,7 +8,7 @@
 
     <div class="container mt-4">
         <div class="d-flex justify-content-start">
-            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/sts-128.png?raw=true" style="height: 5vh;" alt="deploy">
+            <img src="https://github.com/kubernetes/community/blob/master/icons/png/resources/unlabeled/sts-128.png?raw=true" style="height: 5vh;" alt="sts">
             <h2 class="mb-4 ps-3 text-primary">StatefulSet: {{ sts_name }}</h2>
         </div>
         
@@ -22,6 +22,9 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="yaml-tab" data-bs-toggle="tab" href="#yaml">YAML</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="edit-tab" data-bs-toggle="tab" href="#edit">Edit</a>
             </li>
         </ul>
 
@@ -84,6 +87,26 @@
                     
                     <pre id="yamlContent">{{ sts_info.yaml }}</pre>
                 </div>
+            </div>
+            <div class="tab-pane fade" id="edit">
+                <!-- Modal for YAML changes -->
+                {% if sts_info.show_modal %}
+                <div class="alert alert-success">
+                    <div>
+                        {{sts_info.message}}
+                    </div>
+                        <ul>
+                        {% for changes in sts_info.changes %}
+                            <li>{{changes}}</li>
+                        {% endfor %}
+                        </ul>
+                </div>
+                {% endif %}
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    <textarea name="sts_yaml" id="sts_yaml" class="form-control" rows="25" spellcheck="false">{{ sts_info.edit }}</textarea>
+                    <button type="submit" class="btn btn-primary mt-3">Apply</button>
+                </form>
             </div>
         </div>
 

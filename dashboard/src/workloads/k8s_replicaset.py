@@ -133,11 +133,22 @@ def get_replicaset_events(path, context, namespace, replicaset_name):
     
     return "\n".join([f"{e.reason}: {e.message}" for e in rs_events])    
 
-def get_yaml_rs(path, context, namespace, rs_name):
+def get_yaml_rs(path, context, namespace, rs_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.AppsV1Api()
     rs = v1.read_namespaced_replica_set(name=rs_name, namespace=namespace)
     # Filtering Annotations
     if rs.metadata:
         rs.metadata.annotations = filter_annotations(rs.metadata.annotations or {})
-    return yaml.dump(rs.to_dict(), default_flow_style=False)
+    api_client = client.ApiClient()
+    rs_dict = api_client.sanitize_for_serialization(rs)
+    # Clean up metadata
+
+    if "metadata" in rs_dict and not managed_fields:
+        print("inside if")
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            rs_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(rs_dict, sort_keys=False)

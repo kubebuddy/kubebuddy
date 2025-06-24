@@ -1045,23 +1045,28 @@ def cluster_hotspot(request, cluster_id):
 
 def k8sgpt_view(request, cluster_id):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
-
+    filter_list = ['Pod', 'ConfigMap', 'Service', 'ReplicaSet', 'StatefulSet', 'CronJob', 'PersistentVolumeClaim', 'Node','Deployment', 'Ingress', 'ValidatingWebhookConfiguration', 'MutatingWebhookConfiguration']
     if request.method == 'GET':
         # Handle GET request to display the k8sgpt page
         return render(request, 'dashboard/k8sgpt.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                         'namespaces': namespaces, 'current_cluster': current_cluster})
+                                                         'namespaces': namespaces, 'current_cluster': current_cluster, 'filter_list': filter_list })
     else:
         output = None
         selected_namespace = request.POST.get('namespace')
         explain = request.POST.get('explain')
+        filters = request.POST.getlist('resources')
+        if 'All' in filters or not filters: 
+            filters_to_pass = None
+        else:
+            filters_to_pass = filters
         if explain:
-            output = k8sgpt.k8sgpt_analyze_explain(selected_namespace, path, context_name)
+            output = k8sgpt.k8sgpt_analyze_explain(selected_namespace, path, context_name, filters=filters_to_pass)
             if output:
                 output = output['results']
             else:
                 output = "Error"
         else:
-            output = k8sgpt.k8sgpt_analyze(selected_namespace, path, context_name)
+            output = k8sgpt.k8sgpt_analyze(selected_namespace, path, context_name,filters=filters_to_pass )
             if output:
                 output = output['results']
             else:
@@ -1069,4 +1074,4 @@ def k8sgpt_view(request, cluster_id):
 
         return render(request, 'dashboard/k8sgpt.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters,
                                                          'namespaces': namespaces, 'current_cluster': current_cluster,'output': output,
-                                                         'selected_namespace': selected_namespace, 'explain': explain })
+                                                         'selected_namespace': selected_namespace, 'explain': explain, 'filter_list': filter_list, 'filters':filters_to_pass })

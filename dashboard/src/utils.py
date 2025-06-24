@@ -183,13 +183,18 @@ def validate_and_patch_resource(path, context, name, namespace=None, old_yaml=No
     
     except Exception as ex:
         logger.exception("Unexpected error", exc_info=ex)
-        error_body = json.loads(ex.body)
-        error_message = error_body.get("message")
-        return {
-            "success": False,
-            "message": f"Unexpected error: Make sure the YAML is valid and the resource exists.{error_message}",
-        }
-
+        if hasattr(ex, "body"):
+            error_body = json.loads(ex.body)
+            error_message = error_body.get("message")
+            return {
+                "success": False,
+                "message": f"Unexpected error: Make sure the YAML is valid and the resource exists.{error_message}",
+            }
+        else:
+            return {
+                "success": False,
+                "message": f"Unexpected error: Make sure the YAML is valid and the resource exists."
+            }
 def diff_yaml_dicts(yaml_a, yaml_b):
     """
     Compare two YAML strings and return human-readable differences.

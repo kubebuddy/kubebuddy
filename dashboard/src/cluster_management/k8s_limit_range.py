@@ -76,11 +76,22 @@ def get_limitrange_events(path, context, namespace, limitrange_name):
     ]
     return "\n".join([f"{e.reason}: {e.message}" for e in limitrange_events])
 
-def get_limitrange_yaml(path, context, namespace, limitrange_name):
+def get_limitrange_yaml(path, context, namespace, limitrange_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     limit_ranges = v1.read_namespaced_limit_range(limitrange_name, namespace=namespace)
     # Filtering Annotations
     if limit_ranges.metadata:
         limit_ranges.metadata.annotations = filter_annotations(limit_ranges.metadata.annotations or {})
-    return yaml.dump(limit_ranges.to_dict(), default_flow_style=False)
+
+    api_client = client.ApiClient()
+    lr_dict = api_client.sanitize_for_serialization(limit_ranges)
+
+    # Clean up metadata
+    if "metadata" in lr_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            lr_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(lr_dict, sort_keys=False)

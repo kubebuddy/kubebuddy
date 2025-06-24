@@ -61,11 +61,22 @@ def get_pdb_events(path, context, namespace, pdb_name):
     ]
     return "\n".join([f"{e.reason}: {e.message}" for e in pdb_events])
 
-def get_pdb_yaml(path, context, namespace, pdb_name):
+def get_pdb_yaml(path, context, namespace, pdb_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.PolicyV1Api()
     pdb = v1.read_namespaced_pod_disruption_budget(pdb_name, namespace=namespace)
     # Filtering Annotations
     if pdb.metadata:
         pdb.metadata.annotations = filter_annotations(pdb.metadata.annotations or {})
-    return yaml.dump(pdb.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    pdb_dict = api_client.sanitize_for_serialization(pdb)
+
+    # Clean up metadata
+    if "metadata" in pdb_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            pdb_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(pdb_dict, sort_keys=False)

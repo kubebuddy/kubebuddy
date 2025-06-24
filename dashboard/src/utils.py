@@ -7,6 +7,7 @@ import os
 import yaml
 from kubebuddy.appLogs import logger
 from deepdiff import DeepDiff
+import json
 
 # Age calculation
 def calculateAge(timedelta_obj):
@@ -104,6 +105,31 @@ K8S_RESOURCE_MAP = {
         "patch_func": "patch_namespaced_cron_job",
         "namespaced": True
     },
+    "Namespace": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespace",
+        "namespaced": False
+    },
+    "Node": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_node",
+        "namespaced": False
+    },
+    "PodDisruptionBudget": {
+        "api": client.PolicyV1Api,
+        "patch_func": "patch_namespaced_pod_disruption_budget",
+        "namespaced": True
+    },
+    "LimitRange": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespaced_limit_range",
+        "namespaced": True
+    },
+    "ResourceQuota": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespaced_resource_quota",
+        "namespaced": True
+    },
 }
 
 def validate_and_patch_resource(path, context, name, namespace=None, old_yaml=None, new_yaml=None):
@@ -157,9 +183,11 @@ def validate_and_patch_resource(path, context, name, namespace=None, old_yaml=No
     
     except Exception as ex:
         logger.exception("Unexpected error", exc_info=ex)
+        error_body = json.loads(ex.body)
+        error_message = error_body.get("message")
         return {
             "success": False,
-            "message": f"Unexpected error: Make sure the YAML is valid and the resource exists"
+            "message": f"Unexpected error: Make sure the YAML is valid and the resource exists.{error_message}",
         }
 
 def diff_yaml_dicts(yaml_a, yaml_b):

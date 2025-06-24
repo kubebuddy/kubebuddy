@@ -185,11 +185,22 @@ def get_node_description(path=None, context=None, node_name=None):
         return {"error": f"Failed to fetch node details: {e.reason}"}
 
 
-def get_node_yaml(path, context, node_name):
+def get_node_yaml(path, context, node_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     node = v1.read_node(name=node_name)
-    return yaml.dump(node.to_dict(), default_flow_style=False)
+
+    api_client = client.ApiClient()
+    node_dict = api_client.sanitize_for_serialization(node)
+
+    # Clean up metadata
+    if "metadata" in node_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            node_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(node_dict, sort_keys=False)
 
 def get_node_details():
     try:

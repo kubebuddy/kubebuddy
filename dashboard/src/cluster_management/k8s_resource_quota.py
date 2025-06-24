@@ -86,11 +86,22 @@ def get_resourcequota_events(path, context, namespace, resourcequota_name):
     ]
     return "\n".join([f"{e.reason}: {e.message}" for e in resourcequota_events])
 
-def get_resourcequota_yaml(path, context, namespace, resourcequota_name):
+def get_resourcequota_yaml(path, context, namespace, resourcequota_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     resource_quotas = v1.read_namespaced_resource_quota(resourcequota_name, namespace=namespace)
     # Filtering Annotations
     if resource_quotas.metadata:
         resource_quotas.metadata.annotations = filter_annotations(resource_quotas.metadata.annotations or {})
-    return yaml.dump(resource_quotas.to_dict(), default_flow_style=False)
+
+    api_client = client.ApiClient()
+    rs_dict = api_client.sanitize_for_serialization(resource_quotas)
+
+    # Clean up metadata
+    if "metadata" in rs_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            rs_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(rs_dict, sort_keys=False)

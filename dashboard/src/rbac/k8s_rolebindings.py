@@ -90,7 +90,7 @@ def get_role_binding_events(path, context, namespace, role_binding_name):
 
     return "\n".join([f"{e.reason}: {e.message}" for e in role_binding_events])
 
-def get_role_binding_yaml(path, context, namespace, role_binding_name):
+def get_role_binding_yaml(path, context, namespace, role_binding_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.RbacAuthorizationV1Api()
     try:
@@ -98,7 +98,18 @@ def get_role_binding_yaml(path, context, namespace, role_binding_name):
         # Filtering Annotations
         if role_binding.metadata:
             role_binding.metadata.annotations = filter_annotations(role_binding.metadata.annotations or {})
-        return yaml.dump(role_binding.to_dict(), default_flow_style=False)
+        
+        api_client = client.ApiClient()
+        role_binding_dict = api_client.sanitize_for_serialization(role_binding)
+
+        # Clean up metadata
+        if "metadata" in role_binding_dict and not managed_fields:
+            for meta_field in [
+                "selfLink", "managedFields", "generation"
+            ]:
+                role_binding_dict["metadata"].pop(meta_field, None)
+
+        return yaml.safe_dump(role_binding_dict, sort_keys=False)
     
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch role_binding details: {e.reason}"}

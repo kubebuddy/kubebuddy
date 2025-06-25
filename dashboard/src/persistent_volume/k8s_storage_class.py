@@ -66,7 +66,7 @@ def get_storage_class_events(path, context, sc_name):
 
     return "\n".join([f"{e.reason}: {e.message}" for e in sc_events])
 
-def get_sc_yaml(path, context, sc_name):
+def get_sc_yaml(path, context, sc_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.StorageV1Api()
     try:
@@ -74,6 +74,17 @@ def get_sc_yaml(path, context, sc_name):
         # Filtering Annotations
         if sc.metadata:
             sc.metadata.annotations = filter_annotations(sc.metadata.annotations or {})
-        return yaml.dump(sc.to_dict(), default_flow_style=False)
+        
+        api_client = client.ApiClient()
+        sc_dict = api_client.sanitize_for_serialization(sc)
+
+        # Clean up metadata
+        if "metadata" in sc_dict and not managed_fields:
+            for meta_field in [
+                "selfLink", "managedFields", "generation"
+            ]:
+                sc_dict["metadata"].pop(meta_field, None)
+
+        return yaml.safe_dump(sc_dict, sort_keys=False)
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch Storage Class details: {e.reason}"}

@@ -104,14 +104,25 @@ def get_endpoint_events(path, context, namespace, endpoint_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in endpoint_events])
 
 
-def get_endpoint_yaml(path, context, namespace, endpoint_name):
+def get_endpoint_yaml(path, context, namespace, endpoint_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     endpoints = v1.read_namespaced_endpoints(endpoint_name, namespace=namespace)
     # Filtering Annotations
     if endpoints.metadata:
         endpoints.metadata.annotations = filter_annotations(endpoints.metadata.annotations or {})
-    return yaml.dump(endpoints.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    endpoint_dict = api_client.sanitize_for_serialization(endpoints)
+
+    # Clean up metadata
+    if "metadata" in endpoint_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            endpoint_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(endpoint_dict, sort_keys=False)
 
 def get_endpoint_details():
     try:

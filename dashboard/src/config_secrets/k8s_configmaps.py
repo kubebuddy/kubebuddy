@@ -69,11 +69,22 @@ def get_configmap_events(path, context, namespace, configmap_name):
     return "\n".join([f"{e.reason}: {e.message}" for e in configmap_events])
 
 
-def get_configmap_yaml(path, context, namespace, configmap_name):
+def get_configmap_yaml(path, context, namespace, configmap_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     configmaps = v1.read_namespaced_config_map(configmap_name, namespace=namespace)
     # Filtering Annotations
     if configmaps.metadata:
         configmaps.metadata.annotations = filter_annotations(configmaps.metadata.annotations or {})
-    return yaml.dump(configmaps.to_dict(), default_style='')
+    
+    api_client = client.ApiClient()
+    configmap_dict = api_client.sanitize_for_serialization(configmaps)
+
+    # Clean up metadata
+    if "metadata" in configmap_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            configmap_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(configmap_dict, sort_keys=False)

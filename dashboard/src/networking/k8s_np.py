@@ -58,11 +58,22 @@ def get_np_events(path, context, namespace, np_name):
     ]
     return "\n".join([f"{e.reason}: {e.message}" for e in pdb_events])
 
-def get_np_yaml(path, context, namespace, np_name):
+def get_np_yaml(path, context, namespace, np_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.NetworkingV1Api()
     np = v1.read_namespaced_network_policy(np_name, namespace=namespace)
     # Filtering Annotations
     if np.metadata:
         np.metadata.annotations = filter_annotations(np.metadata.annotations or {})
-    return yaml.dump(np.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    np_dict = api_client.sanitize_for_serialization(np)
+
+    # Clean up metadata
+    if "metadata" in np_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            np_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(np_dict, sort_keys=False)

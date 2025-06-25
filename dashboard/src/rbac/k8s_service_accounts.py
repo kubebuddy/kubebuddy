@@ -61,7 +61,7 @@ def get_sa_events(path, context, namespace, sa_name):
 
     return "\n".join([f"{e.reason}: {e.message}" for e in sa_events])
 
-def get_sa_yaml(path, context, namespace, sa_name):
+def get_sa_yaml(path, context, namespace, sa_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     try:
@@ -69,7 +69,17 @@ def get_sa_yaml(path, context, namespace, sa_name):
         # Filtering Annotations
         if sa.metadata:
             sa.metadata.annotations = filter_annotations(sa.metadata.annotations or {})
-        return yaml.dump(sa.to_dict(), default_flow_style=False)
+        api_client = client.ApiClient()
+        sa_dict = api_client.sanitize_for_serialization(sa)
+
+        # Clean up metadata
+        if "metadata" in sa_dict and not managed_fields:
+            for meta_field in [
+                "selfLink", "managedFields", "generation"
+            ]:
+                sa_dict["metadata"].pop(meta_field, None)
+
+        return yaml.safe_dump(sa_dict, sort_keys=False)
     
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch Service Account details: {e.reason}"}

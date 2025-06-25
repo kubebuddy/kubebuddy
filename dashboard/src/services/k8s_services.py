@@ -112,14 +112,25 @@ def get_service_events(path, context, namespace, service_name):
     ]
     return "\n".join([f"{e.reason}: {e.message}" for e in service_events])
 
-def get_service_yaml(path, context, namespace, service_name):
+def get_service_yaml(path, context, namespace, service_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     service = v1.read_namespaced_service(name=service_name, namespace=namespace)
     # Filtering Annotations
     if service.metadata:
         service.metadata.annotations = filter_annotations(service.metadata.annotations or {})
-    return yaml.dump(service.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    service_dict = api_client.sanitize_for_serialization(service)
+
+    # Clean up metadata
+    if "metadata" in service_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            service_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(service_dict, sort_keys=False)
 
 def get_service_details(namespace=None):
     try:

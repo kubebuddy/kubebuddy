@@ -72,11 +72,22 @@ def get_pv_description(path=None, context=None, pv_name=None):
     return pv_info
 
 
-def get_pv_yaml(path, context, pv_name):
+def get_pv_yaml(path, context, pv_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pv = v1.read_persistent_volume(name=pv_name)
     # Filtering Annotations
     if pv.metadata:
         pv.metadata.annotations = filter_annotations(pv.metadata.annotations or {})
-    return yaml.dump(pv.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    pv_dict = api_client.sanitize_for_serialization(pv)
+
+    # Clean up metadata
+    if "metadata" in pv_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            pv_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(pv_dict, sort_keys=False)

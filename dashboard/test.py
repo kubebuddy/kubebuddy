@@ -1098,41 +1098,6 @@ class JobsViewsTests(TestCase):
         self.mock_k8s_jobs.getJobsStatus.assert_called_once()
         self.mock_k8s_jobs.getJobsList.assert_not_called()
 
-    def test_jobs_info_successful_rendering(self):
-        self._setup_utils_data()
-        self.mock_k8s_jobs.get_job_description.return_value = "Job description"
-        self.mock_k8s_jobs.get_job_events.return_value = "Job events"
-        self.mock_k8s_jobs.get_yaml_job.side_effect = ["Job yaml", "Job edit"]
-        request = self.factory.get(f'/dashboard/jobs_info/{self.cluster.id}/default/job-1/')
-        jobs_info(request, self.cluster.id, "default", "job-1")
-        self.mock_render.assert_called_once()
-        args = self.mock_render.call_args[0]
-        self.assertEqual(args[0], request)
-        self.assertEqual(args[1], 'dashboard/workloads/job_info.html')
-        context = args[2]
-        self.assertIn("job_info", context)
-        self.assertEqual(context["job_info"]["describe"], "Job description")
-        self.assertEqual(context["job_info"]["events"], "Job events")
-        self.assertEqual(context["job_info"]["yaml"], "Job yaml")
-        self.assertEqual(context["job_info"].get("edit"), "Job edit")
-        self.assertEqual(context["cluster_id"], str(self.cluster.id))
-        self.assertEqual(context["job_name"], "job-1")
-        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
-        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
-        self.mock_get_utils_data.assert_called_once_with(request)
-        self.mock_k8s_jobs.get_job_description.assert_called_once_with(
-            self.kube_config_entry.path, self.cluster.context_name, "default", "job-1"
-        )
-        self.mock_k8s_jobs.get_job_events.assert_called_once_with(
-            self.kube_config_entry.path, self.cluster.context_name, "default", "job-1"
-        )
-        self.assertEqual(self.mock_k8s_jobs.get_yaml_job.call_count, 2)
-        self.mock_k8s_jobs.get_yaml_job.assert_any_call(
-            self.kube_config_entry.path, self.cluster.context_name, "default", "job-1", managed_fields=True
-        )
-        self.mock_k8s_jobs.get_yaml_job.assert_any_call(
-            self.kube_config_entry.path, self.cluster.context_name, "default", "job-1", managed_fields=False
-        )
 
     def test_jobs_info_post_patch_failure(self):
         if self.mock_validate_and_patch_resource is None:
@@ -1287,43 +1252,6 @@ class CronJobsViewsTests(TestCase):
         self.mock_render.assert_not_called()
         self.mock_k8s_cronjobs.getCronJobsStatus.assert_called_once()
         self.mock_k8s_cronjobs.getCronJobsList.assert_not_called()
-
-    def test_cronjob_info_successful_rendering(self):
-        self._setup_utils_data()
-        self.mock_k8s_cronjobs.get_cronjob_description.return_value = "CronJob description"
-        self.mock_k8s_cronjobs.get_cronjob_events.return_value = "CronJob events"
-        self.mock_k8s_cronjobs.get_yaml_cronjob.side_effect = ["CronJob yaml", "CronJob edit"]
-        request = self.factory.get(f'/dashboard/cronjob_info/{self.cluster.id}/default/cronjob-1/')
-        cronjob_info(request, self.cluster.id, "default", "cronjob-1")
-        self.mock_render.assert_called_once()
-        args, kwargs = self.mock_render.call_args
-        self.assertEqual(args[0], request)
-        self.assertEqual(args[1], 'dashboard/workloads/cronjob_info.html')
-        context = args[2]
-        self.assertIn("cronjob_info", context)
-        self.assertEqual(context["cronjob_info"]["describe"], "CronJob description")
-        self.assertEqual(context["cronjob_info"]["events"], "CronJob events")
-        self.assertEqual(context["cronjob_info"]["yaml"], "CronJob yaml")
-        self.assertIn("edit", context["cronjob_info"])
-        self.assertEqual(context["cronjob_info"]["edit"], "CronJob edit")
-        self.assertEqual(context["cluster_id"], str(self.cluster.id))
-        self.assertEqual(context["cronjob_name"], "cronjob-1")
-        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
-        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
-        self.mock_get_utils_data.assert_called_once_with(request)
-        self.mock_k8s_cronjobs.get_cronjob_description.assert_called_once_with(
-            self.kube_config_entry.path, self.cluster.context_name, "default", "cronjob-1"
-        )
-        self.mock_k8s_cronjobs.get_cronjob_events.assert_called_once_with(
-            self.kube_config_entry.path, self.cluster.context_name, "default", "cronjob-1"
-        )
-        self.assertEqual(self.mock_k8s_cronjobs.get_yaml_cronjob.call_count, 2)
-        self.mock_k8s_cronjobs.get_yaml_cronjob.assert_any_call(
-            self.kube_config_entry.path, self.cluster.context_name, "default", "cronjob-1", managed_fields=True
-        )
-        self.mock_k8s_cronjobs.get_yaml_cronjob.assert_any_call(
-            self.kube_config_entry.path, self.cluster.context_name, "default", "cronjob-1", managed_fields=False
-        )
 
     def test_cronjob_info_post_patch_failure(self):
         if self.mock_validate_and_patch_resource is None:

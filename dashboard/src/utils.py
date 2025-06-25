@@ -7,6 +7,7 @@ import os
 import yaml
 from kubebuddy.appLogs import logger
 from deepdiff import DeepDiff
+import json
 
 # Age calculation
 def calculateAge(timedelta_obj):
@@ -104,6 +105,101 @@ K8S_RESOURCE_MAP = {
         "patch_func": "patch_namespaced_cron_job",
         "namespaced": True
     },
+    "Namespace": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespace",
+        "namespaced": False
+    },
+    "Node": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_node",
+        "namespaced": False
+    },
+    "PodDisruptionBudget": {
+        "api": client.PolicyV1Api,
+        "patch_func": "patch_namespaced_pod_disruption_budget",
+        "namespaced": True
+    },
+    "LimitRange": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespaced_limit_range",
+        "namespaced": True
+    },
+    "ResourceQuota": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespaced_resource_quota",
+        "namespaced": True
+    },
+    "Service": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespaced_service",
+        "namespaced": True
+    },
+    "Endpoints": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespaced_endpoints",
+        "namespaced": True
+    },
+    "ConfigMap": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespaced_config_map",
+        "namespaced": True
+    },
+    "Secret": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespaced_secret",
+        "namespaced": True
+    },
+    "PersistentVolume": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_persistent_volume",
+        "namespaced": False
+    },
+    "PersistentVolumeClaim": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespaced_persistent_volume_claim",
+        "namespaced": True
+    },
+    "StorageClass": {
+        "api": client.StorageV1Api,
+        "patch_func": "patch_storage_class",
+        "namespaced": False
+    },
+    "Ingress": {
+        "api": client.NetworkingV1Api,
+        "patch_func": "patch_namespaced_ingress",
+        "namespaced": True
+    },
+    "NetworkPolicy": {
+        "api": client.NetworkingV1Api,
+        "patch_func": "patch_namespaced_network_policy",
+        "namespaced": True
+    },
+    "Role": {
+        "api": client.RbacAuthorizationV1Api,
+        "patch_func": "patch_namespaced_role",
+        "namespaced": True
+    },
+    "RoleBinding": {
+        "api": client.RbacAuthorizationV1Api,
+        "patch_func": "patch_namespaced_role_binding",
+        "namespaced": True
+    },
+    "ClusterRole": {
+        "api": client.RbacAuthorizationV1Api,
+        "patch_func": "patch_cluster_role",
+        "namespaced": False
+    },
+    "ClusterRoleBinding": {
+        "api": client.RbacAuthorizationV1Api,
+        "patch_func": "patch_cluster_role_binding",
+        "namespaced": False
+    },
+    "ServiceAccount": {
+        "api": client.CoreV1Api,
+        "patch_func": "patch_namespaced_service_account",
+        "namespaced": True
+    },
 }
 
 def validate_and_patch_resource(path, context, name, namespace=None, old_yaml=None, new_yaml=None):
@@ -127,9 +223,6 @@ def validate_and_patch_resource(path, context, name, namespace=None, old_yaml=No
             metadata.pop(field, None)
 
         resource_dict.pop("status", None)
-
-        # metadata["name"] = name
-        # metadata["namespace"] = namespace
 
         # Get the correct API and method
         api_instance = resource_info["api"](k8s_client)
@@ -156,12 +249,20 @@ def validate_and_patch_resource(path, context, name, namespace=None, old_yaml=No
         }
     
     except Exception as ex:
+        print(ex)
         logger.exception("Unexpected error", exc_info=ex)
-        return {
-            "success": False,
-            "message": f"Unexpected error: Make sure the YAML is valid and the resource exists"
-        }
-
+        if hasattr(ex, "body"):
+            error_body = json.loads(ex.body)
+            error_message = error_body.get("message")
+            return {
+                "success": False,
+                "message": f"Unexpected error: Make sure the YAML is valid and the resource exists.{error_message}",
+            }
+        else:
+            return {
+                "success": False,
+                "message": f"Unexpected error: Make sure the YAML is valid and the resource exists."
+            }
 def diff_yaml_dicts(yaml_a, yaml_b):
     """
     Compare two YAML strings and return human-readable differences.

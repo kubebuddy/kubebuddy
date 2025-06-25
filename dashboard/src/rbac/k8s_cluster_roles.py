@@ -57,7 +57,7 @@ def get_cluster_role_events(path, context, cluster_role_name):
 
     return "\n".join([f"{e.reason}: {e.message}" for e in cluster_role_events])
 
-def get_cluster_role_yaml(path, context, cluster_role_name):
+def get_cluster_role_yaml(path, context, cluster_role_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.RbacAuthorizationV1Api()
     try:
@@ -65,7 +65,18 @@ def get_cluster_role_yaml(path, context, cluster_role_name):
         # Filtering Annotations
         if cluster_role.metadata:
             cluster_role.metadata.annotations = filter_annotations(cluster_role.metadata.annotations or {})
-        return yaml.dump(cluster_role.to_dict(), default_flow_style=False)
+        
+        api_client = client.ApiClient()
+        cluster_role_dict = api_client.sanitize_for_serialization(cluster_role)
+
+        # Clean up metadata
+        if "metadata" in cluster_role_dict and not managed_fields:
+            for meta_field in [
+                "selfLink", "managedFields", "generation"
+            ]:
+                cluster_role_dict["metadata"].pop(meta_field, None)
+
+        return yaml.safe_dump(cluster_role_dict, sort_keys=False)
     
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch cluster_role details: {e.reason}"}

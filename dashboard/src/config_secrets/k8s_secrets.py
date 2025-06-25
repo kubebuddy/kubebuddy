@@ -72,11 +72,22 @@ def get_secret_events(path, context, namespace, secret_name):
     ]
     return "\n".join([f"{e.reason}: {e.message}" for e in secret_events])
 
-def get_secret_yaml(path, context, namespace, secret_name):
+def get_secret_yaml(path, context, namespace, secret_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     secrets = v1.read_namespaced_secret(secret_name, namespace=namespace)
     # Filtering Annotations
     if secrets.metadata:
         secrets.metadata.annotations = filter_annotations(secrets.metadata.annotations or {})
-    return yaml.dump(secrets.to_dict(), default_flow_style=False)
+
+    api_client = client.ApiClient()
+    secret_dict = api_client.sanitize_for_serialization(secrets)
+
+    # Clean up metadata
+    if "metadata" in secret_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            secret_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(secret_dict, sort_keys=False)

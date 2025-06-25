@@ -87,14 +87,25 @@ def get_ingress_events(path, context, namespace, ingress_name):
     ]
     return "\n".join([f"{e.reason}: {e.message}" for e in ingress_events])
 
-def get_ingress_yaml(path, context, namespace, ingress_name):
+def get_ingress_yaml(path, context, namespace, ingress_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.NetworkingV1Api()
     ingress = v1.read_namespaced_ingress(name=ingress_name, namespace=namespace)
     # Filtering Annotations
     if ingress.metadata:
         ingress.metadata.annotations = filter_annotations(ingress.metadata.annotations or {})
-    return yaml.dump(ingress.to_dict(), default_flow_style=False)
+
+    api_client = client.ApiClient()
+    ingress_dict = api_client.sanitize_for_serialization(ingress)
+
+    # Clean up metadata
+    if "metadata" in ingress_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            ingress_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(ingress_dict, sort_keys=False)
 
 def get_ingress_details():
     try:

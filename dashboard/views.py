@@ -342,7 +342,7 @@ def cronjob_info(request, cluster_id, namespace, cronjob_name):
         new_edit = k8s_cronjobs.get_yaml_cronjob(path, context_name, namespace, cronjob_name, managed_fields=False)
         cronjob_info["yaml"] = new_yaml
         cronjob_info["edit"] = new_edit
-        
+
     return render(request, 'dashboard/workloads/cronjob_info.html', {"cronjob_info": cronjob_info, "cluster_id": cluster_id,
                                                                      "cronjob_name": cronjob_name, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
@@ -365,8 +365,26 @@ def ns_info(request, cluster_id, namespace):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
     ns_info = {
         "describe": k8s_namespaces.get_namespace_description(path, context_name, namespace),
-        "yaml": k8s_namespaces.get_namespace_yaml(path, context_name, namespace),
+        "yaml": k8s_namespaces.get_namespace_yaml(path, context_name, namespace, managed_fields=True),
+        "edit": k8s_namespaces.get_namespace_yaml(path, context_name, namespace, managed_fields=False),
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('ns_yaml')
+        ret = validate_and_patch_resource(path, context_name, name=namespace, old_yaml=ns_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            ns_info["show_modal"] = True
+            ns_info["message"] = ret["message"]
+        else:
+            ns_info["show_modal"] = True
+            ns_info["changes"] = ret["changes"]
+            ns_info["message"] = ret["message"]
+            
+        new_yaml = k8s_namespaces.get_namespace_yaml(path, context_name, namespace, managed_fields=True)
+        new_edit = k8s_namespaces.get_namespace_yaml(path, context_name, namespace, managed_fields=False)
+        ns_info["yaml"] = new_yaml
+        ns_info["edit"] = new_edit
 
     return render(request, 'dashboard/cluster_management/ns_info.html', {"ns_info": ns_info, "cluster_id": cluster_id,
                                                                          "namespace": namespace, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -387,8 +405,27 @@ def node_info(request, cluster_id, node_name):
 
     node_info = {
         "describe": k8s_nodes.get_node_description(path, context_name, node_name),
-        "yaml": k8s_nodes.get_node_yaml(path, context_name, node_name),
+        "yaml": k8s_nodes.get_node_yaml(path, context_name, node_name, managed_fields=True),
+        "edit": k8s_nodes.get_node_yaml(path, context_name, node_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('node_yaml')
+        ret = validate_and_patch_resource(path, context_name, node_name, old_yaml=node_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            node_info["show_modal"] = True
+            node_info["message"] = ret["message"]
+        else:
+            node_info["show_modal"] = True
+            node_info["changes"] = ret["changes"]
+            node_info["message"] = ret["message"]
+            
+        new_yaml = k8s_nodes.get_node_yaml(path, context_name, node_name, managed_fields=True)
+        new_edit = k8s_nodes.get_node_yaml(path, context_name, node_name, managed_fields=False)
+        node_info["yaml"] = new_yaml
+        node_info["edit"] = new_edit
+
     return render(request, 'dashboard/cluster_management/node_info.html', {"node_info": node_info, "cluster_id": cluster_id, "node_name": node_name, 
                                                                            'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
@@ -408,8 +445,26 @@ def limitrange_info(request, cluster_id, namespace, limitrange_name):
     limitrange_info = {
         "describe": k8s_limit_range.get_limit_range_description(path, context_name, namespace, limitrange_name),
         "events": k8s_limit_range.get_limitrange_events(path, context_name, namespace, limitrange_name),
-        "yaml": k8s_limit_range.get_limitrange_yaml(path, context_name, namespace, limitrange_name),
+        "yaml": k8s_limit_range.get_limitrange_yaml(path, context_name, namespace, limitrange_name, managed_fields=True),
+        "edit": k8s_limit_range.get_limitrange_yaml(path, context_name, namespace, limitrange_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('limitrange_yaml')
+        ret = validate_and_patch_resource(path, context_name, limitrange_name, namespace, old_yaml=limitrange_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            limitrange_info["show_modal"] = True
+            limitrange_info["message"] = ret["message"]
+        else:
+            limitrange_info["show_modal"] = True
+            limitrange_info["changes"] = ret["changes"]
+            limitrange_info["message"] = ret["message"]
+            
+        new_yaml = k8s_limit_range.get_limitrange_yaml(path, context_name, namespace, limitrange_name, managed_fields=True)
+        new_edit = k8s_limit_range.get_limitrange_yaml(path, context_name, namespace, limitrange_name, managed_fields=False)
+        limitrange_info["yaml"] = new_yaml
+        limitrange_info["edit"] = new_edit
 
     return render(request, 'dashboard/cluster_management/limitrange_info.html', {"limitrange_info": limitrange_info, "cluster_id": cluster_id, "limitrange_name": limitrange_name, 
                                                                                  'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -430,8 +485,26 @@ def resourcequota_info(request, cluster_id, namespace, resourcequota_name):
     resourcequota_info = {
         "describe": k8s_resource_quota.get_resourcequota_description(path, context_name, namespace, resourcequota_name),
         "events": k8s_resource_quota.get_resourcequota_events(path, context_name, namespace, resourcequota_name),
-        "yaml": k8s_resource_quota.get_resourcequota_yaml(path, context_name, namespace, resourcequota_name),
+        "yaml": k8s_resource_quota.get_resourcequota_yaml(path, context_name, namespace, resourcequota_name, managed_fields=True),
+        "edit": k8s_resource_quota.get_resourcequota_yaml(path, context_name, namespace, resourcequota_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('resourcequota_yaml')
+        ret = validate_and_patch_resource(path, context_name, resourcequota_name, namespace, old_yaml=resourcequota_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            resourcequota_info["show_modal"] = True
+            resourcequota_info["message"] = ret["message"]
+        else:
+            resourcequota_info["show_modal"] = True
+            resourcequota_info["changes"] = ret["changes"]
+            resourcequota_info["message"] = ret["message"]
+            
+        new_yaml = k8s_resource_quota.get_resourcequota_yaml(path, context_name, namespace, resourcequota_name, managed_fields=True)
+        new_edit = k8s_resource_quota.get_resourcequota_yaml(path, context_name, namespace, resourcequota_name, managed_fields=False)
+        resourcequota_info["yaml"] = new_yaml
+        resourcequota_info["edit"] = new_edit
 
     return render(request, 'dashboard/cluster_management/resourcequota_info.html', {"resourcequota_info": resourcequota_info, "cluster_id": cluster_id, "resourcequota_name": resourcequota_name, 
                                                                                     'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -452,8 +525,26 @@ def pdb_info(request, cluster_id, namespace, pdb_name):
     pdb_info = {
         "describe": k8s_pdb.get_pdb_description(path, context_name, namespace, pdb_name),
         "events": k8s_pdb.get_pdb_events(path, context_name, namespace, pdb_name),
-        "yaml": k8s_pdb.get_pdb_yaml(path, context_name, namespace, pdb_name),
+        "yaml": k8s_pdb.get_pdb_yaml(path, context_name, namespace, pdb_name, managed_fields=True),
+        "edit": k8s_pdb.get_pdb_yaml(path, context_name, namespace, pdb_name, managed_fields=False),
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('pdb_yaml')
+        ret = validate_and_patch_resource(path, context_name, pdb_name, namespace, pdb_info["yaml"], yaml)
+
+        if ret["success"] == False:
+            pdb_info["show_modal"] = True
+            pdb_info["message"] = ret["message"]
+        else:
+            pdb_info["show_modal"] = True
+            pdb_info["changes"] = ret["changes"]
+            pdb_info["message"] = ret["message"]
+            
+        new_yaml = k8s_pdb.get_pdb_yaml(path, context_name, namespace, pdb_name, managed_fields=True)
+        new_edit = k8s_pdb.get_pdb_yaml(path, context_name, namespace, pdb_name, managed_fields=False)
+        pdb_info["yaml"] = new_yaml
+        pdb_info["edit"] = new_edit
 
     return render(request, 'dashboard/cluster_management/pdb_info.html', {"pdb_info": pdb_info, "cluster_id": cluster_id, 
                                                                           "registered_clusters": registered_clusters, 'current_cluster': current_cluster})
@@ -473,8 +564,26 @@ def configmap_info(request, cluster_id, namespace, configmap_name):
     configmap_info = {
         "describe": k8s_configmaps.get_configmap_description(path, context_name, namespace, configmap_name),
         "events": k8s_configmaps.get_configmap_events(path, context_name, namespace, configmap_name),
-        "yaml": k8s_configmaps.get_configmap_yaml(path, context_name, namespace, configmap_name),
+        "yaml": k8s_configmaps.get_configmap_yaml(path, context_name, namespace, configmap_name, managed_fields=True),
+        "edit": k8s_configmaps.get_configmap_yaml(path, context_name, namespace, configmap_name, managed_fields=False),
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('configmap_yaml')
+        ret = validate_and_patch_resource(path, context_name, configmap_name, namespace, old_yaml=configmap_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            configmap_info["show_modal"] = True
+            configmap_info["message"] = ret["message"]
+        else:
+            configmap_info["show_modal"] = True
+            configmap_info["changes"] = ret["changes"]
+            configmap_info["message"] = ret["message"]
+            
+        new_yaml = k8s_configmaps.get_configmap_yaml(path, context_name, namespace, configmap_name, managed_fields=True)
+        new_edit = k8s_configmaps.get_configmap_yaml(path, context_name, namespace, configmap_name, managed_fields=False)
+        configmap_info["yaml"] = new_yaml
+        configmap_info["edit"] = new_edit
 
     return render(request, 'dashboard/config_secrets/configmap_info.html', {"configmap_info": configmap_info, "cluster_id": cluster_id, "configmap_name": configmap_name, 
                                                                             'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -494,8 +603,26 @@ def secret_info(request, cluster_id, namespace, secret_name):
     secret_info = {
         "describe": k8s_secrets.get_secret_description(path, context_name, namespace, secret_name),
         "events": k8s_secrets.get_secret_events(path, context_name, namespace, secret_name),
-        "yaml": k8s_secrets.get_secret_yaml(path, context_name, namespace, secret_name),
+        "yaml": k8s_secrets.get_secret_yaml(path, context_name, namespace, secret_name, managed_fields=True),
+        "edit": k8s_secrets.get_secret_yaml(path, context_name, namespace, secret_name, managed_fields=False),
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('secret_yaml')
+        ret = validate_and_patch_resource(path, context_name, secret_name, namespace, old_yaml=secret_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            secret_info["show_modal"] = True
+            secret_info["message"] = ret["message"]
+        else:
+            secret_info["show_modal"] = True
+            secret_info["changes"] = ret["changes"]
+            secret_info["message"] = ret["message"]
+            
+        new_yaml = k8s_secrets.get_secret_yaml(path, context_name, namespace, secret_name, managed_fields=True)
+        new_edit = k8s_secrets.get_secret_yaml(path, context_name, namespace, secret_name, managed_fields=False)
+        secret_info["yaml"] = new_yaml
+        secret_info["edit"] = new_edit
 
     return render(request, 'dashboard/config_secrets/secret_info.html', {"secret_info": secret_info, "cluster_id": cluster_id, "secret_name": secret_name, 
                                                                          'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -517,8 +644,27 @@ def service_info(request, cluster_id, namespace, service_name):
     service_info = {
         "describe": k8s_services.get_service_description(path, context_name, namespace, service_name),
         "events": k8s_services.get_service_events(path, context_name, namespace, service_name),
-        "yaml": k8s_services.get_service_yaml(path, context_name, namespace, service_name),
+        "yaml": k8s_services.get_service_yaml(path, context_name, namespace, service_name, managed_fields=True),
+        "edit": k8s_services.get_service_yaml(path, context_name, namespace, service_name, managed_fields=False),
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('service_yaml')
+        ret = validate_and_patch_resource(path, context_name, service_name, namespace, old_yaml=service_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            service_info["show_modal"] = True
+            service_info["message"] = ret["message"]
+        else:
+            service_info["show_modal"] = True
+            service_info["changes"] = ret["changes"]
+            service_info["message"] = ret["message"]
+            
+        new_yaml = k8s_services.get_service_yaml(path, context_name, namespace, service_name, managed_fields=True)
+        new_edit = k8s_services.get_service_yaml(path, context_name, namespace, service_name, managed_fields=False)
+        service_info["yaml"] = new_yaml
+        service_info["edit"] = new_edit
+
 
     return render(request, 'dashboard/services/service_info.html', {"service_info": service_info, "cluster_id": cluster_id, "service_name": service_name, 
                                                                     'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -538,8 +684,26 @@ def endpoint_info(request, cluster_id, namespace, endpoint_name):
     endpoint_info = {
         "describe": k8s_endpoints.get_endpoint_description(path, context_name, namespace, endpoint_name),
         "events": k8s_endpoints.get_endpoint_events(path, context_name, namespace, endpoint_name),
-        "yaml": k8s_endpoints.get_endpoint_yaml(path, context_name, namespace, endpoint_name),
+        "yaml": k8s_endpoints.get_endpoint_yaml(path, context_name, namespace, endpoint_name, managed_fields=True),
+        "edit": k8s_endpoints.get_endpoint_yaml(path, context_name, namespace, endpoint_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('endpoint_yaml')
+        ret = validate_and_patch_resource(path, context_name, endpoint_name, namespace, old_yaml=endpoint_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            endpoint_info["show_modal"] = True
+            endpoint_info["message"] = ret["message"]
+        else:
+            endpoint_info["show_modal"] = True
+            endpoint_info["changes"] = ret["changes"]
+            endpoint_info["message"] = ret["message"]
+            
+        new_yaml = k8s_endpoints.get_endpoint_yaml(path, context_name, namespace, endpoint_name, managed_fields=True)
+        new_edit = k8s_endpoints.get_endpoint_yaml(path, context_name, namespace, endpoint_name, managed_fields=False)
+        endpoint_info["yaml"] = new_yaml
+        endpoint_info["edit"] = new_edit
 
     return render(request, 'dashboard/services/endpoint_info.html', {"endpoint_info": endpoint_info, "cluster_id": cluster_id, "endpoint_name": endpoint_name, 
                                                                      'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -561,8 +725,26 @@ def pv_info(request, cluster_id, pv_name):
 
     pv_info = {
         "describe": k8s_pv.get_pv_description(path, context_name, pv_name),
-        "yaml": k8s_pv.get_pv_yaml(path, context_name, pv_name),
+        "yaml": k8s_pv.get_pv_yaml(path, context_name, pv_name, managed_fields=True),
+        "edit": k8s_pv.get_pv_yaml(path, context_name, pv_name, managed_fields=False),
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('pv_yaml')
+        ret = validate_and_patch_resource(path, context_name, pv_name, old_yaml=pv_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            pv_info["show_modal"] = True
+            pv_info["message"] = ret["message"]
+        else:
+            pv_info["show_modal"] = True
+            pv_info["changes"] = ret["changes"]
+            pv_info["message"] = ret["message"]
+            
+        new_yaml = k8s_pv.get_pv_yaml(path, context_name, pv_name, managed_fields=True)
+        new_edit = k8s_pv.get_pv_yaml(path, context_name, pv_name, managed_fields=False)
+        pv_info["yaml"] = new_yaml
+        pv_info["edit"] = new_edit
 
     return render(request, 'dashboard/persistent_storage/pv_info.html', {"pv_info": pv_info, "cluster_id": cluster_id, "pv_name": pv_name, 
                                                                          'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -583,8 +765,26 @@ def pvc_info(request, cluster_id, namespace, pvc_name):
     pvc_info = {
         "describe": k8s_pvc.get_pvc_description(path, context_name, namespace, pvc_name),
         "events": k8s_pvc.get_pvc_events(path, context_name, namespace, pvc_name),
-        "yaml": k8s_pvc.get_pvc_yaml(path, context_name, namespace, pvc_name),
+        "yaml": k8s_pvc.get_pvc_yaml(path, context_name, namespace, pvc_name, managed_fields=True),
+        "edit": k8s_pvc.get_pvc_yaml(path, context_name, namespace, pvc_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('pvc_yaml')
+        ret = validate_and_patch_resource(path, context_name, pvc_name, namespace, old_yaml=pvc_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            pvc_info["show_modal"] = True
+            pvc_info["message"] = ret["message"]
+        else:
+            pvc_info["show_modal"] = True
+            pvc_info["changes"] = ret["changes"]
+            pvc_info["message"] = ret["message"]
+            
+        new_yaml = k8s_pvc.get_pvc_yaml(path, context_name, namespace, pvc_name, managed_fields=True)
+        new_edit = k8s_pvc.get_pvc_yaml(path, context_name, namespace, pvc_name, managed_fields=False)
+        pvc_info["yaml"] = new_yaml
+        pvc_info["edit"] = new_edit
 
     return render(request, 'dashboard/persistent_storage/pvc_info.html', {"pvc_info": pvc_info, "cluster_id": cluster_id, "pvc_name": pvc_name, 
                                                                           'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -604,8 +804,26 @@ def storageclass_info(request, cluster_id, sc_name):
     sc_info = {
         "describe": k8s_storage_class.get_storage_class_description(path, context_name, sc_name),
         "events": k8s_storage_class.get_storage_class_events(path, context_name, sc_name),
-        "yaml": k8s_storage_class.get_sc_yaml(path, context_name, sc_name)
+        "yaml": k8s_storage_class.get_sc_yaml(path, context_name, sc_name, managed_fields=True),
+        "edit": k8s_storage_class.get_sc_yaml(path, context_name, sc_name, managed_fields=False)
     }    
+
+    if request.method == 'POST':
+        yaml = request.POST.get('sc_yaml')
+        ret = validate_and_patch_resource(path, context_name, sc_name, old_yaml=sc_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            sc_info["show_modal"] = True
+            sc_info["message"] = ret["message"]
+        else:
+            sc_info["show_modal"] = True
+            sc_info["changes"] = ret["changes"]
+            sc_info["message"] = ret["message"]
+            
+        new_yaml = k8s_storage_class.get_sc_yaml(path, context_name, sc_name, managed_fields=True)
+        new_edit = k8s_storage_class.get_sc_yaml(path, context_name, sc_name, managed_fields=False)
+        sc_info["yaml"] = new_yaml
+        sc_info["edit"] = new_edit
 
     return render(request, 'dashboard/persistent_storage/storageclass_info.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'sc_info': sc_info, 'current_cluster': current_cluster})
 
@@ -626,8 +844,26 @@ def np_info(request, cluster_id, namespace, np_name):
     np_info = {
         "describe": k8s_np.get_np_description(path, current_cluster.context_name, namespace, np_name),
         "events": k8s_np.get_np_events(path, current_cluster.context_name, namespace, np_name),
-        "yaml": k8s_np.get_np_yaml(path, current_cluster.context_name, namespace, np_name)
+        "yaml": k8s_np.get_np_yaml(path, current_cluster.context_name, namespace, np_name, managed_fields=True),
+        "edit": k8s_np.get_np_yaml(path, current_cluster.context_name, namespace, np_name, managed_fields=False)
     }    
+
+    if request.method == 'POST':
+        yaml = request.POST.get('np_yaml')
+        ret = validate_and_patch_resource(path, context_name, np_name, namespace, old_yaml=np_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            np_info["show_modal"] = True
+            np_info["message"] = ret["message"]
+        else:
+            np_info["show_modal"] = True
+            np_info["changes"] = ret["changes"]
+            np_info["message"] = ret["message"]
+            
+        new_yaml = k8s_np.get_np_yaml(path, context_name, namespace, np_name, managed_fields=True)
+        new_edit = k8s_np.get_np_yaml(path, context_name, namespace, np_name, managed_fields=False)
+        np_info["yaml"] = new_yaml
+        np_info["edit"] = new_edit
 
     return render(request, 'dashboard/networking/np_info.html', {'cluster_id': cluster_id, 
                                                                  'registered_clusters': registered_clusters, 'np_info': np_info, 'current_cluster': current_cluster})
@@ -647,8 +883,27 @@ def ingress_info(request, cluster_id, namespace, ingress_name):
     ingress_info = {
         "describe": k8s_ingress.get_ingress_description(path, current_cluster.context_name, namespace, ingress_name),
         "events": k8s_ingress.get_ingress_events(path, current_cluster.context_name, namespace, ingress_name),
-        "yaml": k8s_ingress.get_ingress_yaml(path, current_cluster.context_name, namespace, ingress_name)
+        "yaml": k8s_ingress.get_ingress_yaml(path, current_cluster.context_name, namespace, ingress_name, managed_fields=True),
+        "edit": k8s_ingress.get_ingress_yaml(path, current_cluster.context_name, namespace, ingress_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('ingress_yaml')
+        ret = validate_and_patch_resource(path, context_name, ingress_name, namespace, old_yaml=ingress_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            ingress_info["show_modal"] = True
+            ingress_info["message"] = ret["message"]
+        else:
+            ingress_info["show_modal"] = True
+            ingress_info["changes"] = ret["changes"]
+            ingress_info["message"] = ret["message"]
+            
+        new_yaml = k8s_ingress.get_ingress_yaml(path, context_name, namespace, ingress_name, managed_fields=True)
+        new_edit = k8s_ingress.get_ingress_yaml(path, context_name, namespace, ingress_name, managed_fields=False)
+        ingress_info["yaml"] = new_yaml
+        ingress_info["edit"] = new_edit
+
     return render(request, 'dashboard/networking/ingress_info.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'ingress_info': ingress_info, 'current_cluster': current_cluster})
 
 
@@ -668,8 +923,26 @@ def role_info(request, cluster_id, namespace, role_name):
     role_info = {
         "describe": k8s_role.get_role_description(path, context_name, namespace, role_name),
         "events": k8s_role.get_role_events(path, context_name, namespace, role_name),
-        "yaml": k8s_role.get_role_yaml(path, context_name, namespace, role_name)
+        "yaml": k8s_role.get_role_yaml(path, context_name, namespace, role_name, managed_fields=True),
+        "edit": k8s_role.get_role_yaml(path, context_name, namespace, role_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('role_yaml')
+        ret = validate_and_patch_resource(path, context_name, role_name, namespace, old_yaml=role_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            role_info["show_modal"] = True
+            role_info["message"] = ret["message"]
+        else:
+            role_info["show_modal"] = True
+            role_info["changes"] = ret["changes"]
+            role_info["message"] = ret["message"]
+            
+        new_yaml = k8s_role.get_role_yaml(path, context_name, namespace, role_name, managed_fields=True)
+        new_edit = k8s_role.get_role_yaml(path, context_name, namespace, role_name, managed_fields=False)
+        role_info["yaml"] = new_yaml
+        role_info["edit"] = new_edit
 
     return render(request, 'dashboard/RBAC/role_info.html', {"role_info": role_info, "cluster_id": cluster_id, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
@@ -689,8 +962,26 @@ def role_binding_info(request, cluster_id, namespace, role_binding_name):
     role_binding_info = {
         "describe": k8s_rolebindings.get_role_binding_description(path, context_name, namespace, role_binding_name),
         "events": k8s_rolebindings.get_role_binding_events(path, context_name, namespace, role_binding_name),
-        "yaml": k8s_rolebindings.get_role_binding_yaml(path, context_name, namespace, role_binding_name),
+        "yaml": k8s_rolebindings.get_role_binding_yaml(path, context_name, namespace, role_binding_name, managed_fields=True),
+        "edit": k8s_rolebindings.get_role_binding_yaml(path, context_name, namespace, role_binding_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('rb_yaml')
+        ret = validate_and_patch_resource(path, context_name, role_binding_name, namespace, old_yaml=role_binding_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            role_binding_info["show_modal"] = True
+            role_binding_info["message"] = ret["message"]
+        else:
+            role_binding_info["show_modal"] = True
+            role_binding_info["changes"] = ret["changes"]
+            role_binding_info["message"] = ret["message"]
+            
+        new_yaml = k8s_rolebindings.get_role_binding_yaml(path, context_name, namespace, role_binding_name, managed_fields=True)
+        new_edit = k8s_rolebindings.get_role_binding_yaml(path, context_name, namespace, role_binding_name, managed_fields=False)
+        role_binding_info["yaml"] = new_yaml
+        role_binding_info["edit"] = new_edit
 
     return render(request, 'dashboard/RBAC/rolebinding_info.html', {"role_binding_info": role_binding_info, "cluster_id": cluster_id, 
                                                                     'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -711,8 +1002,26 @@ def clusterrole_info(request, cluster_id, cluster_role_name):
     cluster_role_info = {
         "describe": k8s_cluster_roles.get_cluster_role_description(path, context_name, cluster_role_name),
         "events": k8s_cluster_roles.get_cluster_role_events(path, context_name, cluster_role_name),
-        "yaml": k8s_cluster_roles.get_cluster_role_yaml(path, context_name, cluster_role_name)
+        "yaml": k8s_cluster_roles.get_cluster_role_yaml(path, context_name, cluster_role_name, managed_fields=True),
+        "edit": k8s_cluster_roles.get_cluster_role_yaml(path, context_name, cluster_role_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('cr_yaml')
+        ret = validate_and_patch_resource(path, context_name, cluster_role_name, old_yaml=cluster_role_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            cluster_role_info["show_modal"] = True
+            cluster_role_info["message"] = ret["message"]
+        else:
+            cluster_role_info["show_modal"] = True
+            cluster_role_info["changes"] = ret["changes"]
+            cluster_role_info["message"] = ret["message"]
+            
+        new_yaml = k8s_cluster_roles.get_cluster_role_yaml(path, context_name, cluster_role_name, managed_fields=True)
+        new_edit = k8s_cluster_roles.get_cluster_role_yaml(path, context_name, cluster_role_name, managed_fields=False)
+        cluster_role_info["yaml"] = new_yaml
+        cluster_role_info["edit"] = new_edit
 
     return render(request, 'dashboard/RBAC/clusterrole_info.html', {"cluster_role_info": cluster_role_info, "cluster_id": cluster_id, 
                                                                     'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -733,8 +1042,26 @@ def cluster_role_binding_info(request, cluster_id, cluster_role_binding_name):
     cluster_role_binding_info = {
         "describe": k8s_cluster_role_bindings.get_cluster_role_binding_description(path, context_name, cluster_role_binding_name),
         "events": k8s_cluster_role_bindings.get_cluster_role_binding_events(path, context_name, cluster_role_binding_name),
-        "yaml": k8s_cluster_role_bindings.get_cluster_role_binding_yaml(path, context_name, cluster_role_binding_name),
+        "yaml": k8s_cluster_role_bindings.get_cluster_role_binding_yaml(path, context_name, cluster_role_binding_name, managed_fields=True),
+        "edit": k8s_cluster_role_bindings.get_cluster_role_binding_yaml(path, context_name, cluster_role_binding_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('crb_yaml')
+        ret = validate_and_patch_resource(path, context_name, cluster_role_binding_name, old_yaml=cluster_role_binding_info["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            cluster_role_binding_info["show_modal"] = True
+            cluster_role_binding_info["message"] = ret["message"]
+        else:
+            cluster_role_binding_info["show_modal"] = True
+            cluster_role_binding_info["changes"] = ret["changes"]
+            cluster_role_binding_info["message"] = ret["message"]
+            
+        new_yaml = k8s_cluster_role_bindings.get_cluster_role_binding_yaml(path, context_name, cluster_role_binding_name, managed_fields=True)
+        new_edit = k8s_cluster_role_bindings.get_cluster_role_binding_yaml(path, context_name, cluster_role_binding_name, managed_fields=False)
+        cluster_role_binding_info["yaml"] = new_yaml
+        cluster_role_binding_info["edit"] = new_edit
 
     return render(request, 'dashboard/RBAC/clusterrolebinding_info.html', {"cluster_role_binding_info": cluster_role_binding_info, 
                                                                            "cluster_id": cluster_id, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
@@ -755,8 +1082,26 @@ def serviceAccountInfo(request, cluster_id, namespace, sa_name):
     serviceAccountInfo = {
         "describe": k8s_service_accounts.get_sa_description(path, context_name, namespace, sa_name),
         "events": k8s_service_accounts.get_sa_events(path, context_name, namespace, sa_name),
-        "yaml": k8s_service_accounts.get_sa_yaml(path, context_name, namespace, sa_name),
+        "yaml": k8s_service_accounts.get_sa_yaml(path, context_name, namespace, sa_name, managed_fields=True),
+        "edit": k8s_service_accounts.get_sa_yaml(path, context_name, namespace, sa_name, managed_fields=False)
     }
+
+    if request.method == 'POST':
+        yaml = request.POST.get('sa_yaml')
+        ret = validate_and_patch_resource(path, context_name, sa_name, namespace, old_yaml=serviceAccountInfo["yaml"], new_yaml=yaml)
+
+        if ret["success"] == False:
+            serviceAccountInfo["show_modal"] = True
+            serviceAccountInfo["message"] = ret["message"]
+        else:
+            serviceAccountInfo["show_modal"] = True
+            serviceAccountInfo["changes"] = ret["changes"]
+            serviceAccountInfo["message"] = ret["message"]
+            
+        new_yaml = k8s_service_accounts.get_sa_yaml(path, context_name, namespace, sa_name, managed_fields=True)
+        new_edit = k8s_service_accounts.get_sa_yaml(path, context_name, namespace, sa_name, managed_fields=False)
+        serviceAccountInfo["yaml"] = new_yaml
+        serviceAccountInfo["edit"] = new_edit
 
     return render(request, 'dashboard/RBAC/serviceAccountInfo.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
                                                                       'serviceAccountInfo': serviceAccountInfo, 'current_cluster': current_cluster})

@@ -62,7 +62,7 @@ def get_role_events(path, context, namespace, role_name):
 
     return "\n".join([f"{e.reason}: {e.message}" for e in role_events])
 
-def get_role_yaml(path, context, namespace, role_name):
+def get_role_yaml(path, context, namespace, role_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.RbacAuthorizationV1Api()
     try:
@@ -70,7 +70,18 @@ def get_role_yaml(path, context, namespace, role_name):
         # Filtering Annotations
         if role.metadata:
             role.metadata.annotations = filter_annotations(role.metadata.annotations or {})
-        return yaml.dump(role.to_dict(), default_flow_style=False)
+        
+        api_client = client.ApiClient()
+        role_dict = api_client.sanitize_for_serialization(role)
+
+        # Clean up metadata
+        if "metadata" in role_dict and not managed_fields:
+            for meta_field in [
+                "selfLink", "managedFields", "generation"
+            ]:
+                role_dict["metadata"].pop(meta_field, None)
+
+        return yaml.safe_dump(role_dict, sort_keys=False)
     
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch Role details: {e.reason}"}

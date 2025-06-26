@@ -32,18 +32,7 @@
   
   <div class="container">
     <div class="mb-1 d-flex justify-content-between">
-      <div class="d-flex">
-      <div class="dropdown">
-        <button class="btn btn-custom dropdown-toggle" type="button" id="newDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-          All Namespaces
-        </button>
-        <ul class="dropdown-menu p-2" aria-labelledby="newDropdown">
-        <li class="dropdown-item" onclick="namespaceHandler(event)">All Namespaces</li>
-        {% for ns in namespaces %}
-        <li class="dropdown-item" onclick="namespaceHandler(event)">{{ns}}</li>
-        {% endfor %}      
-        </ul>
-      </div>
+      {% include 'dashboard/ns_dropdown.html'%}
 
       <div class="mx-3">
         <input type="text" id="tableSearchInput" class="form-control mb-3" placeholder="Search pvc...">

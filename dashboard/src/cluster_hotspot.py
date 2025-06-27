@@ -18,6 +18,7 @@ def get_cluster_hotspot(path, context):
         container_missing_probes = []
         container_restart_count = []
         priviledged_containers = []
+        empty_limit = []
 
         namespaces = core_v1.list_namespace().items
 
@@ -43,7 +44,7 @@ def get_cluster_hotspot(path, context):
                             used_secrets.add(volume.secret.secret_name)
 
                 for container in pod_spec.containers:
-                    # pods with privelidged containers
+                    # pods with priviledged containers
                     sc = container.security_context
                     if sc and (sc.privileged if sc.privileged is not None else False):
                         priviledged_containers.append({
@@ -51,6 +52,14 @@ def get_cluster_hotspot(path, context):
                             "pod": pod.metadata.name,
                             "container": container.name,
                             "image": container.image
+                        })
+                    #container with no limit
+                    limits = container.resources.limits
+                    if not limits:
+                        empty_limit.append({
+                            "namespace": name,
+                            "pod":pod.metadata.name,
+                            "container":container.name
                         })
                     
                     if container.env:
@@ -149,7 +158,7 @@ def get_cluster_hotspot(path, context):
             if not has_resources and ns.metadata.name not in ['kube-system', 'kube-public', 'kube-node-lease', 'default']:
                 empty_namespaces.append({'name': name, 'status': ns.status.phase, 'age': calculateAge(datetime.now(timezone.utc) - ns.metadata.creation_timestamp), 'labels': ns.metadata.labels})
 
-        return empty_namespaces, latest_tag_pods, orphaned_configmaps, orphaned_secrets, container_missing_probes, container_restart_count, priviledged_containers
+        return empty_namespaces, latest_tag_pods, orphaned_configmaps, orphaned_secrets, container_missing_probes, container_restart_count, priviledged_containers, empty_limit
     
     except Exception as e:
         print(f"Error: {e}")

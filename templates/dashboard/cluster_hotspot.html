@@ -203,6 +203,28 @@
         </table><br>
     </div>
     {% endif %}
+    {% if empty_limit %}
+        <div class="table-7">
+            <h2>Containers without any Resource Limit</h2><br>
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Namespace</th>
+                        <th>Pod</th>
+                        <th>Container</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for container in empty_limit %}
+                        <tr>
+                            <td>{{container.namespace}}</td>
+                            <td><a href="/{{cluster_id}}/pods/{{container.namespace}}/{{container.pod}}?cluster_id={{cluster_id}}">{{container.pod}}</a></td>
+                            <td>{{container.container}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table><br>
+        </div>
+        {% endif %}
 </div>
-
 {% endblock %}

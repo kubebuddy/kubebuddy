@@ -1375,7 +1375,7 @@ def kube_bench_report(request, cluster_id):
 def cluster_hotspot(request, cluster_id):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
     try:
-        empty_namespaces, latest_tag_pods, orphaned_configmaps, orphaned_secrets, container_missing_probes, container_restart_count, priviledged_containers = get_cluster_hotspot(path, context_name)
+        empty_namespaces, latest_tag_pods, orphaned_configmaps, orphaned_secrets, container_missing_probes, container_restart_count, priviledged_containers, empty_limit = get_cluster_hotspot(path, context_name)
         
         # grab top 5 container reestart count
         container_restart_count = sorted(container_restart_count, key = lambda x: x['restart_count'], reverse = True)
@@ -1383,7 +1383,7 @@ def cluster_hotspot(request, cluster_id):
         return render(request, 'dashboard/cluster_hotspot.html', {'cluster_id': cluster_id, 'current_cluster': current_cluster, 
                                                                   'registered_clusters': registered_clusters, 
                                                                   'empty_namespaces': empty_namespaces, 'latest_tag_pods': latest_tag_pods, 'orphanded_configmaps': orphaned_configmaps, 'orphaned_secrets': orphaned_secrets, 'container_missing_probes': container_missing_probes,
-                                                                  'container_restart_count': container_restart_count, 'priviledged_containers': priviledged_containers})
+                                                                  'container_restart_count': container_restart_count, 'priviledged_containers': priviledged_containers, "empty_limit": empty_limit})
             
     except Exception as e:
         print('Caught exception: ', e)

@@ -249,14 +249,13 @@ def validate_and_patch_resource(path, context, name, namespace=None, old_yaml=No
         }
     
     except Exception as ex:
-        print(ex)
         logger.exception("Unexpected error", exc_info=ex)
         if hasattr(ex, "body"):
             error_body = json.loads(ex.body)
             error_message = error_body.get("message")
             return {
                 "success": False,
-                "message": f"Unexpected error: Make sure the YAML is valid and the resource exists.{error_message}",
+                "message": f"Unexpected error: Make sure the YAML is valid and the resource exists.",
             }
         else:
             return {

@@ -1,7 +1,7 @@
 from django.test import TestCase, RequestFactory
 from unittest.mock import patch, MagicMock
 from main.models import KubeConfig, Cluster 
-from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info
+from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info
 
 class GetUtilsDataFunctionTests(TestCase):
     def setUp(self):
@@ -1565,3 +1565,138 @@ class NodesViewsTests(TestCase):
         self.mock_render.assert_not_called()
         self.mock_k8s_nodes.get_node_description.assert_called_once()
         self.mock_k8s_nodes.get_node_yaml.assert_not_called()
+        
+class LimitRangeViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_limit_range = patch('dashboard.views.k8s_limit_range')
+        self.mock_k8s_limit_range = self.patcher_k8s_limit_range.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_limit_range.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_limitrange_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_limit_range.get_limit_ranges.return_value = (
+            [
+                {"name": "lr-1", "namespace": "default"},
+                {"name": "lr-2", "namespace": "kube-system"}
+            ],
+            2
+        )
+        request = self.factory.get(f'/dashboard/limitrange/{self.cluster.id}/')
+        limitrange(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/cluster_management/limitrange.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["limitranges"], self.mock_k8s_limit_range.get_limit_ranges.return_value[0])
+        self.assertEqual(context["total_limitranges"], 2)
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_limit_range.get_limit_ranges.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_limitrange_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/limitrange/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            limitrange(request, self.cluster.id)
+        self.mock_k8s_limit_range.get_limit_ranges.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_limitrange_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_limit_range.get_limit_ranges.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/limitrange/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            limitrange(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_limit_range.get_limit_ranges.assert_called_once()
+
+    def test_limitrange_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_limit_range.get_limit_range_description.return_value = "LimitRange description"
+        self.mock_k8s_limit_range.get_limitrange_events.return_value = "LimitRange events"
+        self.mock_k8s_limit_range.get_limitrange_yaml.return_value = "LimitRange yaml"
+        request = self.factory.get(f'/dashboard/limitrange_info/{self.cluster.id}/default/lr-1/')
+        limitrange_info(request, self.cluster.id, "default", "lr-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/cluster_management/limitrange_info.html')
+        context = args[2]
+        self.assertIn("limitrange_info", context)
+        self.assertEqual(context["limitrange_info"]["describe"], "LimitRange description")
+        self.assertEqual(context["limitrange_info"]["events"], "LimitRange events")
+        self.assertEqual(context["limitrange_info"]["yaml"], "LimitRange yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["limitrange_name"], "lr-1")
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_limit_range.get_limit_range_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "lr-1"
+        )
+        self.mock_k8s_limit_range.get_limitrange_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "lr-1"
+        )
+        self.mock_k8s_limit_range.get_limitrange_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "lr-1"
+        )
+
+    def test_limitrange_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/limitrange_info/{self.cluster.id}/default/lr-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            limitrange_info(request, self.cluster.id, "default", "lr-1")
+        self.mock_k8s_limit_range.get_limit_range_description.assert_not_called()
+        self.mock_k8s_limit_range.get_limitrange_events.assert_not_called()
+        self.mock_k8s_limit_range.get_limitrange_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_limitrange_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_limit_range.get_limit_range_description.side_effect = Exception("K8s error")
+        self.mock_k8s_limit_range.get_limitrange_events.side_effect = Exception("K8s error")
+        self.mock_k8s_limit_range.get_limitrange_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/limitrange_info/{self.cluster.id}/default/lr-1/')
+        with self.assertRaises(Exception):
+            limitrange_info(request, self.cluster.id, "default", "lr-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_limit_range.get_limit_range_description.assert_called_once()
+        self.mock_k8s_limit_range.get_limitrange_events.assert_not_called()
+        self.mock_k8s_limit_range.get_limitrange_yaml.assert_not_called()

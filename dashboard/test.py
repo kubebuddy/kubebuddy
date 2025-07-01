@@ -1,7 +1,8 @@
 from django.test import TestCase, RequestFactory
 from unittest.mock import patch, MagicMock
 from main.models import KubeConfig, Cluster 
-from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info, resourcequota_info, resourcequotas
+from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info, resourcequota_info, resourcequotas,pdb,pdb_info
+
 
 class GetUtilsDataFunctionTests(TestCase):
     def setUp(self):
@@ -1834,3 +1835,137 @@ class ResourceQuotaViewsTests(TestCase):
         self.mock_k8s_resource_quota.get_resourcequota_description.assert_called_once()
         self.mock_k8s_resource_quota.get_resourcequota_events.assert_not_called()
         self.mock_k8s_resource_quota.get_resourcequota_yaml.assert_not_called()
+        
+class PDBViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_pdb = patch('dashboard.views.k8s_pdb')
+        self.mock_k8s_pdb = self.patcher_k8s_pdb.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_pdb.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_pdb_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_pdb.get_pdb.return_value = (
+            [
+                {"name": "pdb-1", "namespace": "default"},
+                {"name": "pdb-2", "namespace": "kube-system"}
+            ],
+            2
+        )
+        request = self.factory.get(f'/dashboard/pdb/{self.cluster.id}/')
+        pdb(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/cluster_management/pdb.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["pdbs"], self.mock_k8s_pdb.get_pdb.return_value[0])
+        self.assertEqual(context["pdbs_count"], 2)
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_pdb.get_pdb.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_pdb_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/pdb/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            pdb(request, self.cluster.id)
+        self.mock_k8s_pdb.get_pdb.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_pdb_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_pdb.get_pdb.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/pdb/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            pdb(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_pdb.get_pdb.assert_called_once()
+
+    def test_pdb_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_pdb.get_pdb_description.return_value = "PDB description"
+        self.mock_k8s_pdb.get_pdb_events.return_value = "PDB events"
+        self.mock_k8s_pdb.get_pdb_yaml.return_value = "PDB yaml"
+        request = self.factory.get(f'/dashboard/pdb_info/{self.cluster.id}/default/pdb-1/')
+        pdb_info(request, self.cluster.id, "default", "pdb-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/cluster_management/pdb_info.html')
+        context = args[2]
+        self.assertIn("pdb_info", context)
+        self.assertEqual(context["pdb_info"]["describe"], "PDB description")
+        self.assertEqual(context["pdb_info"]["events"], "PDB events")
+        self.assertEqual(context["pdb_info"]["yaml"], "PDB yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_pdb.get_pdb_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "pdb-1"
+        )
+        self.mock_k8s_pdb.get_pdb_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "pdb-1"
+        )
+        self.mock_k8s_pdb.get_pdb_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "pdb-1"
+        )
+
+    def test_pdb_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/pdb_info/{self.cluster.id}/default/pdb-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            pdb_info(request, self.cluster.id, "default", "pdb-1")
+        self.mock_k8s_pdb.get_pdb_description.assert_not_called()
+        self.mock_k8s_pdb.get_pdb_events.assert_not_called()
+        self.mock_k8s_pdb.get_pdb_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_pdb_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_pdb.get_pdb_description.side_effect = Exception("K8s error")
+        self.mock_k8s_pdb.get_pdb_events.side_effect = Exception("K8s error")
+        self.mock_k8s_pdb.get_pdb_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/pdb_info/{self.cluster.id}/default/pdb-1/')
+        with self.assertRaises(Exception):
+            pdb_info(request, self.cluster.id, "default", "pdb-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_pdb.get_pdb_description.assert_called_once()
+        self.mock_k8s_pdb.get_pdb_events.assert_not_called()
+        self.mock_k8s_pdb.get_pdb_yaml.assert_not_called()

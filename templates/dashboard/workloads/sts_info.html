@@ -104,7 +104,7 @@
                 {% endif %}
                 <form action="" method="POST">
                     {% csrf_token %}
-                    <div id="editor" style="height: 40rem; width: 100%;">{{pod_info.edit}}</div>
+                    <div id="editor" style="height: 40rem; width: 100%;">{{sts_info.edit}}</div>
                     <textarea id="yaml-output" name="yaml" hidden></textarea>
                     <button type="submit" class="btn btn-primary mt-3">Apply</button>
                 </form>

@@ -102,7 +102,8 @@
                 {% endif %}
                 <form action="" method="POST">
                     {% csrf_token %}
-                    <textarea name="limitrange_yaml" id="limitrange_yaml" class="form-control" rows="25" spellcheck="false">{{ limitrange_info.edit }}</textarea>
+                    <div id="editor" style="height: 40rem; width: 100%;">{{limitrange_info.edit}}</div>
+                    <textarea id="yaml-output" name="yaml" hidden></textarea>
                     <button type="submit" class="btn btn-primary mt-3">Apply</button>
                 </form>
             </div>
@@ -113,4 +114,6 @@
     
     {% load static%}
     <script src="{% static 'js/copyYAML.js' %}"></script>
+    <script src="{% static 'js/ace_config.js' %}"></script>
+
 {% endblock %}

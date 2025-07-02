@@ -91,15 +91,16 @@
                 {% endif %}
                 <form action="" method="POST">
                     {% csrf_token %}
-                    <textarea name="resourcequota_yaml" id="resourcequota_yaml" class="form-control" rows="25" spellcheck="false">{{ resourcequota_info.edit }}</textarea>
+                    <div id="editor" style="height: 40rem; width: 100%;">{{resourcequota_info.edit}}</div>
+                    <textarea id="yaml-output" name="yaml" hidden></textarea>
                     <button type="submit" class="btn btn-primary mt-3">Apply</button>
                 </form>
             </div>
         </div>
-
         <a href="/{{cluster_id}}/resourcequotas?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to Resource Quotas</a>
     </div>
     
     {% load static%}
     <script src="{% static 'js/copyYAML.js' %}"></script>
+    <script src="{% static 'js/ace_config.js' %}"></script>
 {% endblock %}

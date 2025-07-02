@@ -111,7 +111,9 @@ class LoginViewTestCase(TestCase):
     @patch('django.contrib.auth.authenticate')
     def test_login_superuser_with_default_password_and_kubeconfig(self, mock_auth, mock_isfile):
         mock_auth.return_value = self.user
-        request = self.factory.post('/login/', {'username': 'admin', 'password': 'admin'})
+        admin_username = os.getenv("ADMIN_USERNAME", "admin")
+        admin_password = os.getenv("ADMIN_PASSWORD", "admin")
+        request = self.factory.post('/login/', {'username': admin_username, 'password': admin_password})
         request.user = AnonymousUser()
         from django.contrib.sessions.backends.db import SessionStore
         request.session = SessionStore()
@@ -125,7 +127,9 @@ class LoginViewTestCase(TestCase):
     @patch('django.contrib.auth.authenticate')
     def test_login_superuser_without_kubeconfig(self, mock_auth, mock_isfile):
         mock_auth.return_value = self.user
-        request = self.factory.post('/login/', {'username': 'admin', 'password': 'admin'})
+        admin_username = os.getenv("ADMIN_USERNAME", "admin")
+        admin_password = os.getenv("ADMIN_PASSWORD", "admin")
+        request = self.factory.post('/login/', {'username': admin_username, 'password': admin_password})
         request.user = AnonymousUser()
         from django.contrib.sessions.backends.db import SessionStore
         request.session = SessionStore()
@@ -139,7 +143,9 @@ class LoginViewTestCase(TestCase):
     def test_login_non_superuser(self, mock_auth):
         normal_user = User.objects.create_user(username='user', password='userpass')
         mock_auth.return_value = normal_user
-        request = self.factory.post('/login/', {'username': 'user', 'password': 'userpass'})
+        user_username = os.getenv("USER_USERNAME", "user")
+        user_password = os.getenv("USER_PASSWORD", "userpass")
+        request = self.factory.post('/login/', {'username': user_username, 'password': user_password})
         request.user = AnonymousUser()
         setattr(request, 'session', {})
         messages = FallbackStorage(request)

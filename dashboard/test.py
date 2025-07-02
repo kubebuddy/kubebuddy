@@ -1,7 +1,7 @@
 from django.test import TestCase, RequestFactory
 from unittest.mock import patch, MagicMock
 from main.models import KubeConfig, Cluster 
-from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info, resourcequota_info, resourcequotas,pdb,pdb_info, configmaps, configmap_info, secret_info, secrets, services, service_info, endpoints, endpoint_info
+from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info, resourcequota_info, resourcequotas,pdb,pdb_info, configmaps, configmap_info, secret_info, secrets, services, service_info, endpoints, endpoint_info, persistentvolume, pv_info
 
 class GetUtilsDataFunctionTests(TestCase):
     def setUp(self):
@@ -2516,3 +2516,127 @@ class EndpointsTests(TestCase):
         self.mock_k8s_endpoints.get_endpoint_events.assert_not_called()
         self.mock_k8s_endpoints.get_endpoint_yaml.assert_not_called()
 
+
+class PersistentVolumeTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_pv = patch('dashboard.views.k8s_pv')
+        self.mock_k8s_pv = self.patcher_k8s_pv.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_pv.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_persistentvolume_successful_rendering(self):
+        self._setup_utils_data()
+        mock_pvs = [
+            {"name": "pv-1", "capacity": "10Gi"},
+            {"name": "pv-2", "capacity": "5Gi"}
+        ]
+        self.mock_k8s_pv.list_persistent_volumes.return_value = (mock_pvs, 2)
+        request = self.factory.get(f'/dashboard/persistentvolume/{self.cluster.id}/')
+        persistentvolume(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/persistent_storage/persistentvolume.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["pvs"], mock_pvs)
+        self.assertEqual(context["total_pvs"], 2)
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_pv.list_persistent_volumes.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_persistentvolume_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/persistentvolume/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            persistentvolume(request, self.cluster.id)
+        self.mock_k8s_pv.list_persistent_volumes.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_persistentvolume_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_pv.list_persistent_volumes.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/persistentvolume/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            persistentvolume(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_pv.list_persistent_volumes.assert_called_once()
+
+    def test_pv_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_pv.get_pv_description.return_value = "PV description"
+        self.mock_k8s_pv.get_pv_yaml.return_value = "PV yaml"
+        request = self.factory.get(f'/dashboard/pv_info/{self.cluster.id}/pv-1/')
+        pv_info(request, self.cluster.id, "pv-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/persistent_storage/pv_info.html')
+        context = args[2]
+        self.assertIn("pv_info", context)
+        self.assertEqual(context["pv_info"]["describe"], "PV description")
+        self.assertEqual(context["pv_info"]["yaml"], "PV yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["pv_name"], "pv-1")
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_pv.get_pv_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "pv-1"
+        )
+        self.mock_k8s_pv.get_pv_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "pv-1"
+        )
+
+    def test_pv_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/pv_info/{self.cluster.id}/pv-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            pv_info(request, self.cluster.id, "pv-1")
+        self.mock_k8s_pv.get_pv_description.assert_not_called()
+        self.mock_k8s_pv.get_pv_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_pv_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_pv.get_pv_description.side_effect = Exception("K8s error")
+        self.mock_k8s_pv.get_pv_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/pv_info/{self.cluster.id}/pv-1/')
+        with self.assertRaises(Exception):
+            pv_info(request, self.cluster.id, "pv-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_pv.get_pv_description.assert_called_once()
+        self.mock_k8s_pv.get_pv_yaml.assert_not_called()

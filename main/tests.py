@@ -102,7 +102,9 @@ class LoginViewTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         User.objects.filter(username='admin').delete()
-        self.user = User.objects.create_superuser(username='admin', password='admin', email='admin@example.com')
+        admin_username = os.getenv("ADMIN_USERNAME", "admin")
+        admin_password = os.getenv("ADMIN_PASSWORD", "admin")
+        self.user = User.objects.create_superuser(username=admin_username, password=admin_password, email='admin@example.com')
         self.kube_config = KubeConfig.objects.create(path='/tmp/fake_kubeconfig', path_type='manual')
 
     @patch('os.path.isfile', return_value=True)

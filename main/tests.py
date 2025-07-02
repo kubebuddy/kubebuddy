@@ -141,10 +141,10 @@ class LoginViewTestCase(TestCase):
 
     @patch('django.contrib.auth.authenticate')
     def test_login_non_superuser(self, mock_auth):
-        normal_user = User.objects.create_user(username='user', password='userpass')
-        mock_auth.return_value = normal_user
         user_username = os.getenv("USER_USERNAME", "user")
         user_password = os.getenv("USER_PASSWORD", "userpass")
+        normal_user = User.objects.create_user(username=user_username, password=user_password)
+        mock_auth.return_value = normal_user
         request = self.factory.post('/login/', {'username': user_username, 'password': user_password})
         request.user = AnonymousUser()
         setattr(request, 'session', {})

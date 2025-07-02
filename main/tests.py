@@ -168,10 +168,12 @@ class IntegrateWithTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         try:
-            User.objects.get(username='admin').delete()
+            User.objects.get(username=os.getenv("ADMIN_USERNAME", "admin")).delete()
         except User.DoesNotExist:
             pass
-        self.user = User.objects.create_superuser(username='admin', password='admin', email='admin@example.com')
+        admin_username = os.getenv("ADMIN_USERNAME", "admin")
+        admin_password = os.getenv("ADMIN_PASSWORD", "admin")
+        self.user = User.objects.create_superuser(username=admin_username, password=admin_password, email='admin@example.com')
 
     @patch('os.path.isfile', return_value=False)
     def test_post_invalid_path(self, mock_isfile):

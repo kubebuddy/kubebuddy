@@ -90,7 +90,7 @@ def pod_info(request, cluster_id, namespace, pod_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('pod_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, pod_name, namespace, pod_info["yaml"], yaml)
 
         if ret["success"] == False:
@@ -130,7 +130,7 @@ def rs_info(request, cluster_id, namespace, rs_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('rs_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, rs_name, namespace, rs_info["yaml"], yaml)
 
         if ret["success"] == False:
@@ -168,7 +168,7 @@ def deploy_info(request, cluster_id, namespace, deploy_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('deploy_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, deploy_name, namespace, deploy_info["yaml"], yaml)
 
         if ret["success"] == False:
@@ -208,7 +208,7 @@ def sts_info(request, cluster_id, namespace, sts_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('sts_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, sts_name, namespace, sts_info["yaml"], yaml)
 
         if ret["success"] == False:
@@ -248,7 +248,7 @@ def daemonset_info(request, cluster_id, namespace, daemonset_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('daemonset_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, daemonset_name, namespace, ds_info["yaml"], yaml)
 
         if ret["success"] == False:
@@ -287,7 +287,7 @@ def jobs_info(request, cluster_id, namespace, job_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('job_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, job_name, namespace, job_info["yaml"], yaml)
 
         if ret["success"] == False:
@@ -327,7 +327,7 @@ def cronjob_info(request, cluster_id, namespace, cronjob_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('cronjob_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, cronjob_name, namespace, cronjob_info["yaml"], yaml)
 
         if ret["success"] == False:
@@ -370,7 +370,7 @@ def ns_info(request, cluster_id, namespace):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('ns_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, name=namespace, old_yaml=ns_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -410,7 +410,7 @@ def node_info(request, cluster_id, node_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('node_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, node_name, old_yaml=node_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -450,7 +450,7 @@ def limitrange_info(request, cluster_id, namespace, limitrange_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('limitrange_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, limitrange_name, namespace, old_yaml=limitrange_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -490,7 +490,7 @@ def resourcequota_info(request, cluster_id, namespace, resourcequota_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('resourcequota_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, resourcequota_name, namespace, old_yaml=resourcequota_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -530,7 +530,7 @@ def pdb_info(request, cluster_id, namespace, pdb_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('pdb_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, pdb_name, namespace, pdb_info["yaml"], yaml)
 
         if ret["success"] == False:
@@ -569,7 +569,7 @@ def configmap_info(request, cluster_id, namespace, configmap_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('configmap_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, configmap_name, namespace, old_yaml=configmap_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -608,7 +608,7 @@ def secret_info(request, cluster_id, namespace, secret_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('secret_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, secret_name, namespace, old_yaml=secret_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -649,7 +649,7 @@ def service_info(request, cluster_id, namespace, service_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('service_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, service_name, namespace, old_yaml=service_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -689,7 +689,7 @@ def endpoint_info(request, cluster_id, namespace, endpoint_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('endpoint_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, endpoint_name, namespace, old_yaml=endpoint_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -730,7 +730,7 @@ def pv_info(request, cluster_id, pv_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('pv_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, pv_name, old_yaml=pv_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -770,7 +770,7 @@ def pvc_info(request, cluster_id, namespace, pvc_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('pvc_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, pvc_name, namespace, old_yaml=pvc_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -809,7 +809,7 @@ def storageclass_info(request, cluster_id, sc_name):
     }    
 
     if request.method == 'POST':
-        yaml = request.POST.get('sc_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, sc_name, old_yaml=sc_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -849,7 +849,7 @@ def np_info(request, cluster_id, namespace, np_name):
     }    
 
     if request.method == 'POST':
-        yaml = request.POST.get('np_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, np_name, namespace, old_yaml=np_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -888,7 +888,7 @@ def ingress_info(request, cluster_id, namespace, ingress_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('ingress_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, ingress_name, namespace, old_yaml=ingress_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -928,7 +928,7 @@ def role_info(request, cluster_id, namespace, role_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('role_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, role_name, namespace, old_yaml=role_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -967,7 +967,7 @@ def role_binding_info(request, cluster_id, namespace, role_binding_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('rb_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, role_binding_name, namespace, old_yaml=role_binding_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -1007,7 +1007,7 @@ def clusterrole_info(request, cluster_id, cluster_role_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('cr_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, cluster_role_name, old_yaml=cluster_role_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -1047,7 +1047,7 @@ def cluster_role_binding_info(request, cluster_id, cluster_role_binding_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('crb_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, cluster_role_binding_name, old_yaml=cluster_role_binding_info["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:
@@ -1087,7 +1087,7 @@ def serviceAccountInfo(request, cluster_id, namespace, sa_name):
     }
 
     if request.method == 'POST':
-        yaml = request.POST.get('sa_yaml')
+        yaml = request.POST.get('yaml')
         ret = validate_and_patch_resource(path, context_name, sa_name, namespace, old_yaml=serviceAccountInfo["yaml"], new_yaml=yaml)
 
         if ret["success"] == False:

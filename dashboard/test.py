@@ -1,7 +1,8 @@
 from django.test import TestCase, RequestFactory
 from unittest.mock import patch, MagicMock
 from main.models import KubeConfig, Cluster 
-from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info, resourcequota_info, resourcequotas,pdb,pdb_info, configmaps, configmap_info, secret_info, secrets, services, service_info, endpoints, endpoint_info, persistentvolume, pv_info
+from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info, resourcequota_info, resourcequotas,pdb,pdb_info, configmaps, configmap_info, secret_info, secrets, services, service_info, endpoints, endpoint_info, persistentvolume, pv_info, persistentvolumeclaim, pvc_info, storageclass, storageclass_info, np, np_info, ingress, ingress_info, role, role_info, role_binding_info, rolebinding, clusterrole, clusterrole_info, clusterrolebinding, cluster_role_binding_info, serviceAccount, serviceAccountInfo, pod_metrics, node_metrics
+
 
 class GetUtilsDataFunctionTests(TestCase):
     def setUp(self):
@@ -2640,3 +2641,1645 @@ class PersistentVolumeTests(TestCase):
         self.mock_render.assert_not_called()
         self.mock_k8s_pv.get_pv_description.assert_called_once()
         self.mock_k8s_pv.get_pv_yaml.assert_not_called()
+
+class PersistentVolumeTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_pv = patch('dashboard.views.k8s_pv')
+        self.mock_k8s_pv = self.patcher_k8s_pv.start()
+        self.patcher_k8s_pvc = patch('dashboard.views.k8s_pvc')
+        self.mock_k8s_pvc = self.patcher_k8s_pvc.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_pv.stop()
+        self.patcher_k8s_pvc.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_persistentvolume_successful_rendering(self):
+        self._setup_utils_data()
+        mock_pvs = [
+            {"name": "pv-1", "capacity": "10Gi"},
+            {"name": "pv-2", "capacity": "5Gi"}
+        ]
+        self.mock_k8s_pv.list_persistent_volumes.return_value = (mock_pvs, 2)
+        request = self.factory.get(f'/dashboard/persistentvolume/{self.cluster.id}/')
+        persistentvolume(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/persistent_storage/persistentvolume.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["pvs"], mock_pvs)
+        self.assertEqual(context["total_pvs"], 2)
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_pv.list_persistent_volumes.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_persistentvolume_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/persistentvolume/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            persistentvolume(request, self.cluster.id)
+        self.mock_k8s_pv.list_persistent_volumes.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_persistentvolume_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_pv.list_persistent_volumes.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/persistentvolume/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            persistentvolume(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_pv.list_persistent_volumes.assert_called_once()
+
+    def test_pv_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_pv.get_pv_description.return_value = "PV description"
+        self.mock_k8s_pv.get_pv_yaml.return_value = "PV yaml"
+        request = self.factory.get(f'/dashboard/pv_info/{self.cluster.id}/pv-1/')
+        pv_info(request, self.cluster.id, "pv-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/persistent_storage/pv_info.html')
+        context = args[2]
+        self.assertIn("pv_info", context)
+        self.assertEqual(context["pv_info"]["describe"], "PV description")
+        self.assertEqual(context["pv_info"]["yaml"], "PV yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["pv_name"], "pv-1")
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_pv.get_pv_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "pv-1"
+        )
+        self.mock_k8s_pv.get_pv_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "pv-1"
+        )
+
+    def test_pv_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/pv_info/{self.cluster.id}/pv-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            pv_info(request, self.cluster.id, "pv-1")
+        self.mock_k8s_pv.get_pv_description.assert_not_called()
+        self.mock_k8s_pv.get_pv_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_pv_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_pv.get_pv_description.side_effect = Exception("K8s error")
+        self.mock_k8s_pv.get_pv_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/pv_info/{self.cluster.id}/pv-1/')
+        with self.assertRaises(Exception):
+            pv_info(request, self.cluster.id, "pv-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_pv.get_pv_description.assert_called_once()
+        self.mock_k8s_pv.get_pv_yaml.assert_not_called()
+
+    def test_persistentvolumeclaim_successful_rendering(self):
+        self._setup_utils_data()
+        mock_pvc = [
+            {"name": "pvc-1", "namespace": "default"},
+            {"name": "pvc-2", "namespace": "kube-system"}
+        ]
+        self.mock_k8s_pvc.list_pvc.return_value = (mock_pvc, 2)
+        request = self.factory.get(f'/dashboard/persistentvolumeclaim/{self.cluster.id}/')
+        persistentvolumeclaim(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/persistent_storage/persistentvolumeclaim.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["pvc"], mock_pvc)
+        self.assertEqual(context["total_pvc"], 2)
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_pvc.list_pvc.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_persistentvolumeclaim_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/persistentvolumeclaim/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            persistentvolumeclaim(request, self.cluster.id)
+        self.mock_k8s_pvc.list_pvc.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_persistentvolumeclaim_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_pvc.list_pvc.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/persistentvolumeclaim/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            persistentvolumeclaim(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_pvc.list_pvc.assert_called_once()
+
+    def test_pvc_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_pvc.get_pvc_description.return_value = "PVC description"
+        self.mock_k8s_pvc.get_pvc_events.return_value = "PVC events"
+        self.mock_k8s_pvc.get_pvc_yaml.return_value = "PVC yaml"
+        request = self.factory.get(f'/dashboard/pvc_info/{self.cluster.id}/default/pvc-1/')
+        pvc_info(request, self.cluster.id, "default", "pvc-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/persistent_storage/pvc_info.html')
+        context = args[2]
+        self.assertIn("pvc_info", context)
+        self.assertEqual(context["pvc_info"]["describe"], "PVC description")
+        self.assertEqual(context["pvc_info"]["events"], "PVC events")
+        self.assertEqual(context["pvc_info"]["yaml"], "PVC yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["pvc_name"], "pvc-1")
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_pvc.get_pvc_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "pvc-1"
+        )
+        self.mock_k8s_pvc.get_pvc_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "pvc-1"
+        )
+        self.mock_k8s_pvc.get_pvc_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "pvc-1"
+        )
+
+    def test_pvc_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/pvc_info/{self.cluster.id}/default/pvc-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            pvc_info(request, self.cluster.id, "default", "pvc-1")
+        self.mock_k8s_pvc.get_pvc_description.assert_not_called()
+        self.mock_k8s_pvc.get_pvc_events.assert_not_called()
+        self.mock_k8s_pvc.get_pvc_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_pvc_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_pvc.get_pvc_description.side_effect = Exception("K8s error")
+        self.mock_k8s_pvc.get_pvc_events.side_effect = Exception("K8s error")
+        self.mock_k8s_pvc.get_pvc_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/pvc_info/{self.cluster.id}/default/pvc-1/')
+        with self.assertRaises(Exception):
+            pvc_info(request, self.cluster.id, "default", "pvc-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_pvc.get_pvc_description.assert_called_once()
+        self.mock_k8s_pvc.get_pvc_events.assert_not_called()
+        self.mock_k8s_pvc.get_pvc_yaml.assert_not_called()
+        
+class StorageClassViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_storage_class = patch('dashboard.views.k8s_storage_class')
+        self.mock_k8s_storage_class = self.patcher_k8s_storage_class.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_storage_class.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_storageclass_successful_rendering(self):
+        self._setup_utils_data()
+        mock_sc = [
+            {"name": "sc-1", "provisioner": "kubernetes.io/aws-ebs"},
+            {"name": "sc-2", "provisioner": "kubernetes.io/gce-pd"}
+        ]
+        self.mock_k8s_storage_class.list_storage_classes.return_value = (mock_sc, 2)
+        request = self.factory.get(f'/dashboard/storageclass/{self.cluster.id}/')
+        storageclass(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/persistent_storage/storageclass.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["sc"], mock_sc)
+        self.assertEqual(context["total_sc"], 2)
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_storage_class.list_storage_classes.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_storageclass_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/storageclass/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            storageclass(request, self.cluster.id)
+        self.mock_k8s_storage_class.list_storage_classes.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_storageclass_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_storage_class.list_storage_classes.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/storageclass/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            storageclass(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_storage_class.list_storage_classes.assert_called_once()
+
+    def test_storageclass_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_storage_class.get_storage_class_description.return_value = "SC description"
+        self.mock_k8s_storage_class.get_storage_class_events.return_value = "SC events"
+        self.mock_k8s_storage_class.get_sc_yaml.return_value = "SC yaml"
+        request = self.factory.get(f'/dashboard/storageclass_info/{self.cluster.id}/sc-1/')
+        storageclass_info(request, self.cluster.id, "sc-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/persistent_storage/storageclass_info.html')
+        context = args[2]
+        self.assertIn("sc_info", context)
+        self.assertEqual(context["sc_info"]["describe"], "SC description")
+        self.assertEqual(context["sc_info"]["events"], "SC events")
+        self.assertEqual(context["sc_info"]["yaml"], "SC yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_storage_class.get_storage_class_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "sc-1"
+        )
+        self.mock_k8s_storage_class.get_storage_class_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "sc-1"
+        )
+        self.mock_k8s_storage_class.get_sc_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "sc-1"
+        )
+
+    def test_storageclass_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/storageclass_info/{self.cluster.id}/sc-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            storageclass_info(request, self.cluster.id, "sc-1")
+        self.mock_k8s_storage_class.get_storage_class_description.assert_not_called()
+        self.mock_k8s_storage_class.get_storage_class_events.assert_not_called()
+        self.mock_k8s_storage_class.get_sc_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_storageclass_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_storage_class.get_storage_class_description.side_effect = Exception("K8s error")
+        self.mock_k8s_storage_class.get_storage_class_events.side_effect = Exception("K8s error")
+        self.mock_k8s_storage_class.get_sc_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/storageclass_info/{self.cluster.id}/sc-1/')
+        with self.assertRaises(Exception):
+            storageclass_info(request, self.cluster.id, "sc-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_storage_class.get_storage_class_description.assert_called_once()
+        self.mock_k8s_storage_class.get_storage_class_events.assert_not_called()
+        self.mock_k8s_storage_class.get_sc_yaml.assert_not_called()
+
+class NetworkPolicyViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_np = patch('dashboard.views.k8s_np')
+        self.mock_k8s_np = self.patcher_k8s_np.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_np.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_np_successful_rendering(self):
+        self._setup_utils_data()
+        mock_nps = [
+            {"name": "np-1", "namespace": "default"},
+            {"name": "np-2", "namespace": "kube-system"}
+        ]
+        self.mock_k8s_np.get_np.return_value = (mock_nps, 2)
+        request = self.factory.get(f'/dashboard/np/{self.cluster.id}/')
+        np(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/networking/np.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["nps"], mock_nps)
+        self.assertEqual(context["nps_count"], 2)
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_np.get_np.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_np_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/np/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            np(request, self.cluster.id)
+        self.mock_k8s_np.get_np.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_np_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_np.get_np.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/np/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            np(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_np.get_np.assert_called_once()
+
+    def test_np_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_np.get_np_description.return_value = "NP description"
+        self.mock_k8s_np.get_np_events.return_value = "NP events"
+        self.mock_k8s_np.get_np_yaml.return_value = "NP yaml"
+        request = self.factory.get(f'/dashboard/np_info/{self.cluster.id}/default/np-1/')
+        np_info(request, self.cluster.id, "default", "np-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/networking/np_info.html')
+        context = args[2]
+        self.assertIn("np_info", context)
+        self.assertEqual(context["np_info"]["describe"], "NP description")
+        self.assertEqual(context["np_info"]["events"], "NP events")
+        self.assertEqual(context["np_info"]["yaml"], "NP yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_np.get_np_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "np-1"
+        )
+        self.mock_k8s_np.get_np_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "np-1"
+        )
+        self.mock_k8s_np.get_np_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "np-1"
+        )
+
+    def test_np_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/np_info/{self.cluster.id}/default/np-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            np_info(request, self.cluster.id, "default", "np-1")
+        self.mock_k8s_np.get_np_description.assert_not_called()
+        self.mock_k8s_np.get_np_events.assert_not_called()
+        self.mock_k8s_np.get_np_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_np_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_np.get_np_description.side_effect = Exception("K8s error")
+        self.mock_k8s_np.get_np_events.side_effect = Exception("K8s error")
+        self.mock_k8s_np.get_np_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/np_info/{self.cluster.id}/default/np-1/')
+        with self.assertRaises(Exception):
+            np_info(request, self.cluster.id, "default", "np-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_np.get_np_description.assert_called_once()
+        self.mock_k8s_np.get_np_events.assert_not_called()
+        self.mock_k8s_np.get_np_yaml.assert_not_called()
+        
+class IngressViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_ingress = patch('dashboard.views.k8s_ingress')
+        self.mock_k8s_ingress = self.patcher_k8s_ingress.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_ingress.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_ingress_successful_rendering(self):
+        self._setup_utils_data()
+        mock_ingress = [
+            {"name": "ingress-1", "namespace": "default"},
+            {"name": "ingress-2", "namespace": "kube-system"}
+        ]
+        self.mock_k8s_ingress.get_ingress.return_value = (mock_ingress, 2)
+        request = self.factory.get(f'/dashboard/ingress/{self.cluster.id}/')
+        ingress(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/networking/ingress.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["ingress"], mock_ingress)
+        self.assertEqual(context["ingress_count"], 2)
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_ingress.get_ingress.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_ingress_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/ingress/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            ingress(request, self.cluster.id)
+        self.mock_k8s_ingress.get_ingress.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_ingress_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_ingress.get_ingress.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/ingress/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            ingress(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_ingress.get_ingress.assert_called_once()
+
+    def test_ingress_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_ingress.get_ingress_description.return_value = "Ingress description"
+        self.mock_k8s_ingress.get_ingress_events.return_value = "Ingress events"
+        self.mock_k8s_ingress.get_ingress_yaml.return_value = "Ingress yaml"
+        request = self.factory.get(f'/dashboard/ingress_info/{self.cluster.id}/default/ingress-1/')
+        ingress_info(request, self.cluster.id, "default", "ingress-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/networking/ingress_info.html')
+        context = args[2]
+        self.assertIn("ingress_info", context)
+        self.assertEqual(context["ingress_info"]["describe"], "Ingress description")
+        self.assertEqual(context["ingress_info"]["events"], "Ingress events")
+        self.assertEqual(context["ingress_info"]["yaml"], "Ingress yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_ingress.get_ingress_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "ingress-1"
+        )
+        self.mock_k8s_ingress.get_ingress_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "ingress-1"
+        )
+        self.mock_k8s_ingress.get_ingress_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "ingress-1"
+        )
+
+    def test_ingress_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/ingress_info/{self.cluster.id}/default/ingress-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            ingress_info(request, self.cluster.id, "default", "ingress-1")
+        self.mock_k8s_ingress.get_ingress_description.assert_not_called()
+        self.mock_k8s_ingress.get_ingress_events.assert_not_called()
+        self.mock_k8s_ingress.get_ingress_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_ingress_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_ingress.get_ingress_description.side_effect = Exception("K8s error")
+        self.mock_k8s_ingress.get_ingress_events.side_effect = Exception("K8s error")
+        self.mock_k8s_ingress.get_ingress_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/ingress_info/{self.cluster.id}/default/ingress-1/')
+        with self.assertRaises(Exception):
+            ingress_info(request, self.cluster.id, "default", "ingress-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_ingress.get_ingress_description.assert_called_once()
+        self.mock_k8s_ingress.get_ingress_events.assert_not_called()
+        self.mock_k8s_ingress.get_ingress_yaml.assert_not_called()
+
+class RoleViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_role = patch('dashboard.views.k8s_role')
+        self.mock_k8s_role = self.patcher_k8s_role.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_role.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_role_successful_rendering(self):
+        self._setup_utils_data()
+        mock_roles = [
+            {"name": "role-1", "namespace": "default"},
+            {"name": "role-2", "namespace": "kube-system"}
+        ]
+        self.mock_k8s_role.list_roles.return_value = (mock_roles, 2)
+        request = self.factory.get(f'/dashboard/role/{self.cluster.id}/')
+        role(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/role.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["role"], mock_roles)
+        self.assertEqual(context["total_role"], 2)
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_role.list_roles.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_role_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/role/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            role(request, self.cluster.id)
+        self.mock_k8s_role.list_roles.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_role_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_role.list_roles.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/role/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            role(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_role.list_roles.assert_called_once()
+
+    def test_role_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_role.get_role_description.return_value = "Role description"
+        self.mock_k8s_role.get_role_events.return_value = "Role events"
+        self.mock_k8s_role.get_role_yaml.return_value = "Role yaml"
+        request = self.factory.get(f'/dashboard/role_info/{self.cluster.id}/default/role-1/')
+        role_info(request, self.cluster.id, "default", "role-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/role_info.html')
+        context = args[2]
+        self.assertIn("role_info", context)
+        self.assertEqual(context["role_info"]["describe"], "Role description")
+        self.assertEqual(context["role_info"]["events"], "Role events")
+        self.assertEqual(context["role_info"]["yaml"], "Role yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_role.get_role_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "role-1"
+        )
+        self.mock_k8s_role.get_role_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "role-1"
+        )
+        self.mock_k8s_role.get_role_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "role-1"
+        )
+
+    def test_role_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/role_info/{self.cluster.id}/default/role-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            role_info(request, self.cluster.id, "default", "role-1")
+        self.mock_k8s_role.get_role_description.assert_not_called()
+        self.mock_k8s_role.get_role_events.assert_not_called()
+        self.mock_k8s_role.get_role_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_role_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_role.get_role_description.side_effect = Exception("K8s error")
+        self.mock_k8s_role.get_role_events.side_effect = Exception("K8s error")
+        self.mock_k8s_role.get_role_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/role_info/{self.cluster.id}/default/role-1/')
+        with self.assertRaises(Exception):
+            role_info(request, self.cluster.id, "default", "role-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_role.get_role_description.assert_called_once()
+        self.mock_k8s_role.get_role_events.assert_not_called()
+        self.mock_k8s_role.get_role_yaml.assert_not_called()
+        
+class RoleBindingViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_rolebindings = patch('dashboard.views.k8s_rolebindings')
+        self.mock_k8s_rolebindings = self.patcher_k8s_rolebindings.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_rolebindings.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_rolebinding_successful_rendering(self):
+        self._setup_utils_data()
+        mock_rolebindings = [
+            {"name": "rb-1", "namespace": "default"},
+            {"name": "rb-2", "namespace": "kube-system"}
+        ]
+        self.mock_k8s_rolebindings.list_rolebindings.return_value = (mock_rolebindings, 2)
+        request = self.factory.get(f'/dashboard/rolebinding/{self.cluster.id}/')
+        rolebinding(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/rolebinding.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["rolebinding"], mock_rolebindings)
+        self.assertEqual(context["total_rolebinding"], 2)
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_rolebindings.list_rolebindings.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_rolebinding_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/rolebinding/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            rolebinding(request, self.cluster.id)
+        self.mock_k8s_rolebindings.list_rolebindings.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_rolebinding_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_rolebindings.list_rolebindings.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/rolebinding/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            rolebinding(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_rolebindings.list_rolebindings.assert_called_once()
+
+    def test_role_binding_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_rolebindings.get_role_binding_description.return_value = "RoleBinding description"
+        self.mock_k8s_rolebindings.get_role_binding_events.return_value = "RoleBinding events"
+        self.mock_k8s_rolebindings.get_role_binding_yaml.return_value = "RoleBinding yaml"
+        request = self.factory.get(f'/dashboard/rolebinding_info/{self.cluster.id}/default/rb-1/')
+        role_binding_info(request, self.cluster.id, "default", "rb-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/rolebinding_info.html')
+        context = args[2]
+        self.assertIn("role_binding_info", context)
+        self.assertEqual(context["role_binding_info"]["describe"], "RoleBinding description")
+        self.assertEqual(context["role_binding_info"]["events"], "RoleBinding events")
+        self.assertEqual(context["role_binding_info"]["yaml"], "RoleBinding yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_rolebindings.get_role_binding_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "rb-1"
+        )
+        self.mock_k8s_rolebindings.get_role_binding_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "rb-1"
+        )
+        self.mock_k8s_rolebindings.get_role_binding_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "rb-1"
+        )
+
+    def test_role_binding_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/rolebinding_info/{self.cluster.id}/default/rb-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            role_binding_info(request, self.cluster.id, "default", "rb-1")
+        self.mock_k8s_rolebindings.get_role_binding_description.assert_not_called()
+        self.mock_k8s_rolebindings.get_role_binding_events.assert_not_called()
+        self.mock_k8s_rolebindings.get_role_binding_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_role_binding_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_rolebindings.get_role_binding_description.side_effect = Exception("K8s error")
+        self.mock_k8s_rolebindings.get_role_binding_events.side_effect = Exception("K8s error")
+        self.mock_k8s_rolebindings.get_role_binding_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/rolebinding_info/{self.cluster.id}/default/rb-1/')
+        with self.assertRaises(Exception):
+            role_binding_info(request, self.cluster.id, "default", "rb-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_rolebindings.get_role_binding_description.assert_called_once()
+        self.mock_k8s_rolebindings.get_role_binding_events.assert_not_called()
+        self.mock_k8s_rolebindings.get_role_binding_yaml.assert_not_called()
+
+class RoleBindingViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_rolebindings = patch('dashboard.views.k8s_rolebindings')
+        self.mock_k8s_rolebindings = self.patcher_k8s_rolebindings.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_rolebindings.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_rolebinding_successful_rendering(self):
+        self._setup_utils_data()
+        mock_rolebindings = [
+            {"name": "rb-1", "namespace": "default"},
+            {"name": "rb-2", "namespace": "kube-system"}
+        ]
+        self.mock_k8s_rolebindings.list_rolebindings.return_value = (mock_rolebindings, 2)
+        request = self.factory.get(f'/dashboard/rolebinding/{self.cluster.id}/')
+        rolebinding(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/rolebinding.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["rolebinding"], mock_rolebindings)
+        self.assertEqual(context["total_rolebinding"], 2)
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_rolebindings.list_rolebindings.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_rolebinding_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/rolebinding/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            rolebinding(request, self.cluster.id)
+        self.mock_k8s_rolebindings.list_rolebindings.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_rolebinding_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_rolebindings.list_rolebindings.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/rolebinding/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            rolebinding(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_rolebindings.list_rolebindings.assert_called_once()
+
+    def test_role_binding_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_rolebindings.get_role_binding_description.return_value = "RoleBinding description"
+        self.mock_k8s_rolebindings.get_role_binding_events.return_value = "RoleBinding events"
+        self.mock_k8s_rolebindings.get_role_binding_yaml.return_value = "RoleBinding yaml"
+        request = self.factory.get(f'/dashboard/rolebinding_info/{self.cluster.id}/default/rb-1/')
+        role_binding_info(request, self.cluster.id, "default", "rb-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/rolebinding_info.html')
+        context = args[2]
+        self.assertIn("role_binding_info", context)
+        self.assertEqual(context["role_binding_info"]["describe"], "RoleBinding description")
+        self.assertEqual(context["role_binding_info"]["events"], "RoleBinding events")
+        self.assertEqual(context["role_binding_info"]["yaml"], "RoleBinding yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_rolebindings.get_role_binding_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "rb-1"
+        )
+        self.mock_k8s_rolebindings.get_role_binding_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "rb-1"
+        )
+        self.mock_k8s_rolebindings.get_role_binding_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "rb-1"
+        )
+
+    def test_role_binding_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/rolebinding_info/{self.cluster.id}/default/rb-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            role_binding_info(request, self.cluster.id, "default", "rb-1")
+        self.mock_k8s_rolebindings.get_role_binding_description.assert_not_called()
+        self.mock_k8s_rolebindings.get_role_binding_events.assert_not_called()
+        self.mock_k8s_rolebindings.get_role_binding_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_role_binding_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_rolebindings.get_role_binding_description.side_effect = Exception("K8s error")
+        self.mock_k8s_rolebindings.get_role_binding_events.side_effect = Exception("K8s error")
+        self.mock_k8s_rolebindings.get_role_binding_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/rolebinding_info/{self.cluster.id}/default/rb-1/')
+        with self.assertRaises(Exception):
+            role_binding_info(request, self.cluster.id, "default", "rb-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_rolebindings.get_role_binding_description.assert_called_once()
+        self.mock_k8s_rolebindings.get_role_binding_events.assert_not_called()
+        self.mock_k8s_rolebindings.get_role_binding_yaml.assert_not_called()
+
+class ClusterRoleViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_cluster_roles = patch('dashboard.views.k8s_cluster_roles')
+        self.mock_k8s_cluster_roles = self.patcher_k8s_cluster_roles.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_cluster_roles.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_clusterrole_successful_rendering(self):
+        self._setup_utils_data()
+        mock_clusterroles = [
+            {"name": "cr-1"},
+            {"name": "cr-2"}
+        ]
+        self.mock_k8s_cluster_roles.get_cluster_role.return_value = (mock_clusterroles, 2)
+        request = self.factory.get(f'/dashboard/clusterrole/{self.cluster.id}/')
+        clusterrole(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/clusterrole.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["clusterrole"], mock_clusterroles)
+        self.assertEqual(context["total_clusterrole"], 2)
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_cluster_roles.get_cluster_role.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_clusterrole_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/clusterrole/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            clusterrole(request, self.cluster.id)
+        self.mock_k8s_cluster_roles.get_cluster_role.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_clusterrole_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_cluster_roles.get_cluster_role.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/clusterrole/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            clusterrole(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_cluster_roles.get_cluster_role.assert_called_once()
+
+    def test_clusterrole_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_cluster_roles.get_cluster_role_description.return_value = "ClusterRole description"
+        self.mock_k8s_cluster_roles.get_cluster_role_events.return_value = "ClusterRole events"
+        self.mock_k8s_cluster_roles.get_cluster_role_yaml.return_value = "ClusterRole yaml"
+        request = self.factory.get(f'/dashboard/clusterrole_info/{self.cluster.id}/cr-1/')
+        clusterrole_info(request, self.cluster.id, "cr-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/clusterrole_info.html')
+        context = args[2]
+        self.assertIn("cluster_role_info", context)
+        self.assertEqual(context["cluster_role_info"]["describe"], "ClusterRole description")
+        self.assertEqual(context["cluster_role_info"]["events"], "ClusterRole events")
+        self.assertEqual(context["cluster_role_info"]["yaml"], "ClusterRole yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_cluster_roles.get_cluster_role_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "cr-1"
+        )
+        self.mock_k8s_cluster_roles.get_cluster_role_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "cr-1"
+        )
+        self.mock_k8s_cluster_roles.get_cluster_role_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "cr-1"
+        )
+
+    def test_clusterrole_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/clusterrole_info/{self.cluster.id}/cr-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            clusterrole_info(request, self.cluster.id, "cr-1")
+        self.mock_k8s_cluster_roles.get_cluster_role_description.assert_not_called()
+        self.mock_k8s_cluster_roles.get_cluster_role_events.assert_not_called()
+        self.mock_k8s_cluster_roles.get_cluster_role_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_clusterrole_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_cluster_roles.get_cluster_role_description.side_effect = Exception("K8s error")
+        self.mock_k8s_cluster_roles.get_cluster_role_events.side_effect = Exception("K8s error")
+        self.mock_k8s_cluster_roles.get_cluster_role_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/clusterrole_info/{self.cluster.id}/cr-1/')
+        with self.assertRaises(Exception):
+            clusterrole_info(request, self.cluster.id, "cr-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_cluster_roles.get_cluster_role_description.assert_called_once()
+        self.mock_k8s_cluster_roles.get_cluster_role_events.assert_not_called()
+        self.mock_k8s_cluster_roles.get_cluster_role_yaml.assert_not_called()
+
+class ClusterRoleBindingViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_cluster_role_bindings = patch('dashboard.views.k8s_cluster_role_bindings')
+        self.mock_k8s_cluster_role_bindings = self.patcher_k8s_cluster_role_bindings.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_cluster_role_bindings.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_clusterrolebinding_successful_rendering(self):
+        self._setup_utils_data()
+        mock_clusterrolebindings = [
+            {"name": "crb-1"},
+            {"name": "crb-2"}
+        ]
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_bindings.return_value = (mock_clusterrolebindings, 2)
+        request = self.factory.get(f'/dashboard/clusterrolebinding/{self.cluster.id}/')
+        clusterrolebinding(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/clusterrolebinding.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["clusterrolebinding"], mock_clusterrolebindings)
+        self.assertEqual(context["total_clusterrolebinding"], 2)
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_bindings.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_clusterrolebinding_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/clusterrolebinding/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            clusterrolebinding(request, self.cluster.id)
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_bindings.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_clusterrolebinding_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_bindings.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/clusterrolebinding/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            clusterrolebinding(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_bindings.assert_called_once()
+
+    def test_cluster_role_binding_info_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_description.return_value = "ClusterRoleBinding description"
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_events.return_value = "ClusterRoleBinding events"
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_yaml.return_value = "ClusterRoleBinding yaml"
+        request = self.factory.get(f'/dashboard/clusterrolebinding_info/{self.cluster.id}/crb-1/')
+        cluster_role_binding_info(request, self.cluster.id, "crb-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/clusterrolebinding_info.html')
+        context = args[2]
+        self.assertIn("cluster_role_binding_info", context)
+        self.assertEqual(context["cluster_role_binding_info"]["describe"], "ClusterRoleBinding description")
+        self.assertEqual(context["cluster_role_binding_info"]["events"], "ClusterRoleBinding events")
+        self.assertEqual(context["cluster_role_binding_info"]["yaml"], "ClusterRoleBinding yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "crb-1"
+        )
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "crb-1"
+        )
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "crb-1"
+        )
+
+    def test_cluster_role_binding_info_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/clusterrolebinding_info/{self.cluster.id}/crb-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            cluster_role_binding_info(request, self.cluster.id, "crb-1")
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_description.assert_not_called()
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_events.assert_not_called()
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_cluster_role_binding_info_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_description.side_effect = Exception("K8s error")
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_events.side_effect = Exception("K8s error")
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/clusterrolebinding_info/{self.cluster.id}/crb-1/')
+        with self.assertRaises(Exception):
+            cluster_role_binding_info(request, self.cluster.id, "crb-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_description.assert_called_once()
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_events.assert_not_called()
+        self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_yaml.assert_not_called()
+        
+class ServiceAccountViewsTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_service_accounts = patch('dashboard.views.k8s_service_accounts')
+        self.mock_k8s_service_accounts = self.patcher_k8s_service_accounts.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_service_accounts.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_serviceAccount_successful_rendering(self):
+        self._setup_utils_data()
+        mock_service_accounts = [
+            {"name": "sa-1", "namespace": "default"},
+            {"name": "sa-2", "namespace": "kube-system"}
+        ]
+        self.mock_k8s_service_accounts.get_service_accounts.return_value = (mock_service_accounts, 2)
+        request = self.factory.get(f'/dashboard/serviceAccount/{self.cluster.id}/')
+        serviceAccount(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/serviceAccount.html')
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["serviceAccount"], mock_service_accounts)
+        self.assertEqual(context["total_serviceAccount"], 2)
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_service_accounts.get_service_accounts.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_serviceAccount_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/serviceAccount/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            serviceAccount(request, self.cluster.id)
+        self.mock_k8s_service_accounts.get_service_accounts.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_serviceAccount_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_service_accounts.get_service_accounts.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/serviceAccount/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            serviceAccount(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_service_accounts.get_service_accounts.assert_called_once()
+
+    def test_serviceAccountInfo_successful_rendering(self):
+        self._setup_utils_data()
+        self.mock_k8s_service_accounts.get_sa_description.return_value = "SA description"
+        self.mock_k8s_service_accounts.get_sa_events.return_value = "SA events"
+        self.mock_k8s_service_accounts.get_sa_yaml.return_value = "SA yaml"
+        request = self.factory.get(f'/dashboard/serviceAccountInfo/{self.cluster.id}/default/sa-1/')
+        serviceAccountInfo(request, self.cluster.id, "default", "sa-1")
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        self.assertEqual(args[0], request)
+        self.assertEqual(args[1], 'dashboard/RBAC/serviceAccountInfo.html')
+        context = args[2]
+        self.assertIn("serviceAccountInfo", context)
+        self.assertEqual(context["serviceAccountInfo"]["describe"], "SA description")
+        self.assertEqual(context["serviceAccountInfo"]["events"], "SA events")
+        self.assertEqual(context["serviceAccountInfo"]["yaml"], "SA yaml")
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_service_accounts.get_sa_description.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "sa-1"
+        )
+        self.mock_k8s_service_accounts.get_sa_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "sa-1"
+        )
+        self.mock_k8s_service_accounts.get_sa_yaml.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, "default", "sa-1"
+        )
+
+    def test_serviceAccountInfo_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/serviceAccountInfo/{self.cluster.id}/default/sa-1/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            serviceAccountInfo(request, self.cluster.id, "default", "sa-1")
+        self.mock_k8s_service_accounts.get_sa_description.assert_not_called()
+        self.mock_k8s_service_accounts.get_sa_events.assert_not_called()
+        self.mock_k8s_service_accounts.get_sa_yaml.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_serviceAccountInfo_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_service_accounts.get_sa_description.side_effect = Exception("K8s error")
+        self.mock_k8s_service_accounts.get_sa_events.side_effect = Exception("K8s error")
+        self.mock_k8s_service_accounts.get_sa_yaml.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/serviceAccountInfo/{self.cluster.id}/default/sa-1/')
+        with self.assertRaises(Exception):
+            serviceAccountInfo(request, self.cluster.id, "default", "sa-1")
+        self.mock_render.assert_not_called()
+        self.mock_k8s_service_accounts.get_sa_description.assert_called_once()
+        self.mock_k8s_service_accounts.get_sa_events.assert_not_called()
+        self.mock_k8s_service_accounts.get_sa_yaml.assert_not_called()
+        
+class PodMetricsViewTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_pod_metrics = patch('dashboard.views.k8s_pod_metrics')
+        self.mock_k8s_pod_metrics = self.patcher_k8s_pod_metrics.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_pod_metrics.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_pod_metrics_successful_new_format(self):
+        self._setup_utils_data()
+        pod_metrics_data = [
+            {"name": "pod-1", "cpu": "10m", "memory": "20Mi"},
+            {"name": "pod-2", "cpu": "5m", "memory": "10Mi"}
+        ]
+        self.mock_k8s_pod_metrics.get_pod_metrics.return_value = (pod_metrics_data, 2, True)
+        request = self.factory.get(f'/dashboard/pod_metrics/{self.cluster.id}/')
+        pod_metrics(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        context = args[2]
+        self.assertEqual(context["all_pod_metrics"], pod_metrics_data)
+        self.assertEqual(context["total_pods"], 2)
+        self.assertTrue(context["metrics_available"])
+        self.assertIsNone(context["error_message"])
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_pod_metrics.get_pod_metrics.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_pod_metrics_successful_old_format(self):
+        self._setup_utils_data()
+        pod_metrics_data = [
+            {"name": "pod-1", "cpu": "10m", "memory": "20Mi"}
+        ]
+        self.mock_k8s_pod_metrics.get_pod_metrics.return_value = (pod_metrics_data, 1)
+        request = self.factory.get(f'/dashboard/pod_metrics/{self.cluster.id}/')
+        pod_metrics(request, self.cluster.id)
+        context = self.mock_render.call_args[0][2]
+        self.assertEqual(context["all_pod_metrics"], pod_metrics_data)
+        self.assertEqual(context["total_pods"], 1)
+        self.assertTrue(context["metrics_available"])
+        self.assertIsNone(context["error_message"])
+
+    def test_pod_metrics_error_in_metrics(self):
+        self._setup_utils_data()
+        error_dict = {"error": "Metrics server not available"}
+        self.mock_k8s_pod_metrics.get_pod_metrics.return_value = (error_dict, 0, False)
+        request = self.factory.get(f'/dashboard/pod_metrics/{self.cluster.id}/')
+        pod_metrics(request, self.cluster.id)
+        context = self.mock_render.call_args[0][2]
+        self.assertEqual(context["all_pod_metrics"], [])
+        self.assertEqual(context["total_pods"], 0)
+        self.assertFalse(context["metrics_available"])
+        self.assertEqual(context["error_message"], "Metrics server not available")
+
+    def test_pod_metrics_error_in_old_format(self):
+        self._setup_utils_data()
+        error_dict = {"error": "Metrics server not available"}
+        self.mock_k8s_pod_metrics.get_pod_metrics.return_value = (error_dict, 0)
+        request = self.factory.get(f'/dashboard/pod_metrics/{self.cluster.id}/')
+        pod_metrics(request, self.cluster.id)
+        context = self.mock_render.call_args[0][2]
+        self.assertEqual(context["all_pod_metrics"], [])
+        self.assertEqual(context["total_pods"], 0)
+        self.assertFalse(context["metrics_available"])
+        self.assertEqual(context["error_message"], "Metrics server not available")
+
+    def test_pod_metrics_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/pod_metrics/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            pod_metrics(request, self.cluster.id)
+        self.mock_k8s_pod_metrics.get_pod_metrics.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_pod_metrics_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_pod_metrics.get_pod_metrics.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/pod_metrics/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            pod_metrics(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_pod_metrics.get_pod_metrics.assert_called_once()
+
+class NodeMetricsViewTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_node_metrics = patch('dashboard.views.k8s_node_metrics')
+        self.mock_k8s_node_metrics = self.patcher_k8s_node_metrics.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+
+    def tearDown(self):
+        self.patcher_k8s_node_metrics.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_node_metrics_successful_new_format(self):
+        self._setup_utils_data()
+        node_metrics_data = [
+            {"name": "node-1", "cpu": "100m", "memory": "200Mi"},
+            {"name": "node-2", "cpu": "50m", "memory": "100Mi"}
+        ]
+        self.mock_k8s_node_metrics.get_node_metrics.return_value = (node_metrics_data, 2, True)
+        request = self.factory.get(f'/dashboard/node_metrics/{self.cluster.id}/')
+        node_metrics(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        context = args[2]
+        self.assertEqual(context["node_metrics"], node_metrics_data)
+        self.assertEqual(context["total_nodes"], 2)
+        self.assertTrue(context["metrics_available"])
+        self.assertIsNone(context["error_message"])
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_node_metrics.get_node_metrics.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name
+        )
+
+    def test_node_metrics_successful_old_format(self):
+        self._setup_utils_data()
+        node_metrics_data = [
+            {"name": "node-1", "cpu": "100m", "memory": "200Mi"}
+        ]
+        self.mock_k8s_node_metrics.get_node_metrics.return_value = (node_metrics_data, 1)
+        request = self.factory.get(f'/dashboard/node_metrics/{self.cluster.id}/')
+        node_metrics(request, self.cluster.id)
+        context = self.mock_render.call_args[0][2]
+        self.assertEqual(context["node_metrics"], node_metrics_data)
+        self.assertEqual(context["total_nodes"], 1)
+        self.assertTrue(context["metrics_available"])
+        self.assertIsNone(context["error_message"])
+
+    def test_node_metrics_error_in_metrics(self):
+        self._setup_utils_data()
+        error_dict = {"error": "Metrics server not available"}
+        self.mock_k8s_node_metrics.get_node_metrics.return_value = (error_dict, 0, False)
+        request = self.factory.get(f'/dashboard/node_metrics/{self.cluster.id}/')
+        node_metrics(request, self.cluster.id)
+        context = self.mock_render.call_args[0][2]
+        self.assertEqual(context["node_metrics"], [])
+        self.assertEqual(context["total_nodes"], 0)
+        self.assertFalse(context["metrics_available"])
+        self.assertEqual(context["error_message"], "Metrics server not available")
+
+    def test_node_metrics_error_in_old_format(self):
+        self._setup_utils_data()
+        error_dict = {"error": "Metrics server not available"}
+        self.mock_k8s_node_metrics.get_node_metrics.return_value = (error_dict, 0)
+        request = self.factory.get(f'/dashboard/node_metrics/{self.cluster.id}/')
+        node_metrics(request, self.cluster.id)
+        context = self.mock_render.call_args[0][2]
+        self.assertEqual(context["node_metrics"], [])
+        self.assertEqual(context["total_nodes"], 0)
+        self.assertFalse(context["metrics_available"])
+        self.assertEqual(context["error_message"], "Metrics server not available")
+
+    def test_node_metrics_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/node_metrics/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            node_metrics(request, self.cluster.id)
+        self.mock_k8s_node_metrics.get_node_metrics.assert_not_called()
+        self.mock_render.assert_not_called()
+
+    def test_node_metrics_k8s_api_failure(self):
+        self._setup_utils_data()
+        self.mock_k8s_node_metrics.get_node_metrics.side_effect = Exception("K8s error")
+        request = self.factory.get(f'/dashboard/node_metrics/{self.cluster.id}/')
+        with self.assertRaises(Exception):
+            node_metrics(request, self.cluster.id)
+        self.mock_render.assert_not_called()
+        self.mock_k8s_node_metrics.get_node_metrics.assert_called_once()

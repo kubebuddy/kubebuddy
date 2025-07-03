@@ -1,7 +1,11 @@
 from django.test import TestCase, RequestFactory
 from unittest.mock import patch, MagicMock
 from main.models import KubeConfig, Cluster 
-from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info, resourcequota_info, resourcequotas,pdb,pdb_info, configmaps, configmap_info, secret_info, secrets, services, service_info, endpoints, endpoint_info, persistentvolume, pv_info, persistentvolumeclaim, pvc_info, storageclass, storageclass_info, np, np_info, ingress, ingress_info, role, role_info, role_binding_info, rolebinding, clusterrole, clusterrole_info, clusterrolebinding, cluster_role_binding_info, serviceAccount, serviceAccountInfo, pod_metrics, node_metrics
+from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info, resourcequota_info, resourcequotas,pdb,pdb_info, configmaps, configmap_info, secret_info, secrets, services, service_info, endpoints, endpoint_info, persistentvolume, pv_info, persistentvolumeclaim, pvc_info, storageclass, storageclass_info, np, np_info, ingress, ingress_info, role, role_info, role_binding_info, rolebinding, clusterrole, clusterrole_info, clusterrolebinding, cluster_role_binding_info, serviceAccount, serviceAccountInfo, pod_metrics, node_metrics, events, execute_command
+from django.http import JsonResponse
+import os
+import json
+
 
 
 class GetUtilsDataFunctionTests(TestCase):
@@ -4283,3 +4287,208 @@ class NodeMetricsViewTests(TestCase):
             node_metrics(request, self.cluster.id)
         self.mock_render.assert_not_called()
         self.mock_k8s_node_metrics.get_node_metrics.assert_called_once()
+        
+        
+class EventsViewTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.kube_config_entry = KubeConfig.objects.create(
+            path='/test/kube/config/path',
+            path_type='file'
+        )
+        self.cluster = Cluster.objects.create(
+            cluster_name='my-test-cluster',
+            context_name='my-test-context',
+            kube_config=self.kube_config_entry,
+            id=101
+        )
+        self.patcher_k8s_events = patch('dashboard.views.k8s_events')
+        self.mock_k8s_events = self.patcher_k8s_events.start()
+        self.patcher_get_utils_data = patch('dashboard.views.get_utils_data')
+        self.mock_get_utils_data = self.patcher_get_utils_data.start()
+        self.patcher_render = patch('dashboard.views.render')
+        self.mock_render = self.patcher_render.start()
+        self.patcher_paginator = patch('dashboard.views.Paginator')
+        self.mock_paginator = self.patcher_paginator.start()
+        self.patcher_page_not_an_integer = patch('dashboard.views.PageNotAnInteger', Exception)
+        self.mock_page_not_an_integer = self.patcher_page_not_an_integer.start()
+        self.patcher_empty_page = patch('dashboard.views.EmptyPage', Exception)
+        self.mock_empty_page = self.patcher_empty_page.start()
+
+    def tearDown(self):
+        self.patcher_k8s_events.stop()
+        self.patcher_get_utils_data.stop()
+        self.patcher_render.stop()
+        self.patcher_paginator.stop()
+        self.patcher_page_not_an_integer.stop()
+        self.patcher_empty_page.stop()
+
+    def _setup_utils_data(self):
+        mock_current_cluster = MagicMock()
+        mock_current_cluster.context_name = self.cluster.context_name
+        self.mock_get_utils_data.return_value = (
+            str(self.cluster.id),
+            mock_current_cluster,
+            self.kube_config_entry.path,
+            ['cluster-A', 'my-test-cluster'],
+            ['default', 'kube-system'],
+            self.cluster.context_name
+        )
+
+    def test_events_successful_rendering(self):
+        self._setup_utils_data()
+        mock_events = [{"type": "Normal", "message": "Pod started"} for _ in range(10)]
+        self.mock_k8s_events.get_events.return_value = mock_events
+        mock_page_obj = MagicMock()
+        self.mock_paginator.return_value.page.return_value = mock_page_obj
+        request = self.factory.get(f'/dashboard/events/{self.cluster.id}/', {'page': 1})
+        events(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        args, kwargs = self.mock_render.call_args
+        context = args[2]
+        self.assertEqual(context["cluster_id"], str(self.cluster.id))
+        self.assertEqual(context["events"], mock_page_obj)
+        self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
+        self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
+        self.assertEqual(context["page_obj"], mock_page_obj)
+        self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
+        self.mock_get_utils_data.assert_called_once_with(request)
+        self.mock_k8s_events.get_events.assert_called_once_with(
+            self.kube_config_entry.path, self.cluster.context_name, False
+        )
+        self.mock_paginator.assert_called_once_with(mock_events, 50)
+        self.mock_paginator.return_value.page.assert_called_once_with('1')
+
+    def test_events_non_list_events(self):
+        self._setup_utils_data()
+        self.mock_k8s_events.get_events.return_value = None
+        mock_page_obj = MagicMock()
+        self.mock_paginator.return_value.page.return_value = mock_page_obj
+        request = self.factory.get(f'/dashboard/events/{self.cluster.id}/', {'page': 1})
+        events(request, self.cluster.id)
+        self.mock_paginator.assert_called_once_with([], 50)
+        self.mock_render.assert_called_once()
+
+    def test_events_page_not_an_integer(self):
+        self._setup_utils_data()
+        self.mock_k8s_events.get_events.return_value = [{"type": "Normal"}]
+        mock_page_obj = MagicMock()
+        paginator_instance = self.mock_paginator.return_value
+        paginator_instance.page.side_effect = [Exception, mock_page_obj]
+        request = self.factory.get(f'/dashboard/events/{self.cluster.id}/', {'page': 'notanint'})
+        events(request, self.cluster.id)
+        self.mock_render.assert_called_once()
+        self.assertEqual(self.mock_render.call_args[0][2]["events"], mock_page_obj)
+
+    def test_events_get_utils_data_failure(self):
+        self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
+        request = self.factory.get(f'/dashboard/events/{self.cluster.id}/')
+        with self.assertRaises(Cluster.DoesNotExist):
+            events(request, self.cluster.id)
+        self.mock_k8s_events.get_events.assert_not_called()
+        self.mock_render.assert_not_called()
+
+
+# Define current_working_directory at module level for patching in tests
+current_working_directory = None
+
+class ExecuteCommandViewTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        # Patch global current_working_directory for each test
+        patcher = patch(__name__ + '.current_working_directory', os.getcwd())
+        self.addCleanup(patcher.stop)
+        self.mock_cwd = patcher.start()
+
+    @patch('os.path.isdir')
+    @patch('os.path.abspath')
+    @patch('os.path.expanduser')
+    def test_cd_command_changes_directory(self, mock_expanduser, mock_abspath, mock_isdir):
+        mock_expanduser.side_effect = lambda x: x
+        mock_abspath.side_effect = lambda x: x
+        mock_isdir.return_value = True
+
+        request = self.factory.post('/execute_command/', content_type='application/json',
+                                    data='{"command": "cd testdir"}')
+        response = execute_command(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Changed directory to", json.loads(response.content)['output'])
+
+    @patch('os.path.isdir')
+    @patch('os.path.abspath')
+    @patch('os.path.expanduser')
+    def test_cd_command_directory_not_found(self, mock_expanduser, mock_abspath, mock_isdir):
+        mock_expanduser.side_effect = lambda x: x
+        mock_abspath.side_effect = lambda x: x
+        mock_isdir.return_value = False
+
+        request = self.factory.post('/execute_command/', content_type='application/json',
+                                    data='{"command": "cd notfound"}')
+        response = execute_command(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Error: Directory not found", json.loads(response.content)['output'])
+
+    @patch('os.path.expanduser')
+    @patch('os.path.abspath')
+    @patch('os.path.isdir')
+    def test_cd_without_argument_goes_home(self, mock_isdir, mock_abspath, mock_expanduser):
+        mock_expanduser.return_value = '/home/testuser'
+        mock_abspath.return_value = '/home/testuser'
+        mock_isdir.return_value = True
+
+        request = self.factory.post('/execute_command/', content_type='application/json',
+                                    data='{"command": "cd"}')
+        response = execute_command(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Changed directory to", json.loads(response.content)['output'])
+
+    @patch('subprocess.run')
+    @patch('os.name', 'posix')
+    def test_execute_shell_command_unix(self, mock_subprocess_run):
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "file1\nfile2\n"
+        mock_result.stderr = ""
+        mock_subprocess_run.return_value = mock_result
+
+        request = self.factory.post('/execute_command/', content_type='application/json',
+                                    data='{"command": "ls"}')
+        response = execute_command(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.content)['output'], "file1\nfile2\n")
+
+    @patch('subprocess.run')
+    @patch('os.name', 'nt')
+    def test_execute_shell_command_windows(self, mock_subprocess_run):
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = " Volume in drive C is Windows\n"
+        mock_result.stderr = ""
+        mock_subprocess_run.return_value = mock_result
+
+        request = self.factory.post('/execute_command/', content_type='application/json',
+                                    data='{"command": "ls"}')
+        response = execute_command(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Volume in drive", json.loads(response.content)['output'])
+
+    @patch('subprocess.run')
+    def test_command_error(self, mock_subprocess_run):
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stdout = ""
+        mock_result.stderr = "Error: command not found"
+        mock_subprocess_run.return_value = mock_result
+
+        request = self.factory.post('/execute_command/', content_type='application/json',
+                                    data='{"command": "badcommand"}')
+        response = execute_command(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Error: command not found", json.loads(response.content)['output'])
+
+    def test_non_post_method(self):
+
+        request = self.factory.get('/execute_command/')
+        response = execute_command(request)
+        self.assertIsNone(response)
+        # Should not execute anything, so response should be None

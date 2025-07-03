@@ -5,13 +5,14 @@ from dashboard.src.cluster_management import k8s_limit_range, k8s_namespaces, k8
 from dashboard.src.config_secrets import k8s_configmaps, k8s_secrets
 from dashboard.src.events import k8s_events
 from dashboard.src.networking import k8s_ingress, k8s_np
+from dashboard.src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
 import yaml
 import base64
 from datetime import datetime, timezone, timedelta
 from dateutil.tz import tzutc
-
+import os
 # This file is convering test cases for files present in dashboard.src
 
 # test cases for pod metrics
@@ -329,8 +330,8 @@ class NodesTests(TestCase):
         mock_node.metadata.creation_timestamp = datetime.now(timezone.utc)
         mock_node.status.conditions = [MagicMock(type="Ready", status="True")]
         mock_node.status.addresses = [
-            MagicMock(type="InternalIP", address="10.0.0.1"),
-            MagicMock(type="ExternalIP", address="1.2.3.4"),
+            MagicMock(type="InternalIP", address= os.getenv('INTERNAL_IP')),
+            MagicMock(type="ExternalIP", address= os.getenv('EXTERNAL_IP')),
         ]
         mock_node.status.node_info.kubelet_version = "v1.29.0"
         mock_node.status.node_info.os_image = "Ubuntu"
@@ -356,7 +357,7 @@ class NodesTests(TestCase):
         mock_node.metadata.creation_timestamp = datetime.now(timezone.utc)
         mock_node.spec.taints = []
         mock_node.status.conditions = []
-        mock_node.status.addresses = [MagicMock(type="InternalIP", address="10.0.0.1")]
+        mock_node.status.addresses = [MagicMock(type="InternalIP", address= os.getenv('INTERNAL_IP'))]
         mock_node.status.capacity = {"cpu": "2", "memory": "4Gi"}
         mock_node.status.allocatable = {"cpu": "1", "memory": "3Gi"}
         mock_node.status.node_info = MagicMock(
@@ -945,4 +946,209 @@ class NetworkPolicyTests(TestCase):
         result = k8s_np.get_np_yaml("dummy", "ctx", "default", "np-1")
         self.assertIn("metadata:", result)
         self.assertIn("name: np-1", result)
+
+class PersistentVolumesTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.persistent_volume.k8s_pv.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_core = patch("dashboard.src.persistent_volume.k8s_pv.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+    def test_list_persistent_volumes(self):
+        mock_pv = MagicMock()
+        mock_pv.metadata.name = "pv1"
+        mock_pv.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=2)
+        mock_pv.spec.capacity = {"storage": "10Gi"}
+        mock_pv.spec.access_modes = ["ReadWriteOnce", "ReadOnlyMany"]
+        mock_pv.spec.persistent_volume_reclaim_policy = "Retain"
+        mock_pv.spec.claim_ref.namespace = "default"
+        mock_pv.spec.claim_ref.name = "my-claim"
+        mock_pv.spec.storage_class_name = "standard"
+        mock_pv.spec.volume_mode = "Filesystem"
+        mock_pv.status.phase = "Bound"
+
+        self.mock_core_api.return_value.list_persistent_volume.return_value.items = [mock_pv]
+
+        result, count = k8s_pv.list_persistent_volumes("dummy", "ctx")
+        self.assertEqual(count, 1)
+        self.assertEqual(result[0]["name"], "pv1")
+        self.assertIn("RWO", result[0]["access_modes"])
+        self.assertIn("ROX", result[0]["access_modes"])
+        self.assertEqual(result[0]["claim"], "default/my-claim")
+
+    def test_get_pv_description(self):
+        pv = MagicMock()
+        pv.metadata.name = "pv1"
+        pv.metadata.labels = {"app": "test"}
+        pv.metadata.annotations = {"foo": "bar"}
+        pv.metadata.finalizers = ["kubernetes.io/pv-protection"]
+        pv.spec.storage_class_name = "standard"
+        pv.status.phase = "Available"
+        pv.status.message = "Provisioned"
+        pv.spec.claim_ref.namespace = "default"
+        pv.spec.claim_ref.name = "claim1"
+        pv.spec.persistent_volume_reclaim_policy = "Delete"
+        pv.spec.access_modes = ["ReadWriteMany"]
+        pv.spec.volume_mode = "Filesystem"
+        pv.spec.capacity = {"storage": "20Gi"}
+        pv.spec.node_affinity = {"required": "some-affinity"}
+        pv.spec.host_path = MagicMock(path="/data", type="Directory")
+
+        self.mock_core_api.return_value.read_persistent_volume.return_value = pv
+
+        result = k8s_pv.get_pv_description("dummy", "ctx", "pv1")
+        self.assertEqual(result["Name"], "pv1")
+        self.assertEqual(result["StorageClass"], "standard")
+        self.assertEqual(result["Claim"], "default/claim1")
+        self.assertEqual(result["Source"]["Type"], "HostPath (bare host directory volume)")
+        self.assertEqual(result["Source"]["Path"], "/data")
+
+    def test_get_pv_yaml(self):
+        pv = MagicMock()
+        pv.to_dict.return_value = {"metadata": {"name": "pv1"}}
+        pv.metadata.annotations = {"foo": "bar"}
+
+        self.mock_core_api.return_value.read_persistent_volume.return_value = pv
+
+        result = k8s_pv.get_pv_yaml("dummy", "ctx", "pv1")
+        self.assertIn("metadata:", result)
+        self.assertIn("name: pv1", result)
+
+class PVCTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.persistent_volume.k8s_pvc.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_core = patch("dashboard.src.persistent_volume.k8s_pvc.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+    def test_list_pvc(self):
+        mock_pvc = MagicMock()
+        mock_pvc.metadata.name = "pvc1"
+        mock_pvc.metadata.namespace = "default"
+        mock_pvc.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=3)
+        mock_pvc.status.phase = "Bound"
+        mock_pvc.status.capacity = {"storage": "5Gi"}
+        mock_pvc.spec.volume_name = "pv1"
+        mock_pvc.spec.access_modes = ["ReadWriteOnce"]
+        mock_pvc.spec.storage_class_name = "standard"
+        mock_pvc.spec.volume_mode = "Filesystem"
+
+        mock_pod = MagicMock()
+        mock_pod.metadata.name = "mypod"
+        mock_vol = MagicMock()
+        mock_vol.persistent_volume_claim.claim_name = "pvc1"
+        mock_pod.spec.volumes = [mock_vol]
+
+        core_v1 = self.mock_core_api.return_value
+        core_v1.list_persistent_volume_claim_for_all_namespaces.return_value.items = [mock_pvc]
+        core_v1.list_namespaced_pod.return_value.items = [mock_pod]
+
+        result, count = k8s_pvc.list_pvc("dummy", "ctx")
+        self.assertEqual(count, 1)
+        self.assertEqual(result[0]["name"], "pvc1")
+        self.assertIn("mypod", result[0]["used_by"])
+
+    def test_get_pvc_description(self):
+        pvc = MagicMock()
+        pvc.metadata.name = "pvc1"
+        pvc.metadata.namespace = "default"
+        pvc.metadata.labels = {"app": "test"}
+        pvc.metadata.annotations = {"foo": "bar"}
+        pvc.metadata.finalizers = ["kubernetes.io/pvc-protection"]
+        pvc.spec.storage_class_name = "standard"
+        pvc.status.phase = "Pending"
+        pvc.spec.volume_name = "pv1"
+        pvc.spec.resources.requests = {"storage": "1Gi"}
+        pvc.spec.access_modes = ["ReadWriteOnce"]
+        pvc.spec.volume_mode = "Filesystem"
+
+        pod = MagicMock()
+        pod.metadata.name = "pod-using-pvc"
+        vol = MagicMock()
+        vol.persistent_volume_claim.claim_name = "pvc1"
+        pod.spec.volumes = [vol]
+
+        core_v1 = self.mock_core_api.return_value
+        core_v1.read_namespaced_persistent_volume_claim.return_value = pvc
+        core_v1.list_namespaced_pod.return_value.items = [pod]
+
+        result = k8s_pvc.get_pvc_description("dummy", "ctx", "default", "pvc1")
+        self.assertEqual(result["Name"], "pvc1")
+        self.assertEqual(result["Used_By"], "pod-using-pvc")
+
+    def test_get_pvc_yaml(self):
+        pvc = MagicMock()
+        pvc.to_dict.return_value = {"metadata": {"name": "pvc1"}}
+        pvc.metadata.annotations = {"foo": "bar"}
+
+        self.mock_core_api.return_value.read_namespaced_persistent_volume_claim.return_value = pvc
+
+        result = k8s_pvc.get_pvc_yaml("dummy", "ctx", "default", "pvc1")
+        self.assertIn("metadata:", result)
+        self.assertIn("name: pvc1", result)
+
+class TestStorageClasses(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.persistent_volume.k8s_storage_class.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_api = patch("dashboard.src.persistent_volume.k8s_storage_class.client.StorageV1Api")
+        self.mock_storage_api = patcher_api.start()
+        self.addCleanup(patcher_api.stop)
+
+    def test_list_storage_classes(self):
+        mock_sc = MagicMock()
+        mock_sc.metadata.name = "standard"
+        mock_sc.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=2)
+        mock_sc.metadata.annotations = {"storageclass.kubernetes.io/is-default-class": "true"}
+        mock_sc.provisioner = "kubernetes.io/aws-ebs"
+        mock_sc.reclaim_policy = "Delete"
+        mock_sc.volume_binding_mode = "Immediate"
+        mock_sc.allow_volume_expansion = True
+
+        api = self.mock_storage_api.return_value
+        api.list_storage_class.return_value.items = [mock_sc]
+
+        result, count = k8s_storage_class.list_storage_classes("dummy", "ctx")
+        self.assertEqual(count, 1)
+        self.assertEqual(result[0]["name"], "standard")
+        self.assertEqual(result[0]["isDefault"], "Yes")
+
+    def test_get_storage_class_description(self):
+        mock_sc = MagicMock()
+        mock_sc.metadata.name = "gp2"
+        mock_sc.metadata.annotations = {"storageclass.kubernetes.io/is-default-class": "false"}
+        mock_sc.provisioner = "ebs.csi.aws.com"
+        mock_sc.parameters = {"type": "gp2"}
+        mock_sc.allow_volume_expansion = False
+        mock_sc.mount_options = ["noatime"]
+        mock_sc.reclaim_policy = "Delete"
+        mock_sc.volume_binding_mode = "WaitForFirstConsumer"
+
+        api = self.mock_storage_api.return_value
+        api.read_storage_class.return_value = mock_sc
+
+        result = k8s_storage_class.get_storage_class_description("dummy", "ctx", "gp2")
+        self.assertEqual(result["name"], "gp2")
+        self.assertEqual(result["is_default_class"], "No")
+        self.assertEqual(result["provisioner"], "ebs.csi.aws.com")
+
+    def test_get_sc_yaml(self):
+        mock_sc = MagicMock()
+        mock_sc.to_dict.return_value = {"metadata": {"name": "sc1"}}
+        mock_sc.metadata.annotations = {"foo": "bar"}
+
+        api = self.mock_storage_api.return_value
+        api.read_storage_class.return_value = mock_sc
+
+        result = k8s_storage_class.get_sc_yaml("dummy", "ctx", "sc1")
+        self.assertIn("metadata:", result)
+        self.assertIn("name: sc1", result)
 

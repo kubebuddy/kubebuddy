@@ -7,6 +7,8 @@ import os
 from .models import KubeConfig, Cluster
 from main.views import login_view, integrate_with
 from django.core.exceptions import ValidationError
+import tempfile, shutil
+
 
 DEFAULT_PATH = '/path/one'
 MANUAL_PATH = '/path/two'
@@ -105,7 +107,18 @@ class LoginViewTestCase(TestCase):
         admin_username = os.getenv("ADMIN_USERNAME", "admin")
         admin_password = os.getenv("ADMIN_PASSWORD", "admin")
         self.user = User.objects.create_superuser(username=admin_username, password=admin_password, email='admin@example.com')
-        self.kube_config = KubeConfig.objects.create(path='/tmp/fake_kubeconfig', path_type='manual')
+        self._tmp_dir = tempfile.mkdtemp(prefix="kubebuddy_test_")
+        self._tmp_file = tempfile.NamedTemporaryFile(dir=self._tmp_dir, delete=False)
+        self.kube_config = KubeConfig.objects.create(path=self._tmp_file.name, path_type='manual')
+
+    def tearDown(self):
+        # Clean up temp files and directory
+        try:
+            self._tmp_file.close()
+            os.unlink(self._tmp_file.name)
+            shutil.rmtree(self._tmp_dir)
+        except Exception:
+            pass
 
     @patch('os.path.isfile', return_value=True)
     @patch('django.contrib.auth.authenticate')
@@ -171,7 +184,7 @@ class IntegrateWithTestCase(TestCase):
             User.objects.get(username=os.getenv("ADMIN_USERNAME", "admin")).delete()
         except User.DoesNotExist:
             pass
-        admin_username = os.getenv("ADMIN_USERNAME", "admin")
+        admin_username = os.getenv("ADMIN_USERNAME", "admin")   
         admin_password = os.getenv("ADMIN_PASSWORD", "admin")
         self.user = User.objects.create_superuser(username=admin_username, password=admin_password, email='admin@example.com')
 

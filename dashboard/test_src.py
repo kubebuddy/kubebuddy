@@ -3,11 +3,14 @@ from unittest.mock import patch, MagicMock
 from dashboard.src.metrics import k8s_pod_metrics
 from dashboard.src.cluster_management import k8s_limit_range, k8s_namespaces, k8s_nodes, k8s_pdb, k8s_resource_quota
 from dashboard.src.config_secrets import k8s_configmaps, k8s_secrets
+from dashboard.src.events import k8s_events
+from dashboard.src.networking import k8s_ingress, k8s_np
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
 import yaml
 import base64
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from dateutil.tz import tzutc
 
 # This file is convering test cases for files present in dashboard.src
 
@@ -712,4 +715,234 @@ class SecretsTests(TestCase):
         result = k8s_secrets.get_secret_yaml("dummy", "ctx", "default", "secret1")
         self.assertIn("name: secret1", result)
         self.assertIn("Opaque", result)
+
+# Test cases for events
+class EventsTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.events.k8s_events.configure_k8s")
+        self.mock_configure = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_api = patch("dashboard.src.events.k8s_events.client.CoreV1Api")
+        self.mock_core_api = patcher_api.start()
+        self.addCleanup(patcher_api.stop)
+
+    def mock_event(self, name="mypod", kind="Pod", namespace="default", count=3,
+                   last_timestamp=None, component="kubelet", host="node1", message="Started container", etype="Normal"):
+        event = MagicMock()
+        event.metadata.namespace = namespace
+        event.message = message
+        event.involved_object.kind = kind
+        event.involved_object.name = name
+        event.source.component = component
+        event.source.host = host
+        event.count = count
+        event.last_timestamp = last_timestamp or (datetime.now(tzutc()) - timedelta(minutes=10))
+        event.type = etype
+        event.reporting_component = "reporter"
+        event.reporting_instance = "instance1"
+        return event
+
+    def test_get_events_all_namespace_with_limit(self):
+        mock_event_obj = self.mock_event()
+        self.mock_core_api.return_value.list_event_for_all_namespaces.return_value.items = [mock_event_obj]
+
+        events = k8s_events.get_events("dummy", "ctx", limit=True, namespace="all")
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["namespace"], "default")
+        self.assertIn("10m", events[0]["last_seen"])
+
+    def test_get_events_specific_namespace_without_limit(self):
+        mock_event_obj = self.mock_event(kind="Deployment", name="nginx-deploy", namespace="dev")
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [mock_event_obj]
+
+        events = k8s_events.get_events("dummy", "ctx", limit=False, namespace="dev")
+        self.assertEqual(events[0]["object"], "Deployment/nginx-deploy")
+        self.assertEqual(events[0]["source"], "kubelet, node1")
+
+    def test_get_events_no_source_component(self):
+        event = self.mock_event()
+        event.source.component = None
+        self.mock_core_api.return_value.list_event_for_all_namespaces.return_value.items = [event]
+
+        events = k8s_events.get_events("dummy", "ctx", limit=True)
+        self.assertEqual(events[0]["source"], "reporter, instance1")
+
+    def test_get_events_exception(self):
+        self.mock_core_api.return_value.list_event_for_all_namespaces.side_effect = Exception("Boom")
+        events = k8s_events.get_events("dummy", "ctx", limit=True)
+        self.assertEqual(events, [])
+
+# Test cases for Ingress
+class IngressTests(TestCase):
+    def setUp(self):
+        patcher_k8s = patch("dashboard.src.networking.k8s_ingress.configure_k8s")
+        self.mock_configure = patcher_k8s.start()
+        self.addCleanup(patcher_k8s.stop)
+
+        patcher_api = patch("dashboard.src.networking.k8s_ingress.client.NetworkingV1Api")
+        self.mock_networking_api = patcher_api.start()
+        self.addCleanup(patcher_api.stop)
+
+        patcher_core = patch("dashboard.src.networking.k8s_ingress.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+    def test_get_ingress(self):
+        mock_ingress = MagicMock()
+        mock_ingress.metadata.namespace = "default"
+        mock_ingress.metadata.name = "ing1"
+        mock_ingress.spec.ingress_class_name = "nginx"
+        rule = MagicMock()
+        rule.host = "example.com"
+        mock_ingress.spec.rules = [rule]
+
+        self.mock_networking_api.return_value.list_ingress_for_all_namespaces.return_value.items = [mock_ingress]
+
+        result, count = k8s_ingress.get_ingress("dummy", "ctx")
+        self.assertEqual(count, 1)
+        self.assertEqual(result[0]["name"], "ing1")
+        self.assertIn("example.com", result[0]["hosts"])
+
+    def test_get_ingress_description_success(self):
+        rule = MagicMock()
+        rule.host = "myhost"
+        path = MagicMock()
+        path.path = "/app"
+        path.backend.service.name = "myservice"
+        path.backend.service.port.name = "http"
+        rule.http.paths = [path]
+        ingress = MagicMock()
+        ingress.metadata.name = "ingress1"
+        ingress.metadata.namespace = "default"
+        ingress.metadata.labels = {"app": "web"}
+        ingress.metadata.annotations = {"foo": "bar"}
+        ingress.spec.rules = [rule]
+        ingress.spec.ingress_class_name = "nginx"
+        ingress.status.load_balancer.ingress = [MagicMock(ip="10.1.1.1")]
+
+        self.mock_networking_api.return_value.read_namespaced_ingress.return_value = ingress
+        self.mock_core_api.return_value.read_namespaced_service.return_value = MagicMock()
+
+        result = k8s_ingress.get_ingress_description("p", "ctx", "default", "ingress1")
+        self.assertEqual(result["name"], "ingress1")
+        self.assertIn("myhost", [r["host"] for r in result["rules"]])
+        self.assertEqual(result["address"], "10.1.1.1")
+
+    def test_get_ingress_events(self):
+        event1 = MagicMock()
+        event1.involved_object.name = "ingress1"
+        event1.involved_object.kind = "Ingress"
+        event1.reason = "Created"
+        event1.message = "Ingress created"
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [event1]
+
+        result = k8s_ingress.get_ingress_events("p", "ctx", "default", "ingress1")
+        self.assertIn("Created: Ingress created", result)
+
+    def test_get_ingress_yaml(self):
+        ingress = MagicMock()
+        ingress.to_dict.return_value = {"metadata": {"name": "ing1"}}
+        ingress.metadata.annotations = {"foo": "bar"}
+        self.mock_networking_api.return_value.read_namespaced_ingress.return_value = ingress
+
+        yaml_output = k8s_ingress.get_ingress_yaml("p", "ctx", "default", "ing1")
+        self.assertIn("metadata:", yaml_output)
+
+    def test_get_ingress_details(self):
+        patcher_cfg = patch("dashboard.src.networking.k8s_ingress.config.load_incluster_config")
+        patcher_fallback = patch("dashboard.src.networking.k8s_ingress.config.load_kube_config")
+        patcher_cfg.start()
+        patcher_fallback.start()
+        self.addCleanup(patcher_cfg.stop)
+        self.addCleanup(patcher_fallback.stop)
+
+        rule = MagicMock()
+        rule.host = "host.local"
+        path = MagicMock()
+        path.path = "/x"
+        path.backend.service.name = "svc"
+        rule.http.paths = [path]
+        ingress = MagicMock()
+        ingress.metadata.name = "ingx"
+        ingress.metadata.namespace = "dev"
+        ingress.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=1)
+        ingress.spec.rules = [rule]
+        ingress.spec.tls = ["tls"]
+        self.mock_networking_api.return_value.list_ingress_for_all_namespaces.return_value.items = [ingress]
+
+        result = k8s_ingress.get_ingress_details()
+        self.assertEqual(result[0]["name"], "ingx")
+        self.assertEqual(result[0]["tls"], "Yes")
+
+# Test cases for Network Policy
+class NetworkPolicyTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.networking.k8s_np.configure_k8s")
+        self.mock_configure = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_net = patch("dashboard.src.networking.k8s_np.client.NetworkingV1Api")
+        self.mock_net_api = patcher_net.start()
+        self.addCleanup(patcher_net.stop)
+
+        patcher_core = patch("dashboard.src.networking.k8s_np.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+    def test_get_np(self):
+        mock_np = MagicMock()
+        mock_np.metadata.namespace = "default"
+        mock_np.metadata.name = "allow-app"
+        mock_np.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=1)
+        mock_np.spec.pod_selector.match_labels = {"app": "nginx"}
+
+        self.mock_net_api.return_value.list_network_policy_for_all_namespaces.return_value.items = [mock_np]
+
+        result, count = k8s_np.get_np("dummy", "ctx")
+        self.assertEqual(count, 1)
+        self.assertEqual(result[0]["name"], "allow-app")
+        self.assertIn("app=nginx", result[0]["pod_selector"])
+
+    def test_get_np_description(self):
+        np = MagicMock()
+        np.metadata.name = "allow-db"
+        np.metadata.namespace = "default"
+        np.metadata.creation_timestamp = datetime.now(timezone.utc)
+        np.metadata.labels = {"env": "prod"}
+        np.metadata.annotations = {"foo": "bar"}
+        np.spec.pod_selector.match_labels = {"tier": "db"}
+        np.spec.ingress = ["ingress-rule"]
+        np.spec.egress = ["egress-rule"]
+        np.spec.policy_types = ["Ingress", "Egress"]
+
+        self.mock_net_api.return_value.read_namespaced_network_policy.return_value = np
+
+        result = k8s_np.get_np_description("dummy", "ctx", "default", "allow-db")
+        self.assertEqual(result["name"], "allow-db")
+        self.assertEqual(result["spec"]["policy_types"], ["Ingress", "Egress"])
+        self.assertEqual(result["spec"]["pod_selector"]["tier"], "db")
+
+    def test_get_np_events(self):
+        event = MagicMock()
+        event.involved_object.name = "np-1"
+        event.involved_object.kind = "NetworkPolicy"
+        event.reason = "Applied"
+        event.message = "NP applied successfully"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [event]
+
+        result = k8s_np.get_np_events("dummy", "ctx", "default", "np-1")
+        self.assertIn("Applied: NP applied successfully", result)
+
+    def test_get_np_yaml(self):
+        np = MagicMock()
+        np.to_dict.return_value = {"metadata": {"name": "np-1"}}
+        np.metadata.annotations = {"foo": "bar"}
+
+        self.mock_net_api.return_value.read_namespaced_network_policy.return_value = np
+
+        result = k8s_np.get_np_yaml("dummy", "ctx", "default", "np-1")
+        self.assertIn("metadata:", result)
+        self.assertIn("name: np-1", result)
 

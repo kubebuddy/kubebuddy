@@ -6,6 +6,7 @@ from dashboard.src.config_secrets import k8s_configmaps, k8s_secrets
 from dashboard.src.events import k8s_events
 from dashboard.src.networking import k8s_ingress, k8s_np
 from dashboard.src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
+from dashboard.src.rbac import k8s_cluster_role_bindings, k8s_cluster_roles, k8s_role, k8s_rolebindings, k8s_service_accounts
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
 import yaml
@@ -1093,7 +1094,7 @@ class PVCTests(TestCase):
         self.assertIn("metadata:", result)
         self.assertIn("name: pvc1", result)
 
-class TestStorageClasses(TestCase):
+class StorageClassTests(TestCase):
     def setUp(self):
         patcher_cfg = patch("dashboard.src.persistent_volume.k8s_storage_class.configure_k8s")
         self.mock_configure_k8s = patcher_cfg.start()
@@ -1151,4 +1152,80 @@ class TestStorageClasses(TestCase):
         result = k8s_storage_class.get_sc_yaml("dummy", "ctx", "sc1")
         self.assertIn("metadata:", result)
         self.assertIn("name: sc1", result)
+
+class ClusterRoleBindingsTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.rbac.k8s_cluster_role_bindings.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_api = patch("dashboard.src.rbac.k8s_cluster_role_bindings.client.RbacAuthorizationV1Api")
+        self.mock_rbac_api = patcher_api.start()
+        self.addCleanup(patcher_api.stop)
+
+    def test_get_cluster_role_bindings(self):
+        mock_binding = MagicMock()
+        mock_binding.metadata.name = "admin-binding"
+        mock_binding.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=1)
+        mock_binding.role_ref.name = "cluster-admin"
+
+        # Define user subject
+        user_subject = MagicMock()
+        user_subject.kind = "User"
+        user_subject.name = "alice"
+
+        # Define group subject
+        group_subject = MagicMock()
+        group_subject.kind = "Group"
+        group_subject.name = "devs"
+
+        # Define service account subject
+        sa_subject = MagicMock()
+        sa_subject.kind = "ServiceAccount"
+        sa_subject.name = "default"
+        sa_subject.namespace = "kube-system"
+
+        mock_binding.subjects = [user_subject, group_subject, sa_subject]
+
+        api = self.mock_rbac_api.return_value
+        api.list_cluster_role_binding.return_value.items = [mock_binding]
+
+        result, count = k8s_cluster_role_bindings.get_cluster_role_bindings("dummy", "ctx")
+        self.assertEqual(count, 1)
+        self.assertEqual(result[0]["name"], "admin-binding")
+        self.assertIn("alice", result[0]["users"])
+        self.assertIn("devs", result[0]["groups"])
+        self.assertIn("kube-system/default", result[0]["service_accounts"])
+
+    def test_get_cluster_role_binding_description(self):
+        mock_binding = MagicMock()
+        mock_binding.metadata.name = "admin-binding"
+        mock_binding.metadata.labels = {"env": "prod"}
+        mock_binding.metadata.annotations = {"some/annotation": "value"}
+        mock_binding.role_ref.kind = "ClusterRole"
+        mock_binding.role_ref.name = "admin"
+        mock_binding.subjects = [
+            MagicMock(kind="User", name="bob", namespace=None),
+            MagicMock(kind="ServiceAccount", name="default", namespace="default")
+        ]
+
+        api = self.mock_rbac_api.return_value
+        api.read_cluster_role_binding.return_value = mock_binding
+
+        result = k8s_cluster_role_bindings.get_cluster_role_binding_description("dummy", "ctx", "admin-binding")
+        self.assertEqual(result["name"], "admin-binding")
+        self.assertEqual(result["role"]["name"], "admin")
+        self.assertEqual(len(result["subjects"]), 2)
+
+    def test_get_cluster_role_binding_yaml(self):
+        mock_binding = MagicMock()
+        mock_binding.to_dict.return_value = {"metadata": {"name": "binding"}}
+        mock_binding.metadata.annotations = {"foo": "bar"}
+
+        api = self.mock_rbac_api.return_value
+        api.read_cluster_role_binding.return_value = mock_binding
+
+        yaml_data = k8s_cluster_role_bindings.get_cluster_role_binding_yaml("dummy", "ctx", "binding")
+        self.assertIn("metadata:", yaml_data)
+        self.assertIn("name: binding", yaml_data)
 

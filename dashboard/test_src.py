@@ -7,6 +7,7 @@ from dashboard.src.events import k8s_events
 from dashboard.src.networking import k8s_ingress, k8s_np
 from dashboard.src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
 from dashboard.src.rbac import k8s_cluster_role_bindings, k8s_cluster_roles, k8s_role, k8s_rolebindings, k8s_service_accounts
+from dashboard.src.services import k8s_endpoints, k8s_services
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
 import yaml
@@ -1229,3 +1230,644 @@ class ClusterRoleBindingsTests(TestCase):
         self.assertIn("metadata:", yaml_data)
         self.assertIn("name: binding", yaml_data)
 
+# test cases for cluster roles
+class ClusterRoleTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.rbac.k8s_cluster_roles.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_api = patch("dashboard.src.rbac.k8s_cluster_roles.client.RbacAuthorizationV1Api")
+        self.mock_rbac_api = patcher_api.start()
+        self.addCleanup(patcher_api.stop)
+
+        patcher_core = patch("dashboard.src.rbac.k8s_cluster_roles.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+    def test_get_cluster_role(self):
+        mock_role = MagicMock()
+        mock_role.metadata.name = "test-cluster-role"
+        mock_role.metadata.creation_timestamp = None
+
+        api = self.mock_rbac_api.return_value
+        api.list_cluster_role.return_value.items = [mock_role]
+
+        result, count = k8s_cluster_roles.get_cluster_role("dummy", "ctx")
+        self.assertEqual(count, 1)
+        self.assertEqual(result[0]["name"], "test-cluster-role")
+        self.assertEqual(result[0]["created_at"], "Unknown")
+
+    def test_get_cluster_role_description(self):
+        mock_rule = MagicMock()
+        mock_rule.resources = ["pods"]
+        mock_rule.resource_names = ["*"]
+        mock_rule.non_resource_ur_ls = ["/metrics"]
+        mock_rule.verbs = ["get", "list"]
+
+        mock_meta = MagicMock()
+        mock_meta.name = "test-role"
+        mock_meta.labels = {"env": "dev"}
+        mock_meta.annotations = {"some": "annotation"}
+
+        mock_role = MagicMock()
+        mock_role.metadata = mock_meta
+        mock_role.rules = [mock_rule]
+
+        api = self.mock_rbac_api.return_value
+        api.read_cluster_role.return_value = mock_role
+
+        with patch("dashboard.src.rbac.k8s_cluster_roles.filter_annotations", return_value={}):
+            result = k8s_cluster_roles.get_cluster_role_description("dummy", "ctx", "test-role")
+
+        self.assertEqual(result["name"], "test-role")
+        self.assertEqual(result["labels"], {"env": "dev"})
+        self.assertEqual(len(result["policy_rule"]), 1)
+
+    def test_get_cluster_role_description_error(self):
+        api = self.mock_rbac_api.return_value
+        api.read_cluster_role.side_effect = k8s_cluster_roles.client.exceptions.ApiException(reason="NotFound")
+
+        result = k8s_cluster_roles.get_cluster_role_description("dummy", "ctx", "invalid-role")
+        self.assertIn("error", result)
+        self.assertIn("NotFound", result["error"])
+
+    def test_get_cluster_role_events(self):
+        mock_event = MagicMock()
+        mock_event.involved_object.name = "test-role"
+        mock_event.involved_object.kind = "ClusterRole"
+        mock_event.reason = "Created"
+        mock_event.message = "ClusterRole created"
+
+        core_api = self.mock_core_api.return_value
+        core_api.list_event_for_all_namespaces.return_value.items = [mock_event]
+
+        result = k8s_cluster_roles.get_cluster_role_events("dummy", "ctx", "test-role")
+        self.assertIn("Created: ClusterRole created", result)
+
+    def test_get_cluster_role_yaml(self):
+        mock_meta = MagicMock()
+        mock_meta.annotations = {"foo": "bar"}
+
+        mock_role = MagicMock()
+        mock_role.metadata = mock_meta
+        mock_role.to_dict.return_value = {"metadata": {"name": "test-cluster-role"}}
+
+        api = self.mock_rbac_api.return_value
+        api.read_cluster_role.return_value = mock_role
+
+        with patch("dashboard.src.rbac.k8s_cluster_roles.filter_annotations", return_value={}):
+            yaml_str = k8s_cluster_roles.get_cluster_role_yaml("dummy", "ctx", "test-cluster-role")
+
+        self.assertIn("metadata:", yaml_str)
+        self.assertIn("name: test-cluster-role", yaml_str)
+
+    def test_get_cluster_role_yaml_error(self):
+        api = self.mock_rbac_api.return_value
+        api.read_cluster_role.side_effect = k8s_cluster_roles.client.exceptions.ApiException(reason="Forbidden")
+
+        result = k8s_cluster_roles.get_cluster_role_yaml("dummy", "ctx", "invalid")
+        self.assertIn("error", result)
+        self.assertIn("Forbidden", result["error"])
+
+class RoleTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.rbac.k8s_role.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_rbac = patch("dashboard.src.rbac.k8s_role.client.RbacAuthorizationV1Api")
+        self.mock_rbac_api = patcher_rbac.start()
+        self.addCleanup(patcher_rbac.stop)
+
+        patcher_core = patch("dashboard.src.rbac.k8s_role.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+    def test_list_roles(self):
+        mock_namespace = MagicMock()
+        mock_namespace.metadata.name = "dev"
+
+        mock_role = MagicMock()
+        mock_role.metadata.name = "reader"
+        mock_role.metadata.creation_timestamp = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+
+        self.mock_core_api.return_value.list_namespace.return_value.items = [mock_namespace]
+        self.mock_rbac_api.return_value.list_namespaced_role.return_value.items = [mock_role]
+
+        result, count = k8s_role.list_roles("dummy", "ctx")
+        self.assertEqual(count, 1)
+        self.assertEqual(result[0]["namespace"], "dev")
+        self.assertEqual(result[0]["name"], "reader")
+        self.assertIn("2024-01-01", result[0]["created_at"])
+
+    def test_get_role_description_success(self):
+        mock_rule = MagicMock()
+        mock_rule.resources = ["pods"]
+        mock_rule.resource_names = ["*"]
+        mock_rule.non_resource_ur_ls = ["/metrics"]
+        mock_rule.verbs = ["get", "list"]
+
+        mock_meta = MagicMock()
+        mock_meta.name = "reader"
+        mock_meta.labels = {"team": "dev"}
+        mock_meta.annotations = {"key": "value"}
+
+        mock_role = MagicMock()
+        mock_role.metadata = mock_meta
+        mock_role.rules = [mock_rule]
+
+        self.mock_rbac_api.return_value.read_namespaced_role.return_value = mock_role
+
+        with patch("dashboard.src.rbac.k8s_role.filter_annotations", return_value={}):
+            result = k8s_role.get_role_description("dummy", "ctx", "dev", "reader")
+
+        self.assertEqual(result["name"], "reader")
+        self.assertEqual(result["labels"], {"team": "dev"})
+        self.assertEqual(len(result["policy_rule"]), 1)
+
+    def test_get_role_description_error(self):
+        self.mock_rbac_api.return_value.read_namespaced_role.side_effect = k8s_role.client.exceptions.ApiException(reason="NotFound")
+
+        result = k8s_role.get_role_description("dummy", "ctx", "dev", "nonexistent")
+        self.assertIn("error", result)
+        self.assertIn("NotFound", result["error"])
+
+    def test_get_role_events(self):
+        mock_event = MagicMock()
+        mock_event.involved_object.name = "reader"
+        mock_event.involved_object.kind = "Role"
+        mock_event.reason = "Modified"
+        mock_event.message = "Role was updated"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [mock_event]
+
+        result = k8s_role.get_role_events("dummy", "ctx", "dev", "reader")
+        self.assertIn("Modified: Role was updated", result)
+
+    def test_get_role_yaml_success(self):
+        mock_meta = MagicMock()
+        mock_meta.annotations = {"key": "value"}
+
+        mock_role = MagicMock()
+        mock_role.metadata = mock_meta
+        mock_role.to_dict.return_value = {"metadata": {"name": "reader"}}
+
+        self.mock_rbac_api.return_value.read_namespaced_role.return_value = mock_role
+
+        with patch("dashboard.src.rbac.k8s_role.filter_annotations", return_value={}):
+            yaml_output = k8s_role.get_role_yaml("dummy", "ctx", "dev", "reader")
+
+        self.assertIn("metadata:", yaml_output)
+        self.assertIn("name: reader", yaml_output)
+
+    def test_get_role_yaml_error(self):
+        self.mock_rbac_api.return_value.read_namespaced_role.side_effect = k8s_role.client.exceptions.ApiException(reason="Forbidden")
+
+        result = k8s_role.get_role_yaml("dummy", "ctx", "dev", "bad-role")
+        self.assertIn("error", result)
+        self.assertIn("Forbidden", result["error"])
+
+class RoleBindingTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.rbac.k8s_rolebindings.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_rbac = patch("dashboard.src.rbac.k8s_rolebindings.client.RbacAuthorizationV1Api")
+        self.mock_rbac_api = patcher_rbac.start()
+        self.addCleanup(patcher_rbac.stop)
+
+        patcher_core = patch("dashboard.src.rbac.k8s_rolebindings.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.rbac.k8s_rolebindings.calculateAge", return_value="1d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+    def test_list_rolebindings(self):
+        mock_subject_user = MagicMock()
+        mock_subject_user.kind = "User"
+        mock_subject_user.name = "alice"
+
+        mock_subject_group = MagicMock()
+        mock_subject_group.kind = "Group"
+        mock_subject_group.name = "devs"
+
+        mock_subject_sa = MagicMock()
+        mock_subject_sa.kind = "ServiceAccount"
+        mock_subject_sa.name = "default"
+
+        mock_binding = MagicMock()
+        mock_binding.metadata.name = "rb-test"
+        mock_binding.metadata.namespace = "dev"
+        mock_binding.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=1)
+        mock_binding.role_ref.name = "read-only"
+        mock_binding.subjects = [mock_subject_user, mock_subject_group, mock_subject_sa]
+
+        self.mock_rbac_api.return_value.list_role_binding_for_all_namespaces.return_value.items = [mock_binding]
+
+        result, count = k8s_rolebindings.list_rolebindings("dummy", "ctx")
+
+        self.assertEqual(count, 1)
+        self.assertEqual(result[0]["name"], "rb-test")
+        self.assertIn("alice", result[0]["users"])
+        self.assertIn("devs", result[0]["groups"])
+        self.assertIn("default", result[0]["service_accounts"])
+        self.assertEqual(result[0]["age"], "1d")
+
+    def test_get_role_binding_description_success(self):
+        mock_subject = MagicMock()
+        mock_subject.kind = "User"
+        mock_subject.name = "bob"
+        mock_subject.namespace = None
+
+        mock_meta = MagicMock()
+        mock_meta.name = "rb"
+        mock_meta.labels = {"env": "test"}
+        mock_meta.annotations = {"key": "val"}
+
+        mock_binding = MagicMock()
+        mock_binding.metadata = mock_meta
+        mock_binding.role_ref.kind = "Role"
+        mock_binding.role_ref.name = "reader"
+        mock_binding.subjects = [mock_subject]
+
+        self.mock_rbac_api.return_value.read_namespaced_role_binding.return_value = mock_binding
+
+        with patch("dashboard.src.rbac.k8s_rolebindings.filter_annotations", return_value={}):
+            result = k8s_rolebindings.get_role_binding_description("dummy", "ctx", "dev", "rb")
+
+        self.assertEqual(result["name"], "rb")
+        self.assertEqual(result["role"]["name"], "reader")
+        self.assertEqual(len(result["subjects"]), 1)
+
+    def test_get_role_binding_description_error(self):
+        self.mock_rbac_api.return_value.read_namespaced_role_binding.side_effect = k8s_rolebindings.client.exceptions.ApiException(reason="NotFound")
+
+        result = k8s_rolebindings.get_role_binding_description("dummy", "ctx", "dev", "invalid")
+        self.assertIn("error", result)
+        self.assertIn("NotFound", result["error"])
+
+    def test_get_role_binding_events(self):
+        mock_event = MagicMock()
+        mock_event.involved_object.name = "rb"
+        mock_event.involved_object.kind = "RoleBinding"
+        mock_event.reason = "Updated"
+        mock_event.message = "RoleBinding was updated"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [mock_event]
+
+        result = k8s_rolebindings.get_role_binding_events("dummy", "ctx", "dev", "rb")
+        self.assertIn("Updated: RoleBinding was updated", result)
+
+    def test_get_role_binding_yaml_success(self):
+        mock_meta = MagicMock()
+        mock_meta.annotations = {"foo": "bar"}
+
+        mock_binding = MagicMock()
+        mock_binding.metadata = mock_meta
+        mock_binding.to_dict.return_value = {"metadata": {"name": "rb"}}
+
+        self.mock_rbac_api.return_value.read_namespaced_role_binding.return_value = mock_binding
+
+        with patch("dashboard.src.rbac.k8s_rolebindings.filter_annotations", return_value={}):
+            yaml_str = k8s_rolebindings.get_role_binding_yaml("dummy", "ctx", "dev", "rb")
+
+        self.assertIn("metadata:", yaml_str)
+        self.assertIn("name: rb", yaml_str)
+
+    def test_get_role_binding_yaml_error(self):
+        self.mock_rbac_api.return_value.read_namespaced_role_binding.side_effect = k8s_rolebindings.client.exceptions.ApiException(reason="Forbidden")
+
+        result = k8s_rolebindings.get_role_binding_yaml("dummy", "ctx", "dev", "bad-rb")
+        self.assertIn("error", result)
+        self.assertIn("Forbidden", result["error"])
+
+class ServiceAccountTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.rbac.k8s_service_accounts.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_core = patch("dashboard.src.rbac.k8s_service_accounts.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.rbac.k8s_service_accounts.calculateAge", return_value="2d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+    def test_get_service_accounts(self):
+        mock_namespace = MagicMock()
+        mock_namespace.metadata.name = "dev"
+
+        mock_sa = MagicMock()
+        mock_sa.metadata.name = "default"
+        mock_sa.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=2)
+        mock_sa.secrets = [MagicMock(name="s1"), MagicMock(name="s2")]
+
+        self.mock_core_api.return_value.list_namespace.return_value.items = [mock_namespace]
+        self.mock_core_api.return_value.list_namespaced_service_account.return_value.items = [mock_sa]
+
+        result, count = k8s_service_accounts.get_service_accounts("dummy", "ctx")
+
+        self.assertEqual(count, 1)
+        self.assertEqual(result[0]["namespace"], "dev")
+        self.assertEqual(result[0]["name"], "default")
+        self.assertEqual(result[0]["secrets"], 2)
+        self.assertEqual(result[0]["age"], "2d")
+
+    def test_get_sa_description_success(self):
+        mock_meta = MagicMock()
+        mock_meta.name = "default"
+        mock_meta.namespace = "dev"
+        mock_meta.labels = {"app": "test"}
+        mock_meta.annotations = {"foo": "bar"}
+
+        mock_sa = MagicMock()
+        mock_sa.metadata = mock_meta
+        mock_sa.api_version = "v1"
+        mock_sa.kind = "ServiceAccount"
+        mock_sa.secrets = [MagicMock(name="s1")]
+        mock_sa.image_pull_secrets = [MagicMock(name="img-secret")]
+
+        self.mock_core_api.return_value.read_namespaced_service_account.return_value = mock_sa
+
+        with patch("dashboard.src.rbac.k8s_service_accounts.filter_annotations", return_value={}):
+            result = k8s_service_accounts.get_sa_description("dummy", "ctx", "dev", "default")
+
+        self.assertEqual(result["name"], "default")
+        self.assertEqual(result["namespace"], "dev")
+        self.assertEqual(result["labels"], {"app": "test"})
+        self.assertIsInstance(result["mountable_secrets"], list)
+        self.assertIsInstance(result["image_pull_secrets"], list)
+
+    def test_get_sa_description_error(self):
+        self.mock_core_api.return_value.read_namespaced_service_account.side_effect = k8s_service_accounts.client.exceptions.ApiException(reason="NotFound")
+
+        result = k8s_service_accounts.get_sa_description("dummy", "ctx", "dev", "bad-sa")
+        self.assertIn("error", result)
+        self.assertIn("NotFound", result["error"])
+
+    def test_get_sa_events(self):
+        mock_event = MagicMock()
+        mock_event.involved_object.name = "default"
+        mock_event.involved_object.kind = "ServiceAccount"
+        mock_event.reason = "Created"
+        mock_event.message = "SA created"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [mock_event]
+
+        result = k8s_service_accounts.get_sa_events("dummy", "ctx", "dev", "default")
+        self.assertIn("Created: SA created", result)
+
+    def test_get_sa_yaml_success(self):
+        mock_meta = MagicMock()
+        mock_meta.annotations = {"foo": "bar"}
+
+        mock_sa = MagicMock()
+        mock_sa.metadata = mock_meta
+        mock_sa.to_dict.return_value = {"metadata": {"name": "default"}}
+
+        self.mock_core_api.return_value.read_namespaced_service_account.return_value = mock_sa
+
+        with patch("dashboard.src.rbac.k8s_service_accounts.filter_annotations", return_value={}):
+            yaml_str = k8s_service_accounts.get_sa_yaml("dummy", "ctx", "dev", "default")
+
+        self.assertIn("metadata:", yaml_str)
+        self.assertIn("name: default", yaml_str)
+
+    def test_get_sa_yaml_error(self):
+        self.mock_core_api.return_value.read_namespaced_service_account.side_effect = k8s_service_accounts.client.exceptions.ApiException(reason="Forbidden")
+
+        result = k8s_service_accounts.get_sa_yaml("dummy", "ctx", "dev", "restricted-sa")
+        self.assertIn("error", result)
+        self.assertIn("Forbidden", result["error"])
+
+class EndpointTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.services.k8s_endpoints.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_core = patch("dashboard.src.services.k8s_endpoints.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.services.k8s_endpoints.calculateAge", return_value="3d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+    def test_get_endpoints(self):
+        mock_namespace = MagicMock()
+        mock_namespace.metadata.name = "default"
+
+        mock_ep = MagicMock()
+        mock_ep.metadata.name = "my-service"
+        mock_ep.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=3)
+
+        mock_addr = MagicMock()
+        mock_addr.ip = "10.0.0.1"
+
+        mock_port = MagicMock()
+        mock_port.port = 80
+
+        mock_subset = MagicMock()
+        mock_subset.addresses = [mock_addr]
+        mock_subset.ports = [mock_port]
+
+        mock_ep.subsets = [mock_subset]
+
+        self.mock_core_api.return_value.list_namespace.return_value.items = [mock_namespace]
+        self.mock_core_api.return_value.list_namespaced_endpoints.return_value.items = [mock_ep]
+
+        result = k8s_endpoints.get_endpoints("dummy", "ctx")
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["namespace"], "default")
+        self.assertEqual(result[0]["name"], "my-service")
+        self.assertIn("10.0.0.1:80", result[0]["endpoints"])
+        self.assertEqual(result[0]["age"], "3d")
+
+    def test_get_endpoint_description_success(self):
+        mock_meta = MagicMock()
+        mock_meta.name = "my-ep"
+        mock_meta.namespace = "default"
+        mock_meta.labels = {"app": "web"}
+        mock_meta.annotations = {"foo": "bar"}
+
+        mock_addr = MagicMock()
+        mock_addr.ip = "10.0.0.2"
+        mock_addr.hostname = "host"
+        mock_addr.target_ref = {"kind": "Pod", "name": "pod-1"}
+
+        mock_port = MagicMock()
+        mock_port.name = "http"
+        mock_port.port = 8080
+        mock_port.protocol = "TCP"
+
+        mock_subset = MagicMock()
+        mock_subset.addresses = [mock_addr]
+        mock_subset.not_ready_addresses = []
+        mock_subset.ports = [mock_port]
+
+        mock_ep = MagicMock()
+        mock_ep.metadata = mock_meta
+        mock_ep.subsets = [mock_subset]
+
+        self.mock_core_api.return_value.read_namespaced_endpoints.return_value = mock_ep
+
+        with patch("dashboard.src.services.k8s_endpoints.filter_annotations", return_value={}):
+            result = k8s_endpoints.get_endpoint_description("dummy", "ctx", "default", "my-ep")
+
+        self.assertEqual(result["name"], "my-ep")
+        self.assertEqual(result["namespace"], "default")
+        self.assertIn("addresses", result["subsets"][0])
+        self.assertIn("ports", result["subsets"][0])
+
+    def test_get_endpoint_description_error(self):
+        self.mock_core_api.return_value.read_namespaced_endpoints.side_effect = k8s_endpoints.client.exceptions.ApiException(reason="NotFound")
+        result = k8s_endpoints.get_endpoint_description("dummy", "ctx", "default", "bad-ep")
+        self.assertIn("error", result)
+        self.assertIn("NotFound", result["error"])
+
+    def test_get_endpoint_events(self):
+        mock_event = MagicMock()
+        mock_event.involved_object.name = "my-ep"
+        mock_event.involved_object.kind = "Endpoints"
+        mock_event.reason = "Updated"
+        mock_event.message = "Endpoint updated"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [mock_event]
+
+        result = k8s_endpoints.get_endpoint_events("dummy", "ctx", "default", "my-ep")
+        self.assertIn("Updated: Endpoint updated", result)
+
+    def test_get_endpoint_yaml_success(self):
+        mock_meta = MagicMock()
+        mock_meta.annotations = {"foo": "bar"}
+
+        mock_ep = MagicMock()
+        mock_ep.metadata = mock_meta
+        mock_ep.to_dict.return_value = {"metadata": {"name": "ep"}}
+
+        self.mock_core_api.return_value.read_namespaced_endpoints.return_value = mock_ep
+
+        with patch("dashboard.src.services.k8s_endpoints.filter_annotations", return_value={}):
+            yaml_data = k8s_endpoints.get_endpoint_yaml("dummy", "ctx", "default", "ep")
+
+        self.assertIn("metadata:", yaml_data)
+        self.assertIn("name: ep", yaml_data)
+
+class ServiceTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.services.k8s_services.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_core = patch("dashboard.src.services.k8s_services.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.services.k8s_services.calculateAge", return_value="3d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+    def test_list_kubernetes_services(self):
+        mock_service = MagicMock()
+        mock_service.metadata.name = "web"
+        mock_service.metadata.namespace = "default"
+        mock_service.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=3)
+        mock_service.spec.type = "ClusterIP"
+        mock_service.spec.cluster_ip = "10.0.0.1"
+        mock_service.spec.ports = [MagicMock(port=80, protocol="TCP")]
+        mock_service.spec.selector = {"app": "web"}
+        mock_service.status.load_balancer.ingress = None
+
+        self.mock_core_api.return_value.list_service_for_all_namespaces.return_value.items = [mock_service]
+
+        result = k8s_services.list_kubernetes_services("dummy", "ctx")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["name"], "web")
+        self.assertEqual(result[0]["cluster_ip"], "10.0.0.1")
+        self.assertEqual(result[0]["external_ip"], "-")
+        self.assertEqual(result[0]["age"], "3d")
+
+    def test_get_service_description(self):
+        mock_service = MagicMock()
+        mock_service.metadata.name = "svc"
+        mock_service.metadata.namespace = "default"
+        mock_service.metadata.labels = {"env": "dev"}
+        mock_service.metadata.annotations = {"foo": "bar"}
+        mock_service.spec.type = "ClusterIP"
+        mock_service.spec.cluster_ip = "10.0.0.1"
+        mock_service.spec.ports = [MagicMock(
+            name="http", port=80, protocol="TCP", target_port=8080, node_port=30080
+        )]
+        mock_service.spec.selector = {"app": "web"}
+        mock_service.spec.ip_family_policy = "SingleStack"
+        mock_service.spec.ip_families = ["IPv4"]
+        mock_service.spec.session_affinity = "None"
+        mock_service.spec.internal_traffic_policy = "Cluster"
+
+        mock_service.status.load_balancer.ingress = []
+
+        mock_endpoints = MagicMock()
+        mock_endpoints.subsets = []
+
+        self.mock_core_api.return_value.read_namespaced_service.return_value = mock_service
+        self.mock_core_api.return_value.read_namespaced_endpoints.return_value = mock_endpoints
+
+        with patch("dashboard.src.services.k8s_services.filter_annotations", return_value={}):
+            result = k8s_services.get_service_description("dummy", "ctx", "default", "svc")
+
+        self.assertEqual(result["name"], "svc")
+        self.assertEqual(result["namespace"], "default")
+        self.assertEqual(result["load_balancer_ip"], "N/A")
+        self.assertEqual(result["external_ips"], [])
+        self.assertEqual(result["ip_family_policy"], "SingleStack")
+        self.assertIn("ports", result)
+
+    def test_get_service_description_no_endpoints(self):
+        mock_service = MagicMock()
+        mock_service.metadata.name = "svc"
+        mock_service.metadata.namespace = "default"
+        mock_service.metadata.annotations = {}
+        mock_service.spec.ports = []
+        mock_service.status.load_balancer.ingress = None
+
+        self.mock_core_api.return_value.read_namespaced_service.return_value = mock_service
+        self.mock_core_api.return_value.read_namespaced_endpoints.side_effect = k8s_services.client.exceptions.ApiException()
+
+        with patch("dashboard.src.services.k8s_services.filter_annotations", return_value={}):
+            result = k8s_services.get_service_description("dummy", "ctx", "default", "svc")
+
+        self.assertEqual(result["endpoints"], None)
+        self.assertEqual(result["load_balancer_ip"], "N/A")
+
+    def test_get_service_events(self):
+        mock_event = MagicMock()
+        mock_event.involved_object.name = "svc"
+        mock_event.involved_object.kind = "Service"
+        mock_event.reason = "Updated"
+        mock_event.message = "Service modified"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [mock_event]
+
+        result = k8s_services.get_service_events("dummy", "ctx", "default", "svc")
+        self.assertIn("Updated: Service modified", result)
+
+    def test_get_service_yaml(self):
+        mock_service = MagicMock()
+        mock_service.metadata.annotations = {"foo": "bar"}
+        mock_service.to_dict.return_value = {"metadata": {"name": "svc"}}
+
+        self.mock_core_api.return_value.read_namespaced_service.return_value = mock_service
+
+        with patch("dashboard.src.services.k8s_services.filter_annotations", return_value={}):
+            result = k8s_services.get_service_yaml("dummy", "ctx", "default", "svc")
+
+        self.assertIn("metadata:", result)
+        self.assertIn("name: svc", result)

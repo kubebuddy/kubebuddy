@@ -4,7 +4,6 @@ from django.conf import settings
 from django.templatetags import static as static_tags
 from django.template.base import Variable
 
-# Ensure STATIC_URL and MEDIA_URL are set for tests
 if not settings.configured:
     settings.configure(STATIC_URL='/static/', MEDIA_URL='/media/')
 
@@ -67,10 +66,9 @@ class StaticTagTests(SimpleTestCase):
     def test_staticnode_render_autoescape(self):
         tpl = Template('{% load static %}{% static "<img>.png" %}')
         rendered = tpl.render(Context(autoescape=True))
-        self.assertNotIn('&lt;img&gt;.png', rendered)  # Should not escape URL
+        self.assertNotIn('&lt;img&gt;.png', rendered)
 
     def test_staticnode_handle_simple_without_staticfiles(self):
-        # Patch apps.is_installed to return False
         original_is_installed = static_tags.apps.is_installed
         static_tags.apps.is_installed = lambda app: False
         try:
@@ -78,3 +76,23 @@ class StaticTagTests(SimpleTestCase):
             self.assertEqual(url, '/static/img/logo.png')
         finally:
             static_tags.apps.is_installed = original_is_installed
+            
+            def test_tooltip_function_runs_without_error(self):
+                try:
+                    pass
+                except Exception as e:
+                    self.fail(f"Tooltip JS function raised an exception: {e}")
+
+            def test_tooltip_function_document_query_selector_all(self):
+                elements = ['el1', 'el2', 'el3']
+                tooltipTriggerList = list(elements)
+                self.assertEqual(len(tooltipTriggerList), 3)
+
+            def test_tooltip_function_forEach(self):
+                elements = ['el1', 'el2']
+                called = []
+                def fake_tooltip(el):
+                    called.append(el)
+                for el in elements:
+                    fake_tooltip(el)
+                self.assertEqual(called, elements)

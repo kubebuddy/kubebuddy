@@ -1,6 +1,8 @@
+import io
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
-
+from unittest.mock import patch, MagicMock, mock_open
+from django.http import HttpResponse
+from dashboard.src.generate_pdf import generate_pdf
 from .src.workloads.k8s_cronjobs import (
     getCronJobCount, getCronJobsStatus, getCronJobsList,
     get_cronjob_description, get_cronjob_events, get_yaml_cronjob
@@ -21,9 +23,37 @@ from dashboard.src.workloads.k8s_pods import (
     getpods, getPodsStatus, getPodStatus, get_pod_info, get_pod_description,
     get_pod_logs, get_pod_events, get_pod_yaml, get_pod_details
 )
+from dashboard.src.workloads.k8s_replicaset import (
+    getReplicaSetsInfo,
+    getReplicasetStatus,
+    get_replicaset_description,
+    get_replicaset_events,
+    get_yaml_rs
+)
+from dashboard.src.workloads.k8s_statefulset import (
+    getStatefulsetCount, getStatefulsetStatus, getStatefulsetList,
+    get_statefulset_description, get_sts_events, get_yaml_sts
+)
+from dashboard.src.dashData import (
+    fetch_dashboard_data,
+    fetch_nodes_status,
+    fetch_nodes,
+    fetch_pods_status,
+    fetch_pods,
+    fetch_deployments,
+    fetch_daemonsets,
+    fetch_replicasets,
+    fetch_statefulsets,
+    fetch_jobs,
+    fetch_cronjobs,
+    fetch_metrics,
+    fetch_events,
+)
+from dashboard.src.k8s_cluster_metric import getMetrics
 from datetime import datetime, timezone, timedelta
 import yaml
 from kubernetes import client
+from kubernetes.client.exceptions import ApiException
 
 class TestCronJobFunctions(TestCase):
 
@@ -620,3 +650,349 @@ class TestK8sPods(TestCase):
         result = get_pod_details()
         self.assertEqual(result[0]['name'], 'pod1')
         self.assertEqual(result[0]['status'], 'Running')
+
+
+class TestReplicaSets(TestCase):
+
+    @patch('dashboard.src.workloads.k8s_replicaset.configure_k8s')
+    @patch('dashboard.src.workloads.k8s_replicaset.client.AppsV1Api')
+    @patch('dashboard.src.workloads.k8s_replicaset.calculateAge', return_value="1d")
+    def test_get_replica_sets_info(self, mock_age, mock_apps_api, mock_configure):
+        rs = MagicMock()
+        rs.metadata.namespace = "default"
+        rs.metadata.name = "rs1"
+        rs.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=1)
+        rs.spec.replicas = 3
+        rs.status.replicas = 3
+        rs.status.ready_replicas = 3
+        container = MagicMock()
+        container.image = "nginx"
+        rs.spec.template.spec.containers = [container]
+        rs.spec.selector.match_labels = {"app": "test"}
+
+        mock_apps_api.return_value.list_replica_set_for_all_namespaces.return_value.items = [rs]
+
+        result = getReplicaSetsInfo("path", "context")
+        self.assertEqual(result[0]['name'], "rs1")
+        self.assertEqual(result[0]['ready'], 3)
+        self.assertEqual(result[0]['images'], ["nginx"])
+
+    @patch('dashboard.src.workloads.k8s_replicaset.configure_k8s')
+    @patch('dashboard.src.workloads.k8s_replicaset.client.AppsV1Api')
+    def test_get_replicaset_status(self, mock_apps_api, mock_configure):
+        rs = MagicMock()
+        rs.status.replicas = 2
+        rs.status.ready_replicas = 2
+        rs.status.available_replicas = 2
+
+        mock_apps_api.return_value.list_replica_set_for_all_namespaces.return_value.items = [rs]
+
+        result = getReplicasetStatus("path", "context")
+        self.assertEqual(result['Running'], 1)
+        self.assertEqual(result['Pending'], 0)
+        self.assertEqual(result['Count'], 1)
+
+    @patch('dashboard.src.workloads.k8s_replicaset.configure_k8s')
+    @patch('dashboard.src.workloads.k8s_replicaset.client.AppsV1Api')
+    @patch('dashboard.src.workloads.k8s_replicaset.filter_annotations', return_value={})
+    def test_get_replicaset_description(self, mock_filter, mock_apps_api, mock_configure):
+        rs = MagicMock()
+        rs.metadata.name = "rs1"
+        rs.metadata.namespace = "default"
+        rs.metadata.labels = {"app": "demo"}
+        rs.metadata.annotations = {}
+        rs.spec.selector.match_labels = {"foo": "bar"}
+        rs.status.replicas = 2
+        rs.status.available_replicas = 2
+        rs.metadata.owner_references = [MagicMock(name="controller", name__="controller-rs")]
+        container = MagicMock()
+        container.name = "nginx"
+        container.image = "nginx:latest"
+        container.ports = []
+        container.env = []
+        container.volume_mounts = []
+        rs.spec.template.spec.containers = [container]
+        rs.spec.template.spec.volumes = []
+        rs.spec.template.spec.node_selector = {}
+        rs.spec.template.spec.tolerations = []
+        rs.spec.template.metadata.labels = {"foo": "bar"}
+
+        mock_apps_api.return_value.read_namespaced_replica_set.return_value = rs
+
+        result = get_replicaset_description("path", "context", "default", "rs1")
+        self.assertEqual(result['name'], "rs1")
+        self.assertEqual(result['replicas']['current'], 2)
+
+    @patch('dashboard.src.workloads.k8s_replicaset.configure_k8s')
+    @patch('dashboard.src.workloads.k8s_replicaset.client.CoreV1Api')
+    def test_get_replicaset_events(self, mock_core_api, mock_configure):
+        e = MagicMock()
+        e.involved_object.name = 'rs1'
+        e.involved_object.kind = 'ReplicaSet'
+        e.reason = 'SuccessfulCreate'
+        e.message = 'Created pod rs1-pod'
+
+        mock_core_api.return_value.list_namespaced_event.return_value.items = [e]
+
+        result = get_replicaset_events('path', 'context', 'default', 'rs1')
+        self.assertIn('SuccessfulCreate: Created pod rs1-pod', result)
+
+    @patch('dashboard.src.workloads.k8s_replicaset.configure_k8s')
+    @patch('dashboard.src.workloads.k8s_replicaset.client.AppsV1Api')
+    @patch('dashboard.src.workloads.k8s_replicaset.filter_annotations', return_value={})
+    def test_get_yaml_rs(self, mock_filter, mock_apps_api, mock_configure):
+        rs = MagicMock()
+        rs.metadata.annotations = {}
+        rs.to_dict.return_value = {'metadata': {'name': 'rs1'}}
+
+        mock_apps_api.return_value.read_namespaced_replica_set.return_value = rs
+
+        result = get_yaml_rs('p', 'c', 'ns', 'rs1')
+        self.assertIn('metadata:', result)
+        self.assertEqual(yaml.safe_load(result)['metadata']['name'], 'rs1')
+        
+class TestStatefulSetFunctions(TestCase):   
+
+    @patch('dashboard.src.workloads.k8s_statefulset.configure_k8s')
+    @patch('dashboard.src.workloads.k8s_statefulset.client.AppsV1Api')
+    def test_get_statefulset_status(self, mock_apps_api, mock_configure):
+        mock_sts = MagicMock()
+        mock_sts.status.replicas = 2
+        mock_sts.status.ready_replicas = 2
+        mock_sts.status.available_replicas = 2
+        mock_apps_api.return_value.list_stateful_set_for_all_namespaces.return_value.items = [mock_sts]
+
+        result = getStatefulsetStatus('path', 'context')
+        self.assertEqual(result['Running'], 1)
+        self.assertEqual(result['Pending'], 0)
+        self.assertEqual(result['Count'], 1)
+
+    @patch('dashboard.src.workloads.k8s_statefulset.calculateAge', return_value="1d")
+    @patch('dashboard.src.workloads.k8s_statefulset.configure_k8s')
+    @patch('dashboard.src.workloads.k8s_statefulset.client.AppsV1Api')
+    def test_get_statefulset_list(self, mock_apps_api, mock_configure, mock_age):
+        mock_sts = MagicMock()
+        mock_sts.metadata.namespace = 'default'
+        mock_sts.metadata.name = 'sts1'
+        mock_sts.status.available_replicas = 1
+        mock_sts.spec.replicas = 1
+        mock_sts.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(hours=1)
+        container = MagicMock()
+        container.image = 'nginx'
+        mock_sts.spec.template.spec.containers = [container]
+
+        mock_apps_api.return_value.list_stateful_set_for_all_namespaces.return_value.items = [mock_sts]
+
+        result = getStatefulsetList('path', 'context')
+        self.assertEqual(result[0]['name'], 'sts1')
+        self.assertIn('nginx', result[0]['images'])
+
+    @patch('dashboard.src.workloads.k8s_statefulset.filter_annotations', return_value={})
+    @patch('dashboard.src.workloads.k8s_statefulset.configure_k8s')
+    @patch('dashboard.src.workloads.k8s_statefulset.client.AppsV1Api')
+    def test_get_statefulset_description(self, mock_apps_api, mock_configure, mock_filter):
+        mock_sts = MagicMock()
+        mock_sts.metadata.name = 'sts1'
+        mock_sts.metadata.namespace = 'default'
+        mock_sts.metadata.labels = {'app': 'test'}
+        mock_sts.metadata.annotations = {}
+        mock_sts.spec.selector.match_labels = {'app': 'test'}
+        mock_sts.status.replicas = 1
+        mock_sts.status.ready_replicas = 1
+        mock_sts.spec.update_strategy.type = 'RollingUpdate'
+        mock_sts.spec.update_strategy.rolling_update.partition = 0
+        container = MagicMock()
+        container.name = 'main'
+        container.image = 'busybox'
+        container.ports = []
+        container.env = []
+        container.volume_mounts = []
+        mock_sts.spec.template.spec.containers = [container]
+        mock_sts.spec.template.spec.volumes = []
+        mock_sts.spec.template.spec.node_selector = {}
+        mock_sts.spec.template.spec.tolerations = []
+        mock_sts.spec.volume_claim_templates = []
+
+        mock_apps_api.return_value.read_namespaced_stateful_set.return_value = mock_sts
+
+        result = get_statefulset_description('p', 'c', 'ns', 'sts1')
+        self.assertEqual(result['name'], 'sts1')
+        self.assertEqual(result['namespace'], 'default')
+
+    @patch('dashboard.src.workloads.k8s_statefulset.configure_k8s')
+    @patch('dashboard.src.workloads.k8s_statefulset.client.CoreV1Api')
+    def test_get_sts_events(self, mock_core_api, mock_configure):
+        e = MagicMock()
+        e.involved_object.name = 'sts1'
+        e.involved_object.kind = 'StatefulSet'
+        e.reason = 'Created'
+        e.message = 'StatefulSet created'
+
+        mock_core_api.return_value.list_namespaced_event.return_value.items = [e]
+
+        result = get_sts_events('p', 'c', 'ns', 'sts1')
+        self.assertIn('Created: StatefulSet created', result)
+
+    @patch('dashboard.src.workloads.k8s_statefulset.filter_annotations', return_value={})
+    @patch('dashboard.src.workloads.k8s_statefulset.configure_k8s')
+    @patch('dashboard.src.workloads.k8s_statefulset.client.AppsV1Api')
+    def test_get_yaml_sts(self, mock_apps_api, mock_configure, mock_filter):
+        mock_sts = MagicMock()
+        mock_sts.metadata.annotations = {}
+        mock_sts.to_dict.return_value = {'metadata': {'name': 'sts1'}}
+
+        mock_apps_api.return_value.read_namespaced_stateful_set.return_value = mock_sts
+
+        result = get_yaml_sts('p', 'c', 'ns', 'sts1')
+        self.assertIn('metadata:', result)
+        self.assertEqual(yaml.safe_load(result)['metadata']['name'], 'sts1')
+        
+        
+class TestDashboardDataFetch(TestCase):
+    @patch("dashboard.src.dashData.fetch_nodes_status")
+    @patch("dashboard.src.dashData.fetch_nodes")
+    @patch("dashboard.src.dashData.fetch_pods_status")
+    @patch("dashboard.src.dashData.fetch_pods")
+    @patch("dashboard.src.dashData.fetch_deployments")
+    @patch("dashboard.src.dashData.fetch_daemonsets")
+    @patch("dashboard.src.dashData.fetch_replicasets")
+    @patch("dashboard.src.dashData.fetch_statefulsets")
+    @patch("dashboard.src.dashData.fetch_jobs")
+    @patch("dashboard.src.dashData.fetch_cronjobs")
+    @patch("dashboard.src.dashData.fetch_metrics")
+    @patch("dashboard.src.dashData.fetch_events")
+    def test_fetch_dashboard_data(self, mock_events, mock_metrics, mock_cronjobs, mock_jobs,
+                                  mock_statefulsets, mock_replicasets, mock_daemonsets,
+                                  mock_deployments, mock_pods, mock_pods_status, mock_nodes,
+                                  mock_nodes_status):
+
+        # Set return values for each mock
+        mock_nodes_status.return_value = (1, 1, 2)
+        mock_nodes.return_value = ["node-a", "node-b"]
+        mock_pods_status.return_value = {"Running": 2, "Pending": 1}
+        mock_pods.return_value = (["pod-a", "pod-b"], 2)
+        mock_deployments.return_value = {"Running": 1, "Pending": 0, "Count": 1}
+        mock_daemonsets.return_value = {"Running": 1, "Pending": 0, "Count": 1}
+        mock_replicasets.return_value = {"Running": 1, "Pending": 0, "Count": 1}
+        mock_statefulsets.return_value = {"Running": 1, "Pending": 0, "Count": 1}
+        mock_jobs.return_value = {"Completed": 1, "Failed": 0, "Count": 1}
+        mock_cronjobs.return_value = {"Count": 1, "Active": 0}
+        mock_metrics.return_value = {"cpu": "ok"}
+        mock_events.return_value = "Mocked event log"
+
+        result = fetch_dashboard_data(
+            path="dummy-path",
+            context_name="dummy-context",
+            namespace="default",
+            current_cluster="mock-cluster",
+            namespaces=["default", "kube-system"],
+            namespaces_count=2,
+            cluster_id="cid-001",
+            registered_clusters=["cid-001"],
+            warning_message="Test Warning"
+        )
+
+        # Basic validations
+        self.assertEqual(result["ready_nodes"], 1)
+        self.assertEqual(result["pod_count"], 2)
+        self.assertEqual(result["warning"], "Test Warning")
+        self.assertEqual(result["metrics"], {"cpu": "ok"})
+        self.assertEqual(result["events"], "Mocked event log")
+        self.assertIn("replicaset_status", result)
+        
+        
+class TestGeneratePDF(TestCase):
+
+    def setUp(self):
+        self.html_content = "<html><head></head><body><h1>Hello PDF</h1></body></html>"
+
+    @patch("dashboard.src.generate_pdf.pisa.CreatePDF")
+    def test_generate_pdf_with_httpresponse(self, mock_create_pdf):
+        def fake_create_pdf(html, dest, options):
+            dest.write(b"%PDF-1.4 Fake content for testing")
+            return MagicMock(err=0)
+
+        mock_create_pdf.side_effect = fake_create_pdf
+
+        response = HttpResponse(content_type='application/pdf')
+        success = generate_pdf(self.html_content, response)
+
+        self.assertTrue(success)
+        self.assertGreater(len(response.content), 0) 
+        mock_create_pdf.assert_called_once()
+
+    @patch("dashboard.src.generate_pdf.pisa.CreatePDF")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_generate_pdf_with_file_path(self, mock_file, mock_create_pdf):
+        mock_create_pdf.return_value.err = 0
+        result = generate_pdf(self.html_content, "dummy_path.pdf")
+
+        self.assertTrue(result)
+        mock_create_pdf.assert_called_once()
+        mock_file.assert_called_with("dummy_path.pdf", "wb")
+
+    @patch("dashboard.src.generate_pdf.pisa.CreatePDF")
+    def test_generate_pdf_with_file_like_object(self, mock_create_pdf):
+        mock_create_pdf.return_value.err = 0
+
+        file_like = io.BytesIO()  # ✅ Define file_like
+        success = generate_pdf(self.html_content, file_like)
+
+        self.assertTrue(success)
+        mock_create_pdf.assert_called_once()
+
+    @patch("dashboard.src.generate_pdf.pisa.CreatePDF", side_effect=Exception("Some PDF error"))
+    def test_generate_pdf_exception_handling(self, mock_create_pdf):
+        response = HttpResponse(content_type='application/pdf')
+        result = generate_pdf(self.html_content, response)
+
+        self.assertFalse(result)
+        
+class TestGetMetrics(TestCase):
+
+    @patch("dashboard.src.k8s_cluster_metric.client.CoreV1Api")
+    @patch("dashboard.src.k8s_cluster_metric.client.CustomObjectsApi")
+    @patch("dashboard.src.k8s_cluster_metric.configure_k8s")
+    def test_get_metrics_success(self, mock_configure_k8s, mock_custom_api, mock_core_api):
+        mock_custom_api.return_value.list_cluster_custom_object.return_value = {
+            "items": [
+                {
+                    "metadata": {"name": "node-1"},
+                    "usage": {
+                        "cpu": "500000000n",       # 0.5 cores
+                        "memory": "524288Ki"       # 0.5 GiB
+                    }
+                }
+            ]
+        }
+
+        node_obj = MagicMock()
+        node_obj.metadata.name = "node-1"
+        node_obj.status.capacity = {
+            "cpu": "2",
+            "memory": "1048576Ki"  # 1 GiB
+        }
+        mock_core_api.return_value.list_node.return_value.items = [node_obj]
+
+        result = getMetrics("dummy-path", "dummy-context")
+
+        expected_result = {
+            'cpu_usage': 25.0,
+            'memory_usage': 50.0,
+            'cpu_total': 2,
+            'memory_total': 1.0
+        }
+
+        self.assertEqual(result, expected_result)
+
+    @patch("dashboard.src.k8s_cluster_metric.configure_k8s")
+    @patch("dashboard.src.k8s_cluster_metric.client.CustomObjectsApi")
+    def test_get_metrics_api_exception(self, mock_custom_api, mock_configure_k8s):
+        # Simulate ApiException being raised when creating CustomObjectsApi
+        mock_custom_api.side_effect = ApiException(reason="API failed")
+
+        result = getMetrics("dummy-path", "dummy-context")
+
+        self.assertIn("error", result)
+        self.assertEqual(result["error"], "Failed to fetch endpoint details: API failed")
+        

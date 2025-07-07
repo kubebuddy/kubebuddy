@@ -37,3 +37,5 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # Optional if you're not using default http://localhost:9000
+          INTERNAL_IP: "10.0.0.1"
+          EXTERNAL_IP: "1.2.3.4"

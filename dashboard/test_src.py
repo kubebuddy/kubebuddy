@@ -823,7 +823,7 @@ class IngressTests(TestCase):
         ingress.metadata.annotations = {"foo": "bar"}
         ingress.spec.rules = [rule]
         ingress.spec.ingress_class_name = "nginx"
-        ingress.status.load_balancer.ingress = [MagicMock(ip="10.1.1.1")]
+        ingress.status.load_balancer.ingress = [MagicMock(ip=os.getenv("INTERNAL_IP"))]
 
         self.mock_networking_api.return_value.read_namespaced_ingress.return_value = ingress
         self.mock_core_api.return_value.read_namespaced_service.return_value = MagicMock()
@@ -831,7 +831,7 @@ class IngressTests(TestCase):
         result = k8s_ingress.get_ingress_description("p", "ctx", "default", "ingress1")
         self.assertEqual(result["name"], "ingress1")
         self.assertIn("myhost", [r["host"] for r in result["rules"]])
-        self.assertEqual(result["address"], "10.1.1.1")
+        self.assertEqual(result["address"], os.getenv("INTERNAL_IP"))
 
     def test_get_ingress_events(self):
         event1 = MagicMock()
@@ -1670,7 +1670,7 @@ class EndpointTests(TestCase):
         mock_ep.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=3)
 
         mock_addr = MagicMock()
-        mock_addr.ip = "10.0.0.1"
+        mock_addr.ip = os.getenv("INTERNAL_IP")
 
         mock_port = MagicMock()
         mock_port.port = 80
@@ -1689,7 +1689,7 @@ class EndpointTests(TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["namespace"], "default")
         self.assertEqual(result[0]["name"], "my-service")
-        self.assertIn("10.0.0.1:80", result[0]["endpoints"])
+        self.assertIn(os.getenv("INTERNAL_IP"), result[0]["endpoints"])
         self.assertEqual(result[0]["age"], "3d")
 
     def test_get_endpoint_description_success(self):
@@ -1700,7 +1700,7 @@ class EndpointTests(TestCase):
         mock_meta.annotations = {"foo": "bar"}
 
         mock_addr = MagicMock()
-        mock_addr.ip = "10.0.0.2"
+        mock_addr.ip = os.getenv("INTERNAL_IP")
         mock_addr.hostname = "host"
         mock_addr.target_ref = {"kind": "Pod", "name": "pod-1"}
 
@@ -1782,7 +1782,7 @@ class ServiceTests(TestCase):
         mock_service.metadata.namespace = "default"
         mock_service.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=3)
         mock_service.spec.type = "ClusterIP"
-        mock_service.spec.cluster_ip = "10.0.0.1"
+        mock_service.spec.cluster_ip = os.getenv("INTERNAL_IP")
         mock_service.spec.ports = [MagicMock(port=80, protocol="TCP")]
         mock_service.spec.selector = {"app": "web"}
         mock_service.status.load_balancer.ingress = None
@@ -1792,7 +1792,7 @@ class ServiceTests(TestCase):
         result = k8s_services.list_kubernetes_services("dummy", "ctx")
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["name"], "web")
-        self.assertEqual(result[0]["cluster_ip"], "10.0.0.1")
+        self.assertEqual(result[0]["cluster_ip"], os.getenv("INTERNAL_IP"))
         self.assertEqual(result[0]["external_ip"], "-")
         self.assertEqual(result[0]["age"], "3d")
 
@@ -1803,7 +1803,7 @@ class ServiceTests(TestCase):
         mock_service.metadata.labels = {"env": "dev"}
         mock_service.metadata.annotations = {"foo": "bar"}
         mock_service.spec.type = "ClusterIP"
-        mock_service.spec.cluster_ip = "10.0.0.1"
+        mock_service.spec.cluster_ip = os.getenv("INTERNAL_IP")
         mock_service.spec.ports = [MagicMock(
             name="http", port=80, protocol="TCP", target_port=8080, node_port=30080
         )]
@@ -2452,7 +2452,7 @@ class PodTests(TestCase):
         pod.metadata.namespace = "default"
         pod.metadata.name = "mypod"
         pod.spec.node_name = "node1"
-        pod.status.pod_ip = "10.0.0.1"
+        pod.status.pod_ip = os.getenv("INTERNAL_IP")
         pod.status.container_statuses = [MagicMock(ready=True, restart_count=1)]
         pod.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(hours=3)
         pod.status.phase = "Running"

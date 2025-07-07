@@ -4,7 +4,7 @@ from ..utils import calculateAge, filter_annotations, configure_k8s
 from kubebuddy.appLogs import logger
 import yaml
 
-def getStatefulsetCount():
+def getStatefulsetCount(path, context):
     configure_k8s(path, context)
     v1 = client.AppsV1Api() #Create an API client for the AppsV1Api
     statefulsets = v1.list_stateful_set_for_all_namespaces().items

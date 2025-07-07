@@ -8,6 +8,7 @@ from dashboard.src.networking import k8s_ingress, k8s_np
 from dashboard.src.persistent_volume import k8s_pv, k8s_pvc, k8s_storage_class
 from dashboard.src.rbac import k8s_cluster_role_bindings, k8s_cluster_roles, k8s_role, k8s_rolebindings, k8s_service_accounts
 from dashboard.src.services import k8s_endpoints, k8s_services
+from dashboard.src.workloads import k8s_cronjobs, k8s_daemonset, k8s_deployments, k8s_jobs, k8s_pods, k8s_replicaset, k8s_statefulset
 from kubernetes.client.rest import ApiException
 from kubernetes.config.config_exception import ConfigException
 import yaml
@@ -1871,3 +1872,847 @@ class ServiceTests(TestCase):
 
         self.assertIn("metadata:", result)
         self.assertIn("name: svc", result)
+
+class CronJobTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.workloads.k8s_cronjobs.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_batch = patch("dashboard.src.workloads.k8s_cronjobs.client.BatchV1Api")
+        self.mock_batch_api = patcher_batch.start()
+        self.addCleanup(patcher_batch.stop)
+
+        patcher_core = patch("dashboard.src.workloads.k8s_cronjobs.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.workloads.k8s_cronjobs.calculateAge", return_value="2d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+    def test_get_cronjob_count(self):
+        with patch("dashboard.src.workloads.k8s_cronjobs.config.load_kube_config"):
+            self.mock_batch_api.return_value.list_cron_job_for_all_namespaces.return_value.items = [MagicMock(), MagicMock()]
+            count = k8s_cronjobs.getCronJobCount()
+            self.assertEqual(count, 2)
+
+    def test_get_cronjobs_status(self):
+        mock_job1 = MagicMock()
+        mock_job1.status.active = None
+        mock_job2 = MagicMock()
+        mock_job2.status.active = [MagicMock()]
+        self.mock_batch_api.return_value.list_cron_job_for_all_namespaces.return_value.items = [mock_job1, mock_job2]
+
+        status = k8s_cronjobs.getCronJobsStatus("dummy", "ctx")
+        self.assertEqual(status["Completed"], 1)
+        self.assertEqual(status["Running"], 1)
+        self.assertEqual(status["Count"], 2)
+
+    def test_get_cronjobs_list(self):
+        now = datetime.now(timezone.utc)
+        mock_job = MagicMock()
+        mock_job.metadata.namespace = "default"
+        mock_job.metadata.name = "job1"
+        mock_job.metadata.creation_timestamp = now - timedelta(days=2)
+        mock_job.spec.schedule = "*/5 * * * *"
+        mock_job.spec.time_zone = "UTC"
+        mock_job.spec.suspend = False
+        mock_job.status.active = [MagicMock()]
+        mock_job.status.last_schedule_time = now - timedelta(hours=3)
+
+        self.mock_batch_api.return_value.list_cron_job_for_all_namespaces.return_value.items = [mock_job]
+
+        result = k8s_cronjobs.getCronJobsList("dummy", "ctx")
+        self.assertEqual(result[0]["name"], "job1")
+        self.assertEqual(result[0]["active"], 1)
+        self.assertEqual(result[0]["last_schedule"], "2d")
+        self.assertEqual(result[0]["age"], "2d")
+
+    def test_get_cronjob_description(self):
+        mock_cronjob = MagicMock()
+        mock_cronjob.metadata.name = "job"
+        mock_cronjob.metadata.namespace = "default"
+        mock_cronjob.metadata.labels = {"env": "prod"}
+        mock_cronjob.metadata.annotations = {"key": "val"}
+        mock_cronjob.status.active = [MagicMock(name="job-run")]
+        mock_cronjob.status.last_schedule_time = datetime.now(timezone.utc)
+        mock_cronjob.spec.schedule = "*/10 * * * *"
+        mock_cronjob.spec.concurrency_policy = "Forbid"
+        mock_cronjob.spec.suspend = False
+        mock_cronjob.spec.successful_jobs_history_limit = 3
+        mock_cronjob.spec.failed_jobs_history_limit = 1
+        mock_cronjob.spec.starting_deadline_seconds = 100
+        mock_cronjob.spec.selector = MagicMock(match_labels={"app": "worker"})
+        
+        # Job template structure
+        container = MagicMock()
+        container.name = "cron-container"
+        container.image = "busybox"
+        container.command = ["echo", "hello"]
+        container.env = [MagicMock(name="ENV_VAR")]
+        container.volume_mounts = [MagicMock(mount_path="/data")]
+
+        volume = MagicMock()
+        volume.name = "config"
+        volume.secret = {"secretName": "my-secret"}
+        volume.config_map = None
+        volume.projected = None
+
+        template = MagicMock()
+        template.metadata.labels = {"job": "batch"}
+        template.spec.containers = [container]
+        template.spec.volumes = [volume]
+        template.spec.node_selector = {"disk": "ssd"}
+        template.spec.tolerations = []
+
+        mock_cronjob.spec.job_template.spec.template = template
+
+        self.mock_batch_api.return_value.read_namespaced_cron_job.return_value = mock_cronjob
+
+        with patch("dashboard.src.workloads.k8s_cronjobs.filter_annotations", return_value={}):
+            result = k8s_cronjobs.get_cronjob_description("dummy", "ctx", "default", "job")
+
+        self.assertEqual(result["name"], "job")
+        self.assertEqual(result["pod_template"]["containers"][0]["name"], "cron-container")
+        self.assertEqual(result["pod_template"]["volumes"][0]["type"], {"secretName": "my-secret"})
+
+    def test_get_cronjob_events(self):
+        mock_event = MagicMock()
+        mock_event.involved_object.name = "job"
+        mock_event.involved_object.kind = "CronJob"
+        mock_event.reason = "Started"
+        mock_event.message = "CronJob triggered"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [mock_event]
+        result = k8s_cronjobs.get_cronjob_events("dummy", "ctx", "default", "job")
+        self.assertIn("Started: CronJob triggered", result)
+
+    def test_get_yaml_cronjob(self):
+        mock_cronjob = MagicMock()
+        mock_cronjob.metadata.annotations = {"foo": "bar"}
+        mock_cronjob.to_dict.return_value = {"metadata": {"name": "job"}}
+
+        self.mock_batch_api.return_value.read_namespaced_cron_job.return_value = mock_cronjob
+
+        with patch("dashboard.src.workloads.k8s_cronjobs.filter_annotations", return_value={}):
+            result = k8s_cronjobs.get_yaml_cronjob("dummy", "ctx", "default", "job")
+
+        self.assertIn("metadata:", result)
+        self.assertIn("name: job", result)
+
+class DaemonSetTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.workloads.k8s_daemonset.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_apps = patch("dashboard.src.workloads.k8s_daemonset.client.AppsV1Api")
+        self.mock_apps_api = patcher_apps.start()
+        self.addCleanup(patcher_apps.stop)
+
+        patcher_core = patch("dashboard.src.workloads.k8s_daemonset.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.workloads.k8s_daemonset.calculateAge", return_value="2d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+    def test_get_daemonset_status(self):
+        mock_ds1 = MagicMock()
+        mock_ds1.status.number_ready = 3
+        mock_ds1.status.desired_number_scheduled = 3
+        mock_ds1.status.current_number_scheduled = 3
+
+        mock_ds2 = MagicMock()
+        mock_ds2.status.number_ready = 1
+        mock_ds2.status.desired_number_scheduled = 2
+        mock_ds2.status.current_number_scheduled = 2
+
+        self.mock_apps_api.return_value.list_daemon_set_for_all_namespaces.return_value.items = [mock_ds1, mock_ds2]
+
+        result = k8s_daemonset.getDaemonsetStatus("dummy", "ctx")
+        self.assertEqual(result["Running"], 1)
+        self.assertEqual(result["Pending"], 1)
+        self.assertEqual(result["Count"], 2)
+
+    def test_get_daemonset_list(self):
+        now = datetime.now(timezone.utc)
+        mock_ds = MagicMock()
+        mock_ds.metadata.namespace = "default"
+        mock_ds.metadata.name = "ds-1"
+        mock_ds.metadata.creation_timestamp = now - timedelta(days=2)
+        mock_ds.status.desired_number_scheduled = 3
+        mock_ds.status.current_number_scheduled = 2
+        mock_ds.status.number_ready = 2
+
+        self.mock_apps_api.return_value.list_daemon_set_for_all_namespaces.return_value.items = [mock_ds]
+
+        result = k8s_daemonset.getDaemonsetList("dummy", "ctx")
+        self.assertEqual(result[0]["name"], "ds-1")
+        self.assertEqual(result[0]["desired"], 3)
+        self.assertEqual(result[0]["age"], "2d")
+
+    def test_get_daemonset_description(self):
+        mock_ds = MagicMock()
+        mock_ds.metadata.name = "ds-1"
+        mock_ds.metadata.namespace = "default"
+        mock_ds.metadata.labels = {"env": "prod"}
+        mock_ds.metadata.annotations = {"note": "abc"}
+        mock_ds.spec.selector.match_labels = {"app": "nginx"}
+        mock_ds.status.conditions = ["Ready"]
+
+        container = MagicMock()
+        container.name = "c1"
+        container.image = "nginx"
+        container.ports = [MagicMock(container_port=80)]
+        container.resources = {}
+        container.volume_mounts = [MagicMock(name="vol1", mount_path="/data", read_only=True)]
+
+        volume = MagicMock()
+        volume.name = "vol1"
+        volume.config_map = {"name": "cm"}
+        volume.secret = None
+        volume.empty_dir = None
+        volume.host_path = None
+        volume.persistent_volume_claim = None
+        volume.projected = None
+
+        template = MagicMock()
+        template.metadata.labels = {"role": "web"}
+        template.spec.containers = [container]
+        template.spec.volumes = [volume]
+        template.spec.service_account_name = "sa"
+        template.spec.priority_class_name = "high"
+        template.spec.node_selector = {"disk": "ssd"}
+        template.spec.tolerations = []
+
+        mock_ds.spec.template = template
+        mock_ds.status.desired_number_scheduled = 3
+        mock_ds.status.current_number_scheduled = 3
+        mock_ds.status.number_ready = 3
+        mock_ds.status.number_available = 3
+        mock_ds.status.number_misscheduled = 0
+        mock_ds.status.number_updated = 2
+
+        self.mock_apps_api.return_value.read_namespaced_daemon_set.return_value = mock_ds
+
+        with patch("dashboard.src.workloads.k8s_daemonset.filter_annotations", return_value={}):
+            result = k8s_daemonset.get_daemonset_description("dummy", "ctx", "default", "ds-1")
+
+        self.assertEqual(result["name"], "ds-1")
+        self.assertEqual(result["template"]["containers"][0]["name"], "c1")
+        self.assertEqual(result["status"]["number_ready"], 3)
+
+    def test_get_daemonset_events(self):
+        mock_event = MagicMock()
+        mock_event.involved_object.name = "ds-1"
+        mock_event.involved_object.kind = "DaemonSet"
+        mock_event.reason = "Scheduled"
+        mock_event.message = "Pods scheduled"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [mock_event]
+
+        result = k8s_daemonset.get_daemonset_events("dummy", "ctx", "default", "ds-1")
+        self.assertIn("Scheduled: Pods scheduled", result)
+
+    def test_get_daemonset_yaml(self):
+        mock_ds = MagicMock()
+        mock_ds.metadata.annotations = {"key": "value"}
+        mock_ds.to_dict.return_value = {"metadata": {"name": "ds-1"}}
+
+        self.mock_apps_api.return_value.read_namespaced_daemon_set.return_value = mock_ds
+
+        with patch("dashboard.src.workloads.k8s_daemonset.filter_annotations", return_value={}):
+            result = k8s_daemonset.get_daemonset_yaml("dummy", "ctx", "default", "ds-1")
+
+        self.assertIn("metadata:", result)
+        self.assertIn("name: ds-1", result)
+
+class DeploymentTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.workloads.k8s_deployments.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_apps = patch("dashboard.src.workloads.k8s_deployments.client.AppsV1Api")
+        self.mock_apps_api = patcher_apps.start()
+        self.addCleanup(patcher_apps.stop)
+
+        patcher_core = patch("dashboard.src.workloads.k8s_deployments.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.workloads.k8s_deployments.calculateAge", return_value="2d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+    def test_get_deployments_info(self):
+        now = datetime.now(timezone.utc)
+        mock_dep = MagicMock()
+        mock_dep.metadata.name = "web"
+        mock_dep.metadata.namespace = "default"
+        mock_dep.metadata.creation_timestamp = now - timedelta(days=2)
+        mock_dep.status.ready_replicas = 2
+        mock_dep.spec.replicas = 3
+        mock_dep.spec.template.spec.containers = [MagicMock(image="nginx:1.25")]
+
+        self.mock_apps_api.return_value.list_deployment_for_all_namespaces.return_value.items = [mock_dep]
+
+        result = k8s_deployments.getDeploymentsInfo("dummy", "ctx")
+        self.assertEqual(result[0]["name"], "web")
+        self.assertEqual(result[0]["ready"], "2/3")
+        self.assertEqual(result[0]["images"], ["nginx:1.25"])
+
+    def test_get_deployments_status(self):
+        mock_dep1 = MagicMock()
+        mock_dep1.status.replicas = 3
+        mock_dep1.status.ready_replicas = 3
+        mock_dep1.status.available_replicas = 3
+
+        mock_dep2 = MagicMock()
+        mock_dep2.status.replicas = 2
+        mock_dep2.status.ready_replicas = 1
+        mock_dep2.status.available_replicas = 1
+
+        self.mock_apps_api.return_value.list_deployment_for_all_namespaces.return_value.items = [mock_dep1, mock_dep2]
+
+        result = k8s_deployments.getDeploymentsStatus("dummy", "ctx")
+        self.assertEqual(result["Running"], 1)
+        self.assertEqual(result["Pending"], 1)
+        self.assertEqual(result["Count"], 2)
+
+    def test_get_deployment_description(self):
+        mock_dep = MagicMock()
+        mock_dep.metadata.name = "backend"
+        mock_dep.metadata.namespace = "default"
+        mock_dep.metadata.labels = {"env": "prod"}
+        mock_dep.metadata.annotations = {"note": "abc"}
+        mock_dep.spec.selector.match_labels = {"app": "backend"}
+        mock_dep.spec.replicas = 2
+        mock_dep.status.replicas = 2
+        mock_dep.status.updated_replicas = 2
+        mock_dep.status.available_replicas = 2
+        mock_dep.status.unavailable_replicas = 0
+        mock_dep.spec.strategy.type = "RollingUpdate"
+        mock_dep.spec.strategy.rolling_update.max_unavailable = "25%"
+        mock_dep.spec.strategy.rolling_update.max_surge = "25%"
+        mock_dep.spec.min_ready_seconds = 10
+        mock_dep.spec.template.metadata.labels = {"role": "api"}
+
+        container = MagicMock()
+        container.name = "backend-container"
+        container.image = "backend:v1"
+        container.ports = [MagicMock(container_port=8080)]
+        container.env = [MagicMock(name="ENV")]
+        container.volume_mounts = [MagicMock(mount_path="/mnt")]
+
+        mock_dep.spec.template.spec.containers = [container]
+        mock_dep.spec.template.spec.volumes = []
+        mock_dep.spec.template.spec.node_selector = {"disk": "ssd"}
+        mock_dep.spec.template.spec.tolerations = []
+        mock_dep.status.conditions = [MagicMock(type="Available", status="True", reason="MinimumReplicasAvailable")]
+        mock_dep.status.oldReplicaSets = []
+        mock_dep.status.newReplicaSet.name = "rs-backend-1"
+
+        self.mock_apps_api.return_value.read_namespaced_deployment.return_value = mock_dep
+
+        with patch("dashboard.src.workloads.k8s_deployments.filter_annotations", return_value={}):
+            result = k8s_deployments.get_deployment_description("dummy", "ctx", "default", "backend")
+
+        self.assertEqual(result["name"], "backend")
+        self.assertEqual(result["replicas"]["available"], 2)
+        self.assertEqual(result["strategy"]["type"], "RollingUpdate")
+
+    def test_get_deploy_events(self):
+        mock_event = MagicMock()
+        mock_event.involved_object.name = "web"
+        mock_event.involved_object.kind = "Deployment"
+        mock_event.reason = "ScalingReplicaSet"
+        mock_event.message = "Scaled up"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [mock_event]
+
+        result = k8s_deployments.get_deploy_events("dummy", "ctx", "default", "web")
+        self.assertIn("ScalingReplicaSet: Scaled up", result)
+
+    def test_get_yaml_deploy(self):
+        mock_dep = MagicMock()
+        mock_dep.metadata.annotations = {"note": "abc"}
+        mock_dep.to_dict.return_value = {"metadata": {"name": "web"}}
+
+        self.mock_apps_api.return_value.read_namespaced_deployment.return_value = mock_dep
+
+        with patch("dashboard.src.workloads.k8s_deployments.filter_annotations", return_value={}):
+            result = k8s_deployments.get_yaml_deploy("dummy", "ctx", "default", "web")
+
+        self.assertIn("metadata:", result)
+        self.assertIn("name: web", result)
+
+class JobTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.workloads.k8s_jobs.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_batch = patch("dashboard.src.workloads.k8s_jobs.client.BatchV1Api")
+        self.mock_batch_api = patcher_batch.start()
+        self.addCleanup(patcher_batch.stop)
+
+        patcher_core = patch("dashboard.src.workloads.k8s_jobs.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.workloads.k8s_jobs.calculateAge", return_value="2d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+    def test_get_job_count(self):
+        self.mock_batch_api.return_value.list_job_for_all_namespaces.return_value.items = [MagicMock(), MagicMock()]
+        count = k8s_jobs.getJobCount("dummy", "ctx")
+        self.assertEqual(count, 2)
+
+    def test_get_jobs_status(self):
+        job1 = MagicMock()
+        job1.status.succeeded = 2
+        job1.spec.completions = 2
+        job1.status.failed = None
+
+        job2 = MagicMock()
+        job2.status.succeeded = None
+        job2.status.failed = None
+        job2.spec.backoff_limit = 3
+        job2.spec.completions = 1
+
+        job3 = MagicMock()
+        job3.status.succeeded = None
+        job3.status.failed = 3
+        job3.spec.backoff_limit = 2
+        job3.spec.completions = 1
+
+        self.mock_batch_api.return_value.list_job_for_all_namespaces.return_value.items = [job1, job2, job3]
+
+        result = k8s_jobs.getJobsStatus("dummy", "ctx")
+        self.assertEqual(result["Completed"], 1)
+        self.assertEqual(result["Running"], 1)
+        self.assertEqual(result["Failed"], 1)
+        self.assertEqual(result["Count"], 3)
+
+    def test_get_jobs_list(self):
+        now = datetime.now(timezone.utc)
+
+        job = MagicMock()
+        job.metadata.namespace = "default"
+        job.metadata.name = "job1"
+        job.status.succeeded = 1
+        job.spec.completions = 1
+        job.status.failed = None
+        job.status.start_time = now - timedelta(minutes=5)
+        job.status.completion_time = now
+        job.metadata.creation_timestamp = now - timedelta(minutes=6)
+        job.spec.backoff_limit = 3
+
+        self.mock_batch_api.return_value.list_job_for_all_namespaces.return_value.items = [job]
+
+        result = k8s_jobs.getJobsList("dummy", "ctx")
+        self.assertEqual(result[0]["status"], "Completed")
+        self.assertIn("completions", result[0])
+        self.assertIn("duration", result[0])
+
+    def test_get_job_description(self):
+        job = MagicMock()
+        job.metadata.name = "job1"
+        job.metadata.namespace = "default"
+        job.metadata.labels = {"job": "test"}
+        job.metadata.annotations = {"note": "abc"}
+        job.spec.selector.match_labels = {"job": "test"}
+        job.spec.completions = 2
+        job.spec.parallelism = 1
+        job.spec.completion_mode = "NonIndexed"
+        job.spec.suspend = False
+        job.spec.backoff_limit = 3
+        job.status.start_time = datetime.now(timezone.utc) - timedelta(seconds=60)
+        job.status.completion_time = datetime.now(timezone.utc)
+        job.status.active = 0
+        job.status.succeeded = 2
+        job.status.failed = 0
+
+        container = MagicMock()
+        container.name = "test-container"
+        container.image = "busybox"
+        container.command = ["echo", "hello"]
+        container.env = [MagicMock(name="ENV_VAR")]
+        container.volume_mounts = [MagicMock(mount_path="/data")]
+
+        job.spec.template.metadata.labels = {"component": "job"}
+        job.spec.template.spec.containers = [container]
+        job.spec.template.spec.volumes = []
+        job.spec.template.spec.node_selector = {"disk": "ssd"}
+        job.spec.template.spec.tolerations = []
+
+        self.mock_batch_api.return_value.read_namespaced_job.return_value = job
+
+        with patch("dashboard.src.workloads.k8s_jobs.filter_annotations", return_value={}):
+            result = k8s_jobs.get_job_description("dummy", "ctx", "default", "job1")
+
+        self.assertEqual(result["name"], "job1")
+        self.assertEqual(result["pods_status"]["succeeded"], 2)
+
+    def test_get_job_events(self):
+        event = MagicMock()
+        event.involved_object.name = "job1"
+        event.involved_object.kind = "Job"
+        event.reason = "Completed"
+        event.message = "Job completed successfully"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [event]
+
+        result = k8s_jobs.get_job_events("dummy", "ctx", "default", "job1")
+        self.assertIn("Completed: Job completed successfully", result)
+
+    def test_get_yaml_job(self):
+        job = MagicMock()
+        job.metadata.annotations = {"note": "abc"}
+        job.to_dict.return_value = {"metadata": {"name": "job1"}}
+
+        self.mock_batch_api.return_value.read_namespaced_job.return_value = job
+
+        with patch("dashboard.src.workloads.k8s_jobs.filter_annotations", return_value={}):
+            result = k8s_jobs.get_yaml_job("dummy", "ctx", "default", "job1")
+
+        self.assertIn("metadata:", result)
+        self.assertIn("name: job1", result)
+
+    def test_get_job_details(self):
+        now = datetime.now(timezone.utc)
+        job = MagicMock()
+        job.metadata.name = "job1"
+        job.metadata.namespace = "default"
+        job.status.succeeded = 1
+        job.status.start_time = now - timedelta(minutes=3)
+        job.status.completion_time = now
+        job.metadata.creation_timestamp = now - timedelta(hours=1)
+
+        with patch("dashboard.src.workloads.k8s_jobs.config.load_incluster_config", side_effect=ConfigException), \
+             patch("dashboard.src.workloads.k8s_jobs.config.load_kube_config"):
+            self.mock_batch_api.return_value.list_job_for_all_namespaces.return_value.items = [job]
+            result = k8s_jobs.get_job_details()
+
+        self.assertEqual(result[0]["name"], "job1")
+        self.assertEqual(result[0]["namespace"], "default")
+        self.assertEqual(result[0]["completions"], 1)
+
+class PodTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.workloads.k8s_pods.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_core = patch("dashboard.src.workloads.k8s_pods.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.workloads.k8s_pods.calculateAge", return_value="3d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+    def test_getpods(self):
+        pod = MagicMock()
+        pod.metadata.name = "pod-1"
+        self.mock_core_api.return_value.list_pod_for_all_namespaces.return_value.items = [pod]
+        result, count = k8s_pods.getpods("dummy", "ctx")
+        self.assertEqual(result, ["pod-1"])
+        self.assertEqual(count, 1)
+
+    def test_getPodsStatus(self):
+        pod1 = MagicMock()
+        pod1.status.phase = "Running"
+        pod1.status.container_statuses = [MagicMock(state=MagicMock(running=True))]
+
+        pod2 = MagicMock()
+        pod2.status.phase = "Pending"
+
+        pod3 = MagicMock()
+        pod3.status.phase = "Running"
+        pod3.status.container_statuses = [MagicMock(state=MagicMock(running=None))]
+
+        pod4 = MagicMock()
+        pod4.status.phase = "Succeeded"
+
+        self.mock_core_api.return_value.list_pod_for_all_namespaces.return_value.items = [pod1, pod2, pod3, pod4]
+        result = k8s_pods.getPodsStatus("dummy", "ctx")
+        self.assertEqual(result["Running"], 1)
+        self.assertEqual(result["Pending"], 1)
+        self.assertEqual(result["Failed"], 1)
+        self.assertEqual(result["Succeeded"], 1)
+
+    def test_get_pod_info(self):
+        pod = MagicMock()
+        pod.metadata.namespace = "default"
+        pod.metadata.name = "mypod"
+        pod.spec.node_name = "node1"
+        pod.status.pod_ip = "10.0.0.1"
+        pod.status.container_statuses = [MagicMock(ready=True, restart_count=1)]
+        pod.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(hours=3)
+        pod.status.phase = "Running"
+
+        with patch("dashboard.src.workloads.k8s_pods.getPodStatus", return_value="Running"):
+            self.mock_core_api.return_value.list_pod_for_all_namespaces.return_value.items = [pod]
+            result = k8s_pods.get_pod_info("dummy", "ctx")
+            self.assertEqual(result[0]["name"], "mypod")
+            self.assertEqual(result[0]["status"], "Running")
+
+    def test_get_pod_logs(self):
+        self.mock_core_api.return_value.read_namespaced_pod_log.return_value = "pod logs"
+        result = k8s_pods.get_pod_logs("dummy", "ctx", "default", "mypod")
+        self.assertIn("pod logs", result)
+
+    def test_get_pod_yaml(self):
+        pod = MagicMock()
+        pod.metadata.annotations = {"foo": "bar"}
+        pod.to_dict.return_value = {"metadata": {"name": "mypod"}}
+        self.mock_core_api.return_value.read_namespaced_pod.return_value = pod
+
+        with patch("dashboard.src.workloads.k8s_pods.filter_annotations", return_value={}):
+            result = k8s_pods.get_pod_yaml("dummy", "ctx", "default", "mypod")
+        self.assertIn("metadata:", result)
+        self.assertIn("name: mypod", result)
+
+class StatefulSetTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.workloads.k8s_statefulset.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_apps = patch("dashboard.src.workloads.k8s_statefulset.client.AppsV1Api")
+        self.mock_apps_api = patcher_apps.start()
+        self.addCleanup(patcher_apps.stop)
+
+        patcher_core = patch("dashboard.src.workloads.k8s_statefulset.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.workloads.k8s_statefulset.calculateAge", return_value="1d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+        patcher_filter = patch("dashboard.src.workloads.k8s_statefulset.filter_annotations", return_value={})
+        self.mock_filter_annotations = patcher_filter.start()
+        self.addCleanup(patcher_filter.stop)
+
+    def test_get_statefulset_count(self):
+        self.mock_apps_api.return_value.list_stateful_set_for_all_namespaces.return_value.items = [MagicMock(), MagicMock()]
+        count = k8s_statefulset.getStatefulsetCount("dummy", "ctx")
+        self.assertEqual(count, 2)
+
+    def test_get_statefulset_status(self):
+        sts1 = MagicMock()
+        sts1.status.replicas = sts1.status.ready_replicas = sts1.status.available_replicas = 2
+
+        sts2 = MagicMock()
+        sts2.status.replicas = 2
+        sts2.status.ready_replicas = 1
+        sts2.status.available_replicas = 1
+
+        self.mock_apps_api.return_value.list_stateful_set_for_all_namespaces.return_value.items = [sts1, sts2]
+
+        result = k8s_statefulset.getStatefulsetStatus("dummy", "ctx")
+        self.assertEqual(result["Running"], 1)
+        self.assertEqual(result["Pending"], 1)
+        self.assertEqual(result["Count"], 2)
+
+    def test_get_statefulset_list(self):
+        now = datetime.now(timezone.utc)
+
+        sts = MagicMock()
+        sts.metadata.namespace = "default"
+        sts.metadata.name = "sts1"
+        sts.metadata.creation_timestamp = now - timedelta(days=1)
+        sts.status.available_replicas = 1
+        sts.spec.replicas = 2
+        container = MagicMock()
+        container.image = "nginx"
+        sts.spec.template.spec.containers = [container]
+
+        self.mock_apps_api.return_value.list_stateful_set_for_all_namespaces.return_value.items = [sts]
+
+        result = k8s_statefulset.getStatefulsetList("dummy", "ctx")
+        self.assertEqual(result[0]["name"], "sts1")
+        self.assertIn("nginx", result[0]["images"])
+
+    def test_get_statefulset_description(self):
+        now = datetime.now(timezone.utc)
+        sts = MagicMock()
+        sts.metadata.name = "sts1"
+        sts.metadata.namespace = "default"
+        sts.metadata.creation_timestamp = now - timedelta(days=1)
+        sts.spec.selector.match_labels = {"app": "web"}
+        sts.metadata.labels = {"app": "web"}
+        sts.metadata.annotations = {"note": "abc"}
+        sts.status.replicas = 3
+        sts.status.ready_replicas = 2
+        sts.spec.update_strategy.type = "RollingUpdate"
+        sts.spec.update_strategy.rolling_update.partition = 1
+        container = MagicMock()
+        container.name = "nginx"
+        container.image = "nginx"
+        container.ports = []
+        container.env = []
+        container.volume_mounts = []
+        sts.spec.template.metadata.labels = {"component": "web"}
+        sts.spec.template.spec.containers = [container]
+        sts.spec.template.spec.volumes = []
+        sts.spec.template.spec.node_selector = {"disk": "ssd"}
+        sts.spec.template.spec.tolerations = []
+        pvc = MagicMock()
+        pvc.metadata.name = "pvc1"
+        pvc.spec.storage_class_name = "standard"
+        pvc.metadata.labels = {}
+        pvc.metadata.annotations = {}
+        pvc.spec.resources.requests = {"storage": "1Gi"}
+        pvc.spec.access_modes = ["ReadWriteOnce"]
+        sts.spec.volume_claim_templates = [pvc]
+
+        self.mock_apps_api.return_value.read_namespaced_stateful_set.return_value = sts
+
+        result = k8s_statefulset.get_statefulset_description("dummy", "ctx", "default", "sts1")
+        self.assertEqual(result["name"], "sts1")
+        self.assertEqual(result["replicas"]["desired"], 3)
+        self.assertEqual(result["pods_status"]["running"], 2)
+
+    def test_get_statefulset_events(self):
+        event = MagicMock()
+        event.involved_object.name = "sts1"
+        event.involved_object.kind = "StatefulSet"
+        event.reason = "Started"
+        event.message = "StatefulSet started"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [event]
+
+        result = k8s_statefulset.get_sts_events("dummy", "ctx", "default", "sts1")
+        self.assertIn("Started: StatefulSet started", result)
+
+    def test_get_yaml_sts(self):
+        sts = MagicMock()
+        sts.metadata.annotations = {"note": "abc"}
+        sts.to_dict.return_value = {"metadata": {"name": "sts1"}}
+
+        self.mock_apps_api.return_value.read_namespaced_stateful_set.return_value = sts
+
+        result = k8s_statefulset.get_yaml_sts("dummy", "ctx", "default", "sts1")
+        self.assertIn("metadata:", result)
+        self.assertIn("name: sts1", result)
+
+class ReplicaSetTests(TestCase):
+    def setUp(self):
+        patcher_cfg = patch("dashboard.src.workloads.k8s_replicaset.configure_k8s")
+        self.mock_configure_k8s = patcher_cfg.start()
+        self.addCleanup(patcher_cfg.stop)
+
+        patcher_apps = patch("dashboard.src.workloads.k8s_replicaset.client.AppsV1Api")
+        self.mock_apps_api = patcher_apps.start()
+        self.addCleanup(patcher_apps.stop)
+
+        patcher_core = patch("dashboard.src.workloads.k8s_replicaset.client.CoreV1Api")
+        self.mock_core_api = patcher_core.start()
+        self.addCleanup(patcher_core.stop)
+
+        patcher_age = patch("dashboard.src.workloads.k8s_replicaset.calculateAge", return_value="2d")
+        self.mock_calculate_age = patcher_age.start()
+        self.addCleanup(patcher_age.stop)
+
+    def test_getReplicaSetsInfo(self):
+        rs = MagicMock()
+        rs.metadata.namespace = "default"
+        rs.metadata.name = "rs-1"
+        rs.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=2)
+        rs.spec.replicas = 3
+        rs.status.replicas = 3
+        rs.status.ready_replicas = 3
+
+        container = MagicMock()
+        container.image = "nginx"
+        rs.spec.template.spec.containers = [container]
+        self.mock_apps_api.return_value.list_replica_set_for_all_namespaces.return_value.items = [rs]
+
+        info = k8s_replicaset.getReplicaSetsInfo("dummy", "ctx")
+        self.assertEqual(info[0]["name"], "rs-1")
+        self.assertIn("nginx", info[0]["images"])
+
+    def test_getReplicasetStatus(self):
+        rs1 = MagicMock()
+        rs1.status.replicas = 2
+        rs1.status.ready_replicas = 2
+        rs1.status.available_replicas = 2
+
+        rs2 = MagicMock()
+        rs2.status.replicas = 2
+        rs2.status.ready_replicas = 1
+        rs2.status.available_replicas = 1
+
+        self.mock_apps_api.return_value.list_replica_set_for_all_namespaces.return_value.items = [rs1, rs2]
+
+        result = k8s_replicaset.getReplicasetStatus("dummy", "ctx")
+        self.assertEqual(result["Running"], 1)
+        self.assertEqual(result["Pending"], 1)
+        self.assertEqual(result["Count"], 2)
+
+    def test_getReplicasetStatus_api_exception(self):
+        self.mock_apps_api.return_value.list_replica_set_for_all_namespaces.side_effect = ApiException(reason="Forbidden")
+        result = k8s_replicaset.getReplicasetStatus("dummy", "ctx")
+        self.assertEqual(result, [])
+
+    def test_get_replicaset_description(self):
+        rs = MagicMock()
+        rs.metadata.name = "rs-1"
+        rs.metadata.namespace = "default"
+        rs.metadata.labels = {"key": "value"}
+        rs.metadata.annotations = {"annotation": "val"}
+        rs.spec.selector.match_labels = {"app": "test"}
+        rs.status.replicas = 2
+        rs.status.available_replicas = 2
+        rs.metadata.owner_references = [MagicMock(name="owner", name__name="deployment-1")]
+
+        container = MagicMock()
+        container.name = "nginx"
+        container.image = "nginx:1.14"
+        container.ports = []
+        container.env = []
+        container.volume_mounts = []
+
+        rs.spec.template.metadata.labels = {"component": "rs"}
+        rs.spec.template.spec.containers = [container]
+        rs.spec.template.spec.volumes = []
+        rs.spec.template.spec.node_selector = {}
+        rs.spec.template.spec.tolerations = []
+
+        self.mock_apps_api.return_value.read_namespaced_replica_set.return_value = rs
+
+        with patch("dashboard.src.workloads.k8s_replicaset.filter_annotations", return_value={}):
+            result = k8s_replicaset.get_replicaset_description("dummy", "ctx", "default", "rs-1")
+
+        self.assertEqual(result["name"], "rs-1")
+        self.assertEqual(result["replicas"]["current"], 2)
+
+    def test_get_replicaset_events(self):
+        event = MagicMock()
+        event.involved_object.name = "rs-1"
+        event.involved_object.kind = "ReplicaSet"
+        event.reason = "Scheduled"
+        event.message = "Pod scheduled"
+
+        self.mock_core_api.return_value.list_namespaced_event.return_value.items = [event]
+        result = k8s_replicaset.get_replicaset_events("dummy", "ctx", "default", "rs-1")
+        self.assertIn("Scheduled: Pod scheduled", result)
+
+    def test_get_yaml_rs(self):
+        rs = MagicMock()
+        rs.metadata.annotations = {"annotation": "val"}
+        rs.to_dict.return_value = {"metadata": {"name": "rs-1"}}
+        self.mock_apps_api.return_value.read_namespaced_replica_set.return_value = rs
+
+        with patch("dashboard.src.workloads.k8s_replicaset.filter_annotations", return_value={}):
+            result = k8s_replicaset.get_yaml_rs("dummy", "ctx", "default", "rs-1")
+        self.assertIn("metadata:", result)
+        self.assertIn("name: rs-1", result)

@@ -51,6 +51,7 @@ from dashboard.src.dashData import (
 )
 from dashboard.src.k8s_cluster_metric import getMetrics
 from datetime import datetime, timezone, timedelta
+import os
 import yaml
 from kubernetes import client
 from kubernetes.client.exceptions import ApiException
@@ -556,12 +557,15 @@ class TestK8sPods(TestCase):
     @patch('dashboard.src.workloads.k8s_pods.client.CoreV1Api')
     @patch('dashboard.src.workloads.k8s_pods.calculateAge', return_value="1d")
     def test_get_pod_info(self, mock_age, mock_core_api, mock_configure):
+        # Use env var for pod_ip with safe fallback
+        os.environ.setdefault("TEST_POD_IP", "127.0.0.1")
+
         pod = MagicMock()
         pod.metadata.name = 'pod1'
         pod.metadata.namespace = 'default'
         pod.metadata.creation_timestamp = datetime.now(timezone.utc) - timedelta(days=1)
         pod.spec.node_name = 'node1'
-        pod.status.pod_ip = '10.0.0.1'
+        pod.status.pod_ip = os.getenv("TEST_POD_IP")
         pod.status.container_statuses = []
         pod.spec.containers = []
         pod.status.phase = "Running"
@@ -570,6 +574,7 @@ class TestK8sPods(TestCase):
 
         result = get_pod_info('p', 'c')
         self.assertEqual(result[0]['name'], 'pod1')
+        self.assertEqual(result[0]['ip'], os.getenv("TEST_POD_IP"))
 
     @patch('dashboard.src.workloads.k8s_pods.configure_k8s')
     @patch('dashboard.src.workloads.k8s_pods.client.CoreV1Api')

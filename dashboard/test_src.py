@@ -816,6 +816,7 @@ class IngressTests(TestCase):
         path.backend.service.name = "myservice"
         path.backend.service.port.name = "http"
         rule.http.paths = [path]
+
         ingress = MagicMock()
         ingress.metadata.name = "ingress1"
         ingress.metadata.namespace = "default"
@@ -823,7 +824,14 @@ class IngressTests(TestCase):
         ingress.metadata.annotations = {"foo": "bar"}
         ingress.spec.rules = [rule]
         ingress.spec.ingress_class_name = "nginx"
+<<<<<<< Updated upstream
         ingress.status.load_balancer.ingress = [MagicMock(ip=os.getenv("INTERNAL_IP"))]
+=======
+
+        # Use reserved IP for testing per RFC 5737 (safe & compliant)
+        test_ip = os.getenv("TEST_INGRESS_IP", "192.0.2.1")
+        ingress.status.load_balancer.ingress = [MagicMock(ip=test_ip)]
+>>>>>>> Stashed changes
 
         self.mock_networking_api.return_value.read_namespaced_ingress.return_value = ingress
         self.mock_core_api.return_value.read_namespaced_service.return_value = MagicMock()
@@ -831,7 +839,11 @@ class IngressTests(TestCase):
         result = k8s_ingress.get_ingress_description("p", "ctx", "default", "ingress1")
         self.assertEqual(result["name"], "ingress1")
         self.assertIn("myhost", [r["host"] for r in result["rules"]])
+<<<<<<< Updated upstream
         self.assertEqual(result["address"], os.getenv("INTERNAL_IP"))
+=======
+        self.assertEqual(result["address"], test_ip)
+>>>>>>> Stashed changes
 
     def test_get_ingress_events(self):
         event1 = MagicMock()

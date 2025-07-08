@@ -580,6 +580,11 @@ class TestK8sPods(TestCase):
     @patch('dashboard.src.workloads.k8s_pods.client.CoreV1Api')
     @patch('dashboard.src.workloads.k8s_pods.filter_annotations', return_value={})
     def test_get_pod_description(self, mock_filter, mock_core_api, mock_configure):
+        # Set environment variables with safe fallback (loopback IPs)
+        os.environ.setdefault("TEST_POD_IP", "127.0.0.1")
+        os.environ.setdefault("TEST_HOST_IP", "127.0.0.2")
+
+        # Mock Pod object
         pod = MagicMock()
         pod.metadata.name = 'pod1'
         pod.metadata.namespace = 'default'
@@ -588,8 +593,8 @@ class TestK8sPods(TestCase):
         pod.spec.priority = 0
         pod.status.phase = 'Running'
         pod.spec.node_name = 'node1'
-        pod.status.pod_ip = '10.0.0.1'
-        pod.status.host_ip = '192.168.0.1'
+        pod.status.pod_ip = os.getenv("TEST_POD_IP")
+        pod.status.host_ip = os.getenv("TEST_HOST_IP")
         pod.status.start_time = datetime.now(timezone.utc)
         pod.spec.node_selector = None
         pod.spec.tolerations = None
@@ -600,10 +605,18 @@ class TestK8sPods(TestCase):
         pod.metadata.owner_references = []
         pod.status.container_statuses = []
 
+        # Patch CoreV1Api return value
         mock_core_api.return_value.read_namespaced_pod.return_value = pod
 
+        # Call the function under test
         result = get_pod_description('p', 'c', 'ns', 'pod1')
+
+        # Assertions
         self.assertEqual(result['name'], 'pod1')
+        self.assertIn('pod_ip', result)
+        self.assertIn('host_ip', result)
+        self.assertEqual(result['pod_ip'], os.getenv("TEST_POD_IP"))
+        self.assertEqual(result['host_ip'], os.getenv("TEST_HOST_IP"))
 
     @patch('dashboard.src.workloads.k8s_pods.configure_k8s')
     @patch('dashboard.src.workloads.k8s_pods.client.CoreV1Api')

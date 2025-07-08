@@ -1689,7 +1689,7 @@ class EndpointTests(TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["namespace"], "default")
         self.assertEqual(result[0]["name"], "my-service")
-        self.assertIn(os.getenv("INTERNAL_IP"), result[0]["endpoints"])
+        self.assertIn(os.getenv("INTERNAL_IP") + ":" + os.getenv("PORT"), result[0]["endpoints"])
         self.assertEqual(result[0]["age"], "3d")
 
     def test_get_endpoint_description_success(self):

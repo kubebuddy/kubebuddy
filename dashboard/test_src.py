@@ -1663,8 +1663,9 @@ class EndpointTests(TestCase):
         self.addCleanup(patcher_age.stop)
 
     def test_get_endpoints(self):
-        os.environ["INTERNAL_IP"] = "192.168.0.1"
-        os.environ["PORT"] = "80"
+        # Set default values only if not already set
+        os.environ.setdefault("INTERNAL_IP", "127.0.0.1")  # Safe loopback IP
+        os.environ.setdefault("PORT", "80")
 
         mock_namespace = MagicMock()
         mock_namespace.metadata.name = "default"
@@ -1693,7 +1694,7 @@ class EndpointTests(TestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["namespace"], "default")
         self.assertEqual(result[0]["name"], "my-service")
-        self.assertIn("192.168.0.1:80", result[0]["endpoints"])
+        self.assertIn(f"{os.getenv('INTERNAL_IP')}:{os.getenv('PORT')}", result[0]["endpoints"])
         self.assertEqual(result[0]["age"], "3d")
 
     def test_get_endpoint_description_success(self):

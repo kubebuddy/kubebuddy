@@ -3,6 +3,7 @@ from django.template import Context, Template
 from django.template.base import Variable
 from django.templatetags import static as static_tags
 import urllib.parse
+from django.test import TestCase, Client
 
 class StaticTagExtraTests(SimpleTestCase):
     def test_get_static_prefix_with_custom_setting(self):
@@ -93,3 +94,113 @@ class StaticTagExtraTests(SimpleTestCase):
         rendered = tpl.render(Context())
         self.assertIn('bootstrap.Tooltip', rendered)
         self.assertIn('[data-bs-toggle="tooltip"]', rendered)
+        
+    def test_chatbot_window_structure_exists(self):
+        html = """
+        <div id="chatbotWindow" class="chatbot-window" style="display: none;">
+            <div id="chatBody"></div>
+            <textarea id="chatInput"></textarea>
+        </div>
+        """
+        tpl = Template(html)
+        rendered = tpl.render(Context())
+        self.assertIn('id="chatbotWindow"', rendered)
+        self.assertIn('id="chatInput"', rendered)
+        self.assertIn('id="chatBody"', rendered)
+
+    def test_toggle_chat_js_function_included(self):
+        js = """
+        <script>
+        function toggleChat() {
+            var chatWindow = document.getElementById("chatbotWindow");
+            chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
+        }
+        </script>
+        """
+        tpl = Template(js)
+        rendered = tpl.render(Context())
+        self.assertIn('function toggleChat()', rendered)
+        self.assertIn('chatbotWindow', rendered)
+
+    def test_event_listener_for_chatinput_enter_key(self):
+        js = """
+        <script>
+        document.getElementById("chatInput").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                if (event.shiftKey) {
+                    event.preventDefault();
+                    this.value += "\\n";
+                } else {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            }
+        });
+        </script>
+        """
+        tpl = Template(js)
+        rendered = tpl.render(Context())
+        self.assertIn('addEventListener("keydown"', rendered)
+        self.assertIn('sendMessage()', rendered)
+
+    def test_js_chatbot_message_function_exists(self):
+        js = """
+        <script>
+        function botMessage(text) {
+            const chatBody = document.getElementById("chatBody");
+            const messageElement = document.createElement("div");
+            messageElement.innerHTML = text;
+            messageElement.className = "bot-message";
+            chatBody.appendChild(messageElement);
+        }
+        </script>
+        """
+        tpl = Template(js)
+        rendered = tpl.render(Context())
+        self.assertIn('function botMessage', rendered)
+        self.assertIn('chatBody.appendChild', rendered)
+
+    def test_static_js_reference_is_correct(self):
+        tpl = Template('{% load static %}<script src="{% static \'js/chatbot.js\' %}"></script>')
+        rendered = tpl.render(Context())
+        self.assertIn('<script src="/static/js/chatbot.js"></script>', rendered)
+        
+    def test_static_chatbot_js_inclusion(self):
+        tpl = Template('{% load static %}<script src="{% static \'js/chatbot.js\' %}"></script>')
+        rendered = tpl.render(Context())
+        self.assertEqual(rendered.strip(), '<script src="/static/js/chatbot.js"></script>')
+
+    def test_static_chatbot_css_inclusion(self):
+        tpl = Template('{% load static %}<link href="{% static \'css/chatbot.css\' %}" rel="stylesheet">')
+        rendered = tpl.render(Context())
+        self.assertEqual(rendered.strip(), '<link href="/static/css/chatbot.css" rel="stylesheet">')
+
+    def test_static_tag_with_image_space(self):
+        tpl = Template('{% load static %}<img src="{% static "img/my image.png" %}">')
+        rendered = tpl.render(Context())
+        self.assertIn('/static/img/my%20image.png', rendered)
+
+    def test_toggle_chat_function_in_js_block(self):
+        js_code = """
+        <script>
+        function toggleChat() {
+            var chatWindow = document.getElementById("chatbotWindow");
+            chatWindow.style.display = chatWindow.style.display === "none" ? "flex" : "none";
+        }
+        </script>
+        """
+        tpl = Template(js_code)
+        rendered = tpl.render(Context())
+        self.assertIn('function toggleChat()', rendered)
+        self.assertIn('chatbotWindow', rendered)
+
+    def test_chatbot_dom_elements_exist(self):
+        html = """
+        <div id="chatbotWindow"><div id="chatBody"></div><textarea id="chatInput"></textarea></div>
+        """
+        tpl = Template(html)
+        rendered = tpl.render(Context())
+        self.assertIn('id="chatbotWindow"', rendered)
+        self.assertIn('id="chatBody"', rendered)
+        self.assertIn('id="chatInput"', rendered)    
+

@@ -147,7 +147,7 @@ class LimitRangeFunctionTests(TestCase):
         mock_v1.list_namespace.return_value.items = [mock_ns]
         mock_v1.list_namespaced_limit_range.side_effect = Exception("API Failure")
 
-        result, count = k8s_limit_range.get_limit_ranges("/dummy/path", "dummy-context")
+        _, count = k8s_limit_range.get_limit_ranges("/dummy/path", "dummy-context")
         self.assertEqual(count, 0)
         self.assertTrue(self.mock_logger.error.called)
 

@@ -32,10 +32,7 @@ def get_cluster_status(request):
             cluster_manager_client = ClusterManagerClient(credentials=credentials)
 
             # Extract GKE details from context_name: gke_{project}_{zone}_{cluster_name}
-            try:
-                _, project_id, zone, cluster_id = cluster['context_name'].split('_', 3)
-            except ValueError:
-                raise ValueError("Invalid GKE context name format. Expected: gke_<project>_<zone>_<cluster_name>")
+            _, project_id, zone, cluster_id = cluster['context_name'].split('_', 3)
 
             gke_cluster = cluster_manager_client.get_cluster(
                 project_id=project_id,

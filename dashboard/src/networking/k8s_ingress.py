@@ -51,7 +51,7 @@ def get_ingress_description(path=None, context=None, namespace=None, ingress_nam
                 backend_port = path.backend.service.port.name or path.backend.service.port.number
 
                 try:
-                    v1_svc = client.CoreV1Api().read_namespaced_service(name=backend_service, namespace=namespace)
+                    _ = client.CoreV1Api().read_namespaced_service(name=backend_service, namespace=namespace)
                     backend_status = f"{backend_service}:{backend_port}"
                 except client.exceptions.ApiException:
                     backend_status = f"{backend_service}:{backend_port} (<error: service '{backend_service}' not found>)"

@@ -80,7 +80,7 @@ def pods(request, cluster_id):
 
 
 def pod_info(request, cluster_id, namespace, pod_name):
-    cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
+    cluster_id, current_cluster, path, registered_clusters, _ , context_name = get_utils_data(request)
     pod_info = {
         "describe": k8s_pods.get_pod_description(path, context_name, namespace, pod_name),
         "logs": k8s_pods.get_pod_logs(path, context_name, namespace, pod_name),

@@ -6,7 +6,8 @@ window.addEventListener("DOMContentLoaded", function () {
     tabSize: 2,
     useSoftTabs: true
     });
+
     document.querySelector("form").addEventListener("submit", () => {
-    document.getElementById("yaml-output").value = editor.getValue();
+        document.getElementById("yaml-output").value = editor.getValue();
     });
 });

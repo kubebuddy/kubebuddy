@@ -33,6 +33,8 @@ def get_ingress(path, context):
     
     return ingress_list, len(ingress_list)
 
+DEFAULT_NONE_VALUE = "<none>"
+
 def get_ingress_description(path=None, context=None, namespace=None, ingress_name=None):
     configure_k8s(path, context)
     v1 = client.NetworkingV1Api()
@@ -42,7 +44,7 @@ def get_ingress_description(path=None, context=None, namespace=None, ingress_nam
 
         rules = []
         for rule in ingress.spec.rules or []:
-            host = rule.host or "<none>"
+            host = rule.host or DEFAULT_NONE_VALUE
             paths = rule.http.paths if rule.http else []
             for path in paths:
                 backend_service = path.backend.service.name
@@ -65,8 +67,8 @@ def get_ingress_description(path=None, context=None, namespace=None, ingress_nam
             "name": ingress.metadata.name,
             "labels": ingress.metadata.labels or {},
             "namespace": ingress.metadata.namespace,
-            "address": ingress.status.load_balancer.ingress[0].ip if ingress.status.load_balancer.ingress else "<none>",
-            "ingress_class": ingress.spec.ingress_class_name if ingress.spec.ingress_class_name else "<none>",
+            "address": ingress.status.load_balancer.ingress[0].ip if ingress.status.load_balancer.ingress else DEFAULT_NONE_VALUE,
+            "ingress_class": ingress.spec.ingress_class_name if ingress.spec.ingress_class_name else DEFAULT_NONE_VALUE,
             "rules": rules,
             "annotations": filter_annotations(ingress.metadata.annotations or {})
         }

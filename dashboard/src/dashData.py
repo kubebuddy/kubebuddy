@@ -36,7 +36,7 @@ def fetch_cronjobs(path, context_name, namespace):
     return k8s_cronjobs.getCronJobsStatus(path, context_name, namespace)
 
 def fetch_metrics(path, context_name):
-    return k8s_cluster_metric.getMetrics(path, context_name)
+    return k8s_cluster_metric.get_metrics(path, context_name)
 
 def fetch_events(path, context_name, namespace):
     return k8s_events.get_events(path, context_name, True, namespace)

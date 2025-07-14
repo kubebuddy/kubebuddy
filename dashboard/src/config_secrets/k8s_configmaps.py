@@ -52,7 +52,7 @@ def get_configmap_description(path=None, context=None, namespace=None, configmap
         configmap_info = {
             "name": target_configmap.metadata.name,
             "namespace": target_configmap.metadata.namespace,
-            "data": {k: v for k, v in target_configmap.data.items()} if target_configmap.data else {}, # Handle missing data
+            "data": dict(target_configmap.data) if target_configmap.data else {}, # Handle missing data
         }
         return configmap_info
 

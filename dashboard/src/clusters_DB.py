@@ -28,7 +28,7 @@ def get_cluster_status(request):
         if cluster.get('context_name', '').startswith('gke_'):
             # Handle GKE
             SCOPES = ['https://www.googleapis.com/auth/cloud-platform']
-            credentials, project = default(scopes=SCOPES)
+            credentials, _ = default(scopes=SCOPES)
             cluster_manager_client = ClusterManagerClient(credentials=credentials)
 
             # Extract GKE details from context_name: gke_{project}_{zone}_{cluster_name}

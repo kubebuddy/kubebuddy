@@ -49,7 +49,7 @@ from dashboard.src.dashData import (
     fetch_metrics,
     fetch_events,
 )
-from dashboard.src.k8s_cluster_metric import getMetrics
+from dashboard.src.k8s_cluster_metric import get_metrics
 from datetime import datetime, timezone, timedelta
 import os
 import yaml
@@ -992,7 +992,7 @@ class TestGetMetrics(TestCase):
         }
         mock_core_api.return_value.list_node.return_value.items = [node_obj]
 
-        result = getMetrics("dummy-path", "dummy-context")
+        result = get_metrics("dummy-path", "dummy-context")
 
         expected_result = {
             'cpu_usage': 25.0,
@@ -1009,7 +1009,7 @@ class TestGetMetrics(TestCase):
         # Simulate ApiException being raised when creating CustomObjectsApi
         mock_custom_api.side_effect = ApiException(reason="API failed")
 
-        result = getMetrics("dummy-path", "dummy-context")
+        result = get_metrics("dummy-path", "dummy-context")
 
         self.assertIn("error", result)
         self.assertEqual(result["error"], "Failed to fetch endpoint details: API failed")

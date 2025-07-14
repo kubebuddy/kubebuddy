@@ -1486,7 +1486,7 @@ class NodesViewsTests(TestCase):
             {"name": "node-1", "status": "Ready"},
             {"name": "node-2", "status": "NotReady"}
         ]
-        self.mock_k8s_nodes.get_Nodes_Status.return_value = (1, 1, 2)
+        self.mock_k8s_nodes.get_nodes_status.return_value = (1, 1, 2)
         request = self.factory.get(f'/dashboard/nodes/{self.cluster.id}/')
         nodes(request, self.cluster.id)
         self.mock_render.assert_called_once()
@@ -1503,7 +1503,7 @@ class NodesViewsTests(TestCase):
         self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
         self.mock_get_utils_data.assert_called_once_with(request)
         self.mock_k8s_nodes.get_nodes_info.assert_called_once_with(self.kube_config_entry.path, self.cluster.context_name)
-        self.mock_k8s_nodes.get_Nodes_Status.assert_called_once_with(self.kube_config_entry.path, self.cluster.context_name)
+        self.mock_k8s_nodes.get_nodes_status.assert_called_once_with(self.kube_config_entry.path, self.cluster.context_name)
 
     def test_nodes_get_utils_data_failure(self):
         self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
@@ -1511,19 +1511,19 @@ class NodesViewsTests(TestCase):
         with self.assertRaises(Cluster.DoesNotExist):
             nodes(request, self.cluster.id)
         self.mock_k8s_nodes.get_nodes_info.assert_not_called()
-        self.mock_k8s_nodes.get_Nodes_Status.assert_not_called()
+        self.mock_k8s_nodes.get_nodes_status.assert_not_called()
         self.mock_render.assert_not_called()
 
     def test_nodes_k8s_api_failure(self):
         self._setup_utils_data()
         self.mock_k8s_nodes.get_nodes_info.side_effect = Exception("K8s error")
-        self.mock_k8s_nodes.get_Nodes_Status.side_effect = Exception("K8s error")
+        self.mock_k8s_nodes.get_nodes_status.side_effect = Exception("K8s error")
         request = self.factory.get(f'/dashboard/nodes/{self.cluster.id}/')
         with self.assertRaises(Exception):
             nodes(request, self.cluster.id)
         self.mock_render.assert_not_called()
         self.mock_k8s_nodes.get_nodes_info.assert_called_once()
-        self.mock_k8s_nodes.get_Nodes_Status.assert_not_called()
+        self.mock_k8s_nodes.get_nodes_status.assert_not_called()
 
     def test_node_info_successful_rendering(self):
         self._setup_utils_data()

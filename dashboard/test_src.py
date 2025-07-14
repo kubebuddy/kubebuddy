@@ -315,13 +315,13 @@ class NodesTests(TestCase):
         self.assertIn("node1", result)
         self.assertIn("node2", result)
 
-    def test_get_Nodes_Status(self):
+    def test_get_nodes_status(self):
         mock_api = self.mock_core_v1_api.return_value
         node_ready = MagicMock(status=MagicMock(conditions=[MagicMock(type="Ready", status="True")]))
         node_not_ready = MagicMock(status=MagicMock(conditions=[MagicMock(type="Ready", status="False")]))
         mock_api.list_node.return_value.items = [node_ready, node_not_ready]
 
-        ready, not_ready, total = k8s_nodes.get_Nodes_Status("dummy", "ctx")
+        ready, not_ready, total = k8s_nodes.get_nodes_status("dummy", "ctx")
         self.assertEqual(ready, 1)
         self.assertEqual(not_ready, 1)
         self.assertEqual(total, 2)

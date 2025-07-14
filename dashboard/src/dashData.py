@@ -6,7 +6,7 @@ from .cluster_management import k8s_nodes
 from .events import k8s_events
 
 def fetch_nodes_status(path, context_name):
-    return k8s_nodes.get_Nodes_Status(path, context_name)
+    return k8s_nodes.get_nodes_status(path, context_name)
 
 def fetch_nodes(path, context_name):
     return k8s_nodes.getnodes(path, context_name)

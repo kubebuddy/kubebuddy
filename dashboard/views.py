@@ -245,7 +245,7 @@ def nodes(request, cluster_id):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
 
     nodes = k8s_nodes.get_nodes_info(path, context_name)
-    ready_nodes, not_ready_nodes, total_nodes = k8s_nodes.getNodesStatus(path, context_name)
+    ready_nodes, not_ready_nodes, total_nodes = k8s_nodes.get_Nodes_Status(path, context_name)
     
     return render(request, 'dashboard/cluster_management/nodes.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 'nodes': nodes, 
                                                                        'ready_nodes': ready_nodes, 'not_ready_nodes': not_ready_nodes, 'total_nodes': total_nodes, 'current_cluster': current_cluster})

@@ -14,7 +14,7 @@ def getnodes(path, cluster_name):
         node_list.append(node.metadata.name)
     return node_list, len(node_list)
 
-def getNodesStatus(path, context):
+def get_Nodes_Status(path, context):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     node_list = v1.list_node().items

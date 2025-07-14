@@ -8,6 +8,8 @@ import yaml
 from kubebuddy.appLogs import logger
 from deepdiff import DeepDiff
 import json
+import boto3
+import subprocess
 
 # Age calculation
 def calculateAge(timedelta_obj):
@@ -30,42 +32,79 @@ def filter_annotations(annotations):
     return filtered_annotations if filtered_annotations else None
 
 def configure_k8s(path: str, context: str):
-    if context.startswith("gke_"):
-        try:
-            _, project_id, zone, cluster_id = context.split("_", 3)
-        except ValueError:
-            raise ValueError("Invalid GKE context format")
-
+    if context.startswith('gke_'):
+        # Handle GKE
         SCOPES = ['https://www.googleapis.com/auth/cloud-platform']
-        credentials, _ = default(scopes=SCOPES)
-
+        credentials, project = default(scopes=SCOPES)
         cluster_manager_client = ClusterManagerClient(credentials=credentials)
-        cluster = cluster_manager_client.get_cluster(
+
+        # Extract GKE details from context_name: gke_{project}_{zone}_{cluster_name}
+    
+        _, project_id, zone, cluster_id = context.split('_', 3) # Have removed the try block assuming context is always in this format
+
+        gke_cluster = cluster_manager_client.get_cluster(
             project_id=project_id,
             zone=zone,
             cluster_id=cluster_id
         )
 
-        cert = base64.b64decode(cluster.master_auth.cluster_ca_certificate)
+        cert = base64.b64decode(gke_cluster.master_auth.cluster_ca_certificate)
         with tempfile.NamedTemporaryFile(delete=False, suffix=".crt") as cert_file:
             cert_file.write(cert)
             cert_path = cert_file.name
 
         configuration = client.Configuration()
-        configuration.host = f"https://{cluster.endpoint}:443"
+        configuration.host = f"https://{gke_cluster.endpoint}:443"
         configuration.ssl_ca_cert = cert_path
         configuration.verify_ssl = True
         configuration.api_key = {"authorization": "Bearer " + credentials.token}
         client.Configuration.set_default(configuration)
 
+    elif context.startswith('arn:aws:eks:'):
+        # Get token
+        region = context.split(':')[3]
+        eks = boto3.client('eks', region_name=region)
+        cluster_info = eks.describe_cluster(name=context)
+        cluster_cert = cluster_info['cluster']['certificateAuthority']['data']
+        cluster_endpoint = cluster_info['cluster']['endpoint']
+
+        # Generate token
+        token = boto3.client('sts').get_caller_identity()
+        auth_token = subprocess.check_output(
+            ['aws', 'eks', 'get-token', '--cluster-name', context, '--region', region, '--output', 'json']
+        )
+        token_data = json.loads(auth_token)
+        bearer_token = token_data['status']['token']
+        # Build config manually
+        config_dict = {
+            'apiVersion': 'v1',
+            'clusters': [{
+                'cluster': {
+                    'server': cluster_endpoint,
+                    'certificate-authority-data': cluster_cert
+                },
+                'name': context
+            }],
+            'contexts': [{
+                'context': {
+                    'cluster': context,
+                    'user': context
+                },
+                'name': context
+            }],
+            'current-context': context,
+            'kind': 'Config',
+            'users': [{
+                'name': context,
+                'user': {
+                    'token': bearer_token
+                }
+            }]
+        }
+
+        config.load_kube_config_from_dict(config_dict)
     else:
         config.load_kube_config(config_file=path, context=context)
-
-        aws_token = os.getenv("AWS_EKS_TOKEN")
-        if aws_token and context.startswith("arn:aws:eks"):
-            configuration = client.Configuration.get_default_copy()
-            configuration.api_key = {"authorization": f"Bearer {aws_token}"}
-            client.Configuration.set_default(configuration)
 
 
 # Map resource kinds to API client and patch methods

@@ -609,26 +609,26 @@ def cluster_role_binding_info(request, cluster_id, cluster_role_binding_name):
                                                                            "cluster_id": cluster_id, 'registered_clusters': registered_clusters, 'current_cluster': current_cluster})
 
 
-def serviceAccount(request, cluster_id):
+def service_account(request, cluster_id):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
 
-    serviceAccount, total_serviceAccount = k8s_service_accounts.get_service_accounts(path, context_name)
+    service_account, total_service_account = k8s_service_accounts.get_service_accounts(path, context_name)
 
-    return render(request, 'dashboard/RBAC/serviceAccount.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                                  'serviceAccount': serviceAccount, 'total_serviceAccount': total_serviceAccount, 'namespaces': namespaces, 'current_cluster': current_cluster})
+    return render(request, 'dashboard/RBAC/service_account.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
+                                                                  'service_account': service_account, 'total_service_account': total_service_account, 'namespaces': namespaces, 'current_cluster': current_cluster})
 
 
-def serviceAccountInfo(request, cluster_id, namespace, sa_name):
+def service_accountInfo(request, cluster_id, namespace, sa_name):
     cluster_id, current_cluster, path, registered_clusters, _, context_name = get_utils_data(request)
 
-    serviceAccountInfo = {
+    service_accountInfo = {
         "describe": k8s_service_accounts.get_sa_description(path, context_name, namespace, sa_name),
         "events": k8s_service_accounts.get_sa_events(path, context_name, namespace, sa_name),
         "yaml": k8s_service_accounts.get_sa_yaml(path, context_name, namespace, sa_name),
     }
 
-    return render(request, 'dashboard/RBAC/serviceAccountInfo.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
-                                                                      'serviceAccountInfo': serviceAccountInfo, 'current_cluster': current_cluster})
+    return render(request, 'dashboard/RBAC/service_accountInfo.html', {'cluster_id': cluster_id, 'registered_clusters': registered_clusters, 
+                                                                      'service_accountInfo': service_accountInfo, 'current_cluster': current_cluster})
 
 
 ############ METRICS SECTION ############

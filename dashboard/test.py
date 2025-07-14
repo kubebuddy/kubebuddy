@@ -1,7 +1,7 @@
 from django.test import TestCase, RequestFactory
 from unittest.mock import patch, MagicMock
 from main.models import KubeConfig, Cluster 
-from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info, resourcequota_info, resourcequotas,pdb,pdb_info, configmaps, configmap_info, secret_info, secrets, services, service_info, endpoints, endpoint_info, persistentvolume, pv_info, persistentvolumeclaim, pvc_info, storageclass, storageclass_info, np, np_info, ingress, ingress_info, role, role_info, role_binding_info, rolebinding, clusterrole, clusterrole_info, clusterrolebinding, cluster_role_binding_info, serviceAccount, serviceAccountInfo, pod_metrics, node_metrics, events, execute_command
+from dashboard.views import get_utils_data, pods, pod_info, replicasets, rs_info, deployments, deploy_info, statefulsets, sts_info, daemonset, daemonset_info, jobs, jobs_info, cronjob_info, cronjobs, namespace, ns_info, nodes, node_info, limitrange, limitrange_info, resourcequota_info, resourcequotas,pdb,pdb_info, configmaps, configmap_info, secret_info, secrets, services, service_info, endpoints, endpoint_info, persistentvolume, pv_info, persistentvolumeclaim, pvc_info, storageclass, storageclass_info, np, np_info, ingress, ingress_info, role, role_info, role_binding_info, rolebinding, clusterrole, clusterrole_info, clusterrolebinding, cluster_role_binding_info, service_account, service_accountInfo, pod_metrics, node_metrics, events, execute_command
 from django.http import JsonResponse
 import os
 import json
@@ -3922,7 +3922,7 @@ class ClusterRoleBindingViewsTests(TestCase):
         self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_events.assert_not_called()
         self.mock_k8s_cluster_role_bindings.get_cluster_role_binding_yaml.assert_not_called()
         
-class ServiceAccountViewsTests(TestCase):
+class Service_accountViewsTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.kube_config_entry = KubeConfig.objects.create(
@@ -3959,24 +3959,24 @@ class ServiceAccountViewsTests(TestCase):
             self.cluster.context_name
         )
 
-    def test_serviceAccount_successful_rendering(self):
+    def test_service_account_successful_rendering(self):
         self._setup_utils_data()
         mock_service_accounts = [
             {"name": "sa-1", "namespace": "default"},
             {"name": "sa-2", "namespace": "kube-system"}
         ]
         self.mock_k8s_service_accounts.get_service_accounts.return_value = (mock_service_accounts, 2)
-        request = self.factory.get(f'/dashboard/serviceAccount/{self.cluster.id}/')
-        serviceAccount(request, self.cluster.id)
+        request = self.factory.get(f'/dashboard/service_account/{self.cluster.id}/')
+        service_account(request, self.cluster.id)
         self.mock_render.assert_called_once()
         args, kwargs = self.mock_render.call_args
         self.assertEqual(args[0], request)
-        self.assertEqual(args[1], 'dashboard/RBAC/serviceAccount.html')
+        self.assertEqual(args[1], 'dashboard/RBAC/service_account.html')
         context = args[2]
         self.assertEqual(context["cluster_id"], str(self.cluster.id))
         self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
-        self.assertEqual(context["serviceAccount"], mock_service_accounts)
-        self.assertEqual(context["total_serviceAccount"], 2)
+        self.assertEqual(context["service_account"], mock_service_accounts)
+        self.assertEqual(context["total_service_account"], 2)
         self.assertEqual(context["namespaces"], self.mock_get_utils_data.return_value[4])
         self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
         self.mock_get_utils_data.assert_called_once_with(request)
@@ -3984,39 +3984,39 @@ class ServiceAccountViewsTests(TestCase):
             self.kube_config_entry.path, self.cluster.context_name
         )
 
-    def test_serviceAccount_get_utils_data_failure(self):
+    def test_service_account_get_utils_data_failure(self):
         self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
-        request = self.factory.get(f'/dashboard/serviceAccount/{self.cluster.id}/')
+        request = self.factory.get(f'/dashboard/service_account/{self.cluster.id}/')
         with self.assertRaises(Cluster.DoesNotExist):
-            serviceAccount(request, self.cluster.id)
+            service_account(request, self.cluster.id)
         self.mock_k8s_service_accounts.get_service_accounts.assert_not_called()
         self.mock_render.assert_not_called()
 
-    def test_serviceAccount_k8s_api_failure(self):
+    def test_service_account_k8s_api_failure(self):
         self._setup_utils_data()
         self.mock_k8s_service_accounts.get_service_accounts.side_effect = Exception("K8s error")
-        request = self.factory.get(f'/dashboard/serviceAccount/{self.cluster.id}/')
+        request = self.factory.get(f'/dashboard/service_account/{self.cluster.id}/')
         with self.assertRaises(Exception):
-            serviceAccount(request, self.cluster.id)
+            service_account(request, self.cluster.id)
         self.mock_render.assert_not_called()
         self.mock_k8s_service_accounts.get_service_accounts.assert_called_once()
 
-    def test_serviceAccountInfo_successful_rendering(self):
+    def test_service_accountInfo_successful_rendering(self):
         self._setup_utils_data()
         self.mock_k8s_service_accounts.get_sa_description.return_value = "SA description"
         self.mock_k8s_service_accounts.get_sa_events.return_value = "SA events"
         self.mock_k8s_service_accounts.get_sa_yaml.return_value = "SA yaml"
-        request = self.factory.get(f'/dashboard/serviceAccountInfo/{self.cluster.id}/default/sa-1/')
-        serviceAccountInfo(request, self.cluster.id, "default", "sa-1")
+        request = self.factory.get(f'/dashboard/service_accountInfo/{self.cluster.id}/default/sa-1/')
+        service_accountInfo(request, self.cluster.id, "default", "sa-1")
         self.mock_render.assert_called_once()
         args, kwargs = self.mock_render.call_args
         self.assertEqual(args[0], request)
-        self.assertEqual(args[1], 'dashboard/RBAC/serviceAccountInfo.html')
+        self.assertEqual(args[1], 'dashboard/RBAC/service_accountInfo.html')
         context = args[2]
-        self.assertIn("serviceAccountInfo", context)
-        self.assertEqual(context["serviceAccountInfo"]["describe"], "SA description")
-        self.assertEqual(context["serviceAccountInfo"]["events"], "SA events")
-        self.assertEqual(context["serviceAccountInfo"]["yaml"], "SA yaml")
+        self.assertIn("service_accountInfo", context)
+        self.assertEqual(context["service_accountInfo"]["describe"], "SA description")
+        self.assertEqual(context["service_accountInfo"]["events"], "SA events")
+        self.assertEqual(context["service_accountInfo"]["yaml"], "SA yaml")
         self.assertEqual(context["cluster_id"], str(self.cluster.id))
         self.assertEqual(context["registered_clusters"], self.mock_get_utils_data.return_value[3])
         self.assertEqual(context["current_cluster"], self.mock_get_utils_data.return_value[1])
@@ -4031,24 +4031,24 @@ class ServiceAccountViewsTests(TestCase):
             self.kube_config_entry.path, self.cluster.context_name, "default", "sa-1"
         )
 
-    def test_serviceAccountInfo_get_utils_data_failure(self):
+    def test_service_accountInfo_get_utils_data_failure(self):
         self.mock_get_utils_data.side_effect = Cluster.DoesNotExist("Cluster not found")
-        request = self.factory.get(f'/dashboard/serviceAccountInfo/{self.cluster.id}/default/sa-1/')
+        request = self.factory.get(f'/dashboard/service_accountInfo/{self.cluster.id}/default/sa-1/')
         with self.assertRaises(Cluster.DoesNotExist):
-            serviceAccountInfo(request, self.cluster.id, "default", "sa-1")
+            service_accountInfo(request, self.cluster.id, "default", "sa-1")
         self.mock_k8s_service_accounts.get_sa_description.assert_not_called()
         self.mock_k8s_service_accounts.get_sa_events.assert_not_called()
         self.mock_k8s_service_accounts.get_sa_yaml.assert_not_called()
         self.mock_render.assert_not_called()
 
-    def test_serviceAccountInfo_k8s_api_failure(self):
+    def test_service_accountInfo_k8s_api_failure(self):
         self._setup_utils_data()
         self.mock_k8s_service_accounts.get_sa_description.side_effect = Exception("K8s error")
         self.mock_k8s_service_accounts.get_sa_events.side_effect = Exception("K8s error")
         self.mock_k8s_service_accounts.get_sa_yaml.side_effect = Exception("K8s error")
-        request = self.factory.get(f'/dashboard/serviceAccountInfo/{self.cluster.id}/default/sa-1/')
+        request = self.factory.get(f'/dashboard/service_accountInfo/{self.cluster.id}/default/sa-1/')
         with self.assertRaises(Exception):
-            serviceAccountInfo(request, self.cluster.id, "default", "sa-1")
+            service_accountInfo(request, self.cluster.id, "default", "sa-1")
         self.mock_render.assert_not_called()
         self.mock_k8s_service_accounts.get_sa_description.assert_called_once()
         self.mock_k8s_service_accounts.get_sa_events.assert_not_called()

@@ -73,7 +73,7 @@ def configure_k8s(path: str, context: str):
         # Generate token
         token = boto3.client('sts').get_caller_identity()
         auth_token = subprocess.check_output(
-            ['aws', 'eks', 'get-token', '--cluster-name', context, '--region', region, '--output', 'json']
+            ['aws', 'eks', 'get-token', '--cluster-name', name, '--region', region, '--output', 'json']
         )
         token_data = json.loads(auth_token)
         bearer_token = token_data['status']['token']

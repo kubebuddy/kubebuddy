@@ -58,8 +58,9 @@ def get_cluster_status(request):
             # currently using context for cluster name and user as well, if need be we can read the file and get the relevant data
             # Get token
             region = cluster['context_name'].split(':')[3]
+            name = cluster['context_name'].split(':')[5].split('/')[1]
             eks = boto3.client('eks', region_name=region)
-            cluster_info = eks.describe_cluster(name=cluster['cluster_name'])
+            cluster_info = eks.describe_cluster(name=name)
             cluster_cert = cluster_info['cluster']['certificateAuthority']['data']
             cluster_endpoint = cluster_info['cluster']['endpoint']
 

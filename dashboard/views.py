@@ -55,7 +55,6 @@ def get_utils_data(request):
 def dashboard(request, cluster_id):
     namespace = request.GET.get("namespace", "all")
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)
-    config.load_kube_config(config_file=path, context=context_name)
     namespaces_count = len(namespaces)
     warning_message = (
         "Warning: You're using the default username & password. Please change it for security reasons."

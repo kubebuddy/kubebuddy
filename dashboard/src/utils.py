@@ -61,10 +61,12 @@ def configure_k8s(path: str, context: str):
         client.Configuration.set_default(configuration)
 
     elif context.startswith('arn:aws:eks:'):
+        # currently using context for cluster name and user as well, if need be we can read the file and get the relevant data
         # Get token
         region = context.split(':')[3]
+        name = context.split(':')[5].split('/')[1]
         eks = boto3.client('eks', region_name=region)
-        cluster_info = eks.describe_cluster(name=context)
+        cluster_info = eks.describe_cluster(name=name)
         cluster_cert = cluster_info['cluster']['certificateAuthority']['data']
         cluster_endpoint = cluster_info['cluster']['endpoint']
 
@@ -76,6 +78,7 @@ def configure_k8s(path: str, context: str):
         token_data = json.loads(auth_token)
         bearer_token = token_data['status']['token']
         # Build config manually
+
         config_dict = {
             'apiVersion': 'v1',
             'clusters': [{

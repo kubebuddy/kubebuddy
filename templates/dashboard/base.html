@@ -1,445 +1,758 @@
 {% load static %}
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="author" content="Dheeraj Sain">
-  <title>{% block title %}Dashboard{% endblock %}</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="Dheeraj Sain" />
+    <title>{% block title %}Dashboard{% endblock %}</title>
 
-  <link rel="icon" href="{% block favicon %}https://cdn-icons-png.flaticon.com/512/3388/3388738.png{% endblock %}" type="image/x-icon">
+    <link
+      rel="icon"
+      href="{% block favicon %}https://cdn-icons-png.flaticon.com/512/3388/3388738.png{% endblock %}"
+      type="image/x-icon"
+    />
 
-  <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/sidebars/">
+    <link
+      rel="canonical"
+      href="https://getbootstrap.com/docs/5.1/examples/sidebars/"
+    />
 
-  <!-- Bootstrap core CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Bootstrap core CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="{% static 'js/breadcrumb.js' %}"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/breadcrumb.js' %}"></script>
 
-  <style>
-    html { visibility: hidden; }
-  </style>
-  <script>
-    (function () {
-      const theme = localStorage.getItem("theme");
-      if (theme === "dark") {
-        document.documentElement.classList.add("dark-mode");
+    <style>
+      html {
+        visibility: hidden;
       }
-      document.documentElement.style.visibility = "visible";
-    })();
-  </script>
+    </style>
+    <script>
+      (function () {
+        const theme = localStorage.getItem("theme");
+        if (theme === "dark") {
+          document.documentElement.classList.add("dark-mode");
+        }
+        document.documentElement.style.visibility = "visible";
+      })();
+    </script>
 
-  <!-- Custom styles for this template -->
-  <link rel="stylesheet" href="{% static 'css/sidebars.css' %}">
-</head>
-<body>
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href="{% static 'css/sidebars.css' %}" />
+  </head>
+  <body>
+    <nav
+      class="navbar border-bottom bg-body-tertiary navbar-expand-lg bg-light py-2"
+    >
+      <a href="/KubeBuddy" class="text-decoration-none" style="width: 18vw">
+        <div class="navbar-brand d-flex align-items-center p-4 gap-2">
+          <img
+            src="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png"
+            width="30"
+            height="30"
+            alt="KubeBuddy Logo"
+          />
+          <span class="fs-5 fw-semibold">KubeBuddy</span>
+        </div>
+      </a>
 
-  <nav class="navbar border-bottom bg-body-tertiary navbar-expand-lg bg-light py-2">
-    
-    <a href="/KubeBuddy" class="text-decoration-none" style="width: 18vw;">
-      <div class="navbar-brand d-flex align-items-center p-4 gap-2">
-        <img src="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png" width="30" height="30" alt="KubeBuddy Logo">
-        <span class="fs-5 fw-semibold">KubeBuddy</span>
-      </div>
-    </a>
+      <nav aria-label="breadcrumb" class="m-2">
+        <ol class="breadcrumb m-1 p-1">
+          <!-- These will be populated dynamically with JavaScript -->
+        </ol>
+      </nav>
 
-    <nav aria-label="breadcrumb" class="m-2">
-      <ol class="breadcrumb m-1 p-1">
-        <!-- These will be populated dynamically with JavaScript -->
-      </ol>
-    </nav>
-    
-  
-    <!-- Right Section (Cluster Dropdown + Button + Dropdown) -->
-    <div class="d-flex ms-auto align-items-center gap-2">
-  
-      <!-- Cluster dropdown -->
-      <div class="my-2 p-0">
-        <div class="dropdown">
-          <input type="text" id="search-bar" class="form-control fw-bold bg-primary " style="color: #fff; cursor:pointer; width: 15vw;" placeholder={{current_cluster}} onkeyup="searchClusters()" readOnly>
-          <i class="bi bi-caret-down-fill position-absolute" style="right: 15px; top: 50%; transform: translateY(-50%); color: white; pointer-events: none;"></i>
-          <ul class="dropdown-menu" id="cluster-list" style="width: 15vw;">
-            {% for cluster in registered_clusters %}
-            <a href="/{{cluster.id}}/dashboard?cluster_id={{cluster.id}}" class="text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="{{cluster.cluster_name}}" >
-              <li class="dropdown-item cluster-item" >{{ cluster.cluster_name|truncatechars:25 }}</li>
-            </a>
-            {% empty %}
+      <!-- Right Section (Cluster Dropdown + Button + Dropdown) -->
+      <div class="d-flex ms-auto align-items-center gap-2">
+        <!-- Cluster dropdown -->
+        <div class="my-2 p-0">
+          <div class="dropdown">
+            <input
+              type="text"
+              id="search-bar"
+              class="form-control fw-bold bg-primary"
+              style="color: #fff; cursor: pointer; width: 15vw"
+              placeholder="{{current_cluster}}"
+              onkeyup="searchClusters()"
+              readonly
+            />
+            <i
+              class="bi bi-caret-down-fill position-absolute"
+              style="
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: white;
+                pointer-events: none;
+              "
+            ></i>
+            <ul class="dropdown-menu" id="cluster-list" style="width: 15vw">
+              {% for cluster in registered_clusters %}
+              <a
+                href="/{{cluster.id}}/dashboard?cluster_id={{cluster.id}}"
+                class="text-decoration-none"
+                data-bs-toggle="tooltip"
+                data-bs-placement="left"
+                data-bs-title="{{cluster.cluster_name}}"
+              >
+                <li class="dropdown-item cluster-item">
+                  {{ cluster.cluster_name|truncatechars:25 }}
+                </li>
+              </a>
+              {% empty %}
               <li class="list-group-item">No clusters found.</li>
-            {% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <!-- Refresh Button -->
+        <button id="reload-btn" class="btn btn-primary">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+
+        <!-- Account Dropdown -->
+        <div class="dropdown">
+          <button
+            class="btn btn-link dropdown-toggle d-flex align-items-center"
+            type="button"
+            id="accountDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="true"
+          >
+            <i class="bi bi-person-circle fs-4"></i>
+            <!-- User Icon -->
+          </button>
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            aria-labelledby="accountDropdown"
+          >
+            <li><a class="dropdown-item" href="/profile">Profile</a></li>
+            <li><a class="dropdown-item" href="/settings">Settings</a></li>
+            <li><a class="dropdown-item" href="/logout">Sign out</a></li>
           </ul>
         </div>
       </div>
-  
-      <!-- Refresh Button -->
-      <button id="reload-btn" class="btn btn-primary ">
-        <i class="bi bi-arrow-clockwise"></i>
-      </button>
-      
-      <!-- Account Dropdown -->
-      <div class="dropdown">
-        <button class="btn btn-link dropdown-toggle d-flex align-items-center" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="true">
-          <i class="bi bi-person-circle fs-4"></i> <!-- User Icon -->
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
-          <li><a class="dropdown-item" href="/profile">Profile</a></li>
-          <li><a class="dropdown-item" href="/settings">Settings</a></li>
-          <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+    </nav>
+
+    <div
+      id="toggleSidebar"
+      class="position-absolute top-50 translate-middle-y bg-primary text-light"
+      style="
+        cursor: pointer;
+        left: 17vw;
+        padding: 0.3em 0.6em;
+        border-radius: 4em;
+        font-weight: bold;
+        font-size: 1em;
+      "
+    >
+      <i class="bi bi-chevron-double-left"></i>
+    </div>
+
+    <main class="d-flex">
+      <!-- Sidebar -->
+      <div id="sidebar" class="sidebar p-3 bg-white border-end">
+        <a
+          href="/{{cluster_id}}/dashboard?cluster_id={{cluster_id}}"
+          class="btn btn-primary text-decoration-none text-white d-flex align-items-center mb-2"
+        >
+          <i class="bi bi-speedometer pe-2"></i>
+          <b>Dashboard</b>
+        </a>
+
+        <ul class="list-unstyled ps-0 scrollable-list">
+          <!-- Workloads Section -->
+          <li class="mb-1">
+            <button
+              class="btn btn-toggle align-items-center rounded collapsed"
+              data-bs-toggle="collapse"
+              data-bs-target="#workload-collapse"
+              aria-expanded="true"
+            >
+              Workloads
+            </button>
+            <div class="collapse show" id="workload-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li>
+                  <a
+                    href="/{{cluster_id}}/pods?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Pods</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/replicasets?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >ReplicaSets</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/deployments?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Deployments</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/statefulsets?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >StatefulSets</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/daemonset?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >DaemonSets</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/jobs?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Jobs</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/cronjobs?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >CronJobs</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- Cluster Management Section -->
+          <li class="mb-1">
+            <button
+              class="btn btn-toggle align-items-center rounded collapsed"
+              data-bs-toggle="collapse"
+              data-bs-target="#cluster-mgmt-collapse"
+              aria-expanded="true"
+            >
+              Cluster Management
+            </button>
+            <div class="collapse show" id="cluster-mgmt-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li>
+                  <a
+                    href="/{{cluster_id}}/namespace?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Namespaces</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/nodes?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Nodes</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/pdb?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Pod Disruption Budgets</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/limitrange?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Limit Ranges</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/resourcequotas?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Resource Quotas</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- Services Section -->
+          <li class="mb-1">
+            <button
+              class="btn btn-toggle align-items-center rounded collapsed"
+              data-bs-toggle="collapse"
+              data-bs-target="#services-collapse"
+              aria-expanded="true"
+            >
+              Services
+            </button>
+            <div class="collapse show" id="services-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li>
+                  <a
+                    href="/{{cluster_id}}/services?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Services</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/endpoints?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Endpoints</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- Config & Secrets Section -->
+          <li class="mb-1">
+            <button
+              class="btn btn-toggle align-items-center rounded collapsed"
+              data-bs-toggle="collapse"
+              data-bs-target="#config-secrets-collapse"
+              aria-expanded="true"
+            >
+              ConfigMaps & Secrets
+            </button>
+            <div class="collapse show" id="config-secrets-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li>
+                  <a
+                    href="/{{cluster_id}}/configmaps?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >ConfigMaps</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/secrets?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Secrets</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- Persistent Storage Section -->
+          <li class="mb-1">
+            <button
+              class="btn btn-toggle align-items-center rounded collapsed"
+              data-bs-toggle="collapse"
+              data-bs-target="#ps-collapse"
+              aria-expanded="true"
+            >
+              Persistent Storage
+            </button>
+            <div class="collapse show" id="ps-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li>
+                  <a
+                    href="/{{cluster_id}}/pv?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Persistent Volumes</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/pvc?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Persistent Volume Claims</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/storageclass?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Storage Classes</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- Networking Section -->
+          <li class="mb-1">
+            <button
+              class="btn btn-toggle align-items-center rounded collapsed"
+              data-bs-toggle="collapse"
+              data-bs-target="#networking-collapse"
+              aria-expanded="true"
+            >
+              Networking
+            </button>
+            <div class="collapse show" id="networking-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li>
+                  <a
+                    href="/{{cluster_id}}/ingress?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Ingress</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/np?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Network Policies</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- RBAC Section -->
+          <li class="mb-1">
+            <button
+              class="btn btn-toggle align-items-center rounded collapsed"
+              data-bs-toggle="collapse"
+              data-bs-target="#rbac-collapse"
+              aria-expanded="true"
+            >
+              RBAC
+            </button>
+            <div class="collapse show" id="rbac-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li>
+                  <a
+                    href="/{{cluster_id}}/role?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Roles</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/rolebinding?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Role Bindings</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/clusterrole?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Cluster Roles</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/clusterrolebinding?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Cluster Role Bindings</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/sa?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Service Accounts</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- Metrics Section -->
+          <li class="mb-1">
+            <button
+              class="btn btn-toggle align-items-center rounded collapsed"
+              data-bs-toggle="collapse"
+              data-bs-target="#metrics-collapse"
+              aria-expanded="true"
+            >
+              Metrics
+            </button>
+            <div class="collapse show" id="metrics-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li>
+                  <a
+                    href="/{{cluster_id}}/pod_metrics?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Pod Metrics</a
+                  >
+                </li>
+                <li>
+                  <a
+                    href="/{{cluster_id}}/node_metrics?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >Node Metrics</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <!-- Events Section -->
+          <li class="mb-1">
+            <button
+              class="btn btn-toggle align-items-center rounded collapsed"
+              data-bs-toggle="collapse"
+              data-bs-target="#events-collapse"
+              aria-expanded="true"
+            >
+              Events
+            </button>
+            <div class="collapse show" id="events-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li>
+                  <a
+                    href="/{{cluster_id}}/events?cluster_id={{cluster_id}}"
+                    class="link-dark rounded"
+                    >All Events</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          <li class="border-top my-3"></li>
         </ul>
       </div>
-    </div>
-  </nav>
-  
-  <div id="toggleSidebar" class="position-absolute top-50 translate-middle-y bg-primary text-light" style="cursor: pointer; left: 17vw; padding: .3em .6em; border-radius: 4em; font-weight: bold; font-size: 1em; ">
-    <i class='bi bi-chevron-double-left'></i>
-  </div>
 
-  <main class="d-flex">
-    
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar p-3 bg-white border-end">
-      
-      <a href="/{{cluster_id}}/dashboard?cluster_id={{cluster_id}}" class="btn btn-primary  text-decoration-none text-white d-flex align-items-center mb-2">
-        <i class="bi bi-speedometer pe-2"></i>
-        <b>Dashboard</b>
-      </a>
+      <div class="main-content" style="overflow-y: auto">
+        {% block content %}{% endblock %}
+      </div>
 
+      <div id="terminal-icon">
+        <i class="bi bi-terminal terminal-icon"></i>
+      </div>
 
-      <ul class="list-unstyled ps-0 scrollable-list">
-        <!-- Workloads Section -->
-        <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#workload-collapse" aria-expanded="true">
-            Workloads
-          </button>
-          <div class="collapse show" id="workload-collapse">
-            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/pods?cluster_id={{cluster_id}}" class="link-dark rounded">Pods</a></li>
-              <li><a href="/{{cluster_id}}/replicasets?cluster_id={{cluster_id}}" class="link-dark rounded">ReplicaSets</a></li>
-              <li><a href="/{{cluster_id}}/deployments?cluster_id={{cluster_id}}" class="link-dark rounded">Deployments</a></li>
-              <li><a href="/{{cluster_id}}/statefulsets?cluster_id={{cluster_id}}" class="link-dark rounded">StatefulSets</a></li>
-              <li><a href="/{{cluster_id}}/daemonset?cluster_id={{cluster_id}}" class="link-dark rounded">DaemonSets</a></li>
-              <li><a href="/{{cluster_id}}/jobs?cluster_id={{cluster_id}}" class="link-dark rounded">Jobs</a></li>
-              <li><a href="/{{cluster_id}}/cronjobs?cluster_id={{cluster_id}}" class="link-dark rounded">CronJobs</a></li>
-            </ul>
-          </div>
-        </li>
-
-        <!-- Cluster Management Section -->
-        <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#cluster-mgmt-collapse" aria-expanded="true">
-            Cluster Management
-          </button>
-          <div class="collapse show" id="cluster-mgmt-collapse">
-            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/namespace?cluster_id={{cluster_id}}" class="link-dark rounded">Namespaces</a></li>
-              <li><a href="/{{cluster_id}}/nodes?cluster_id={{cluster_id}}" class="link-dark rounded">Nodes</a></li>
-              <li><a href="/{{cluster_id}}/pdb?cluster_id={{cluster_id}}" class="link-dark rounded">Pod Disruption Budgets</a></li>
-              <li><a href="/{{cluster_id}}/limitrange?cluster_id={{cluster_id}}" class="link-dark rounded">Limit Ranges</a></li>
-              <li><a href="/{{cluster_id}}/resourcequotas?cluster_id={{cluster_id}}" class="link-dark rounded">Resource Quotas</a></li>
-            </ul>
-          </div>
-        </li>
-        
-        <!-- Services Section -->
-        <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#services-collapse" aria-expanded="true">
-            Services
-          </button>
-          <div class="collapse show" id="services-collapse">
-            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/services?cluster_id={{cluster_id}}" class="link-dark rounded">Services</a></li>
-              <li><a href="/{{cluster_id}}/endpoints?cluster_id={{cluster_id}}" class="link-dark rounded">Endpoints</a></li>
-            </ul>
-          </div>
-        </li>
-
-        <!-- Config & Secrets Section -->
-        <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#config-secrets-collapse" aria-expanded="true">
-            ConfigMaps & Secrets
-          </button>
-          <div class="collapse show" id="config-secrets-collapse">
-            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/configmaps?cluster_id={{cluster_id}}" class="link-dark rounded">ConfigMaps</a></li>
-              <li><a href="/{{cluster_id}}/secrets?cluster_id={{cluster_id}}" class="link-dark rounded">Secrets</a></li>
-            </ul>
-          </div>
-        </li>
-
-        <!-- Persistent Storage Section -->
-        <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#ps-collapse" aria-expanded="true">
-            Persistent Storage
-          </button>
-          <div class="collapse show" id="ps-collapse">
-            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/pv?cluster_id={{cluster_id}}" class="link-dark rounded">Persistent Volumes</a></li>
-              <li><a href="/{{cluster_id}}/pvc?cluster_id={{cluster_id}}" class="link-dark rounded">Persistent Volume Claims</a></li>
-              <li><a href="/{{cluster_id}}/storageclass?cluster_id={{cluster_id}}" class="link-dark rounded">Storage Classes</a></li>
-            </ul>
-          </div>
-        </li>
-
-        <!-- Networking Section -->
-        <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#networking-collapse" aria-expanded="true">
-            Networking
-          </button>
-          <div class="collapse show" id="networking-collapse">
-            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/ingress?cluster_id={{cluster_id}}" class="link-dark rounded">Ingress</a></li>
-              <li><a href="/{{cluster_id}}/np?cluster_id={{cluster_id}}" class="link-dark rounded">Network Policies</a></li>
-            </ul>
-          </div>
-        </li>
-
-        <!-- RBAC Section -->
-        <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#rbac-collapse" aria-expanded="true">
-            RBAC
-          </button>
-          <div class="collapse show" id="rbac-collapse">
-            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/role?cluster_id={{cluster_id}}" class="link-dark rounded">Roles</a></li>
-              <li><a href="/{{cluster_id}}/rolebinding?cluster_id={{cluster_id}}" class="link-dark rounded">Role Bindings</a></li>
-              <li><a href="/{{cluster_id}}/clusterrole?cluster_id={{cluster_id}}" class="link-dark rounded">Cluster Roles</a></li>
-              <li><a href="/{{cluster_id}}/clusterrolebinding?cluster_id={{cluster_id}}" class="link-dark rounded">Cluster Role Bindings</a></li>
-              <li><a href="/{{cluster_id}}/sa?cluster_id={{cluster_id}}" class="link-dark rounded">Service Accounts</a></li>
-            </ul>
-          </div>
-        </li>
-
-        <!-- Metrics Section -->
-        <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#metrics-collapse" aria-expanded="true">
-            Metrics
-          </button>
-          <div class="collapse show" id="metrics-collapse">
-            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/pod_metrics?cluster_id={{cluster_id}}" class="link-dark rounded">Pod Metrics</a></li>
-              <li><a href="/{{cluster_id}}/node_metrics?cluster_id={{cluster_id}}" class="link-dark rounded">Node Metrics</a></li>
-            </ul>
-          </div>
-        </li>
-
-        <!-- Events Section -->
-        <li class="mb-1">
-          <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#events-collapse" aria-expanded="true">
-            Events
-          </button>
-          <div class="collapse show" id="events-collapse">
-            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-              <li><a href="/{{cluster_id}}/events?cluster_id={{cluster_id}}" class="link-dark rounded">All Events</a></li>
-            </ul>
-          </div>
-        </li>
-
-        <li class="border-top my-3"></li>
-      </ul>
-    </div>
-
-    <div class="main-content" style="overflow-y: auto;">
-      {% block content %}{% endblock %}
-    </div>
-
-    <div id="terminal-icon">
-      <i class="bi bi-terminal terminal-icon"></i>
-    </div>
-
-    <!-- Terminal Window -->
-    <div id="terminal-window">
+      <!-- Terminal Window -->
+      <div id="terminal-window">
         <div id="terminal-header">
-            Buddy Terminal 💻
-            <div class="chat-header-buttons">
-              <button class="clear-chat-btn" onclick="terminalFullscreen()">
-                <i class="bi bi-fullscreen"></i> <!-- Fullscreen icon initially visible -->
-                <i class="bi bi-fullscreen-exit d-none"></i> <!-- Exit fullscreen icon initially hidden -->
-              </button>
-              <button id="close-terminal" class="clear-chat-btn"><i class="bi bi-x-lg"></i></button>
-            </div>
+          Buddy Terminal 💻
+          <div class="chat-header-buttons">
+            <button class="clear-chat-btn" onclick="terminalFullscreen()">
+              <i class="bi bi-fullscreen"></i>
+              <!-- Fullscreen icon initially visible -->
+              <i class="bi bi-fullscreen-exit d-none"></i>
+              <!-- Exit fullscreen icon initially hidden -->
+            </button>
+            <button id="close-terminal" class="clear-chat-btn">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
         </div>
         <div id="terminal-output"></div>
         <div id="terminal-input">
-            <span style="font-size: 14px;" class="prompt">user@host:~$</span>
-            <input type="text" id="input" autofocus>
+          <span style="font-size: 14px" class="prompt">user@host:~$</span>
+          <input type="text" id="input" autofocus />
         </div>
-    </div>
+      </div>
 
-    <div class="chatbot-container">
-      <button class="chatbot-button" onclick="toggleChat()"><i class="bi bi-robot"></i></button>
-      <div class="chatbot-window" id="chatbotWindow" style="display: none;">
+      <div class="chatbot-container">
+        <button class="chatbot-button" onclick="toggleChat()">
+          <i class="bi bi-robot"></i>
+        </button>
+        <div class="chatbot-window" id="chatbotWindow" style="display: none">
           <div class="chat-header">
-              Buddy AI 🤘🏻✨
-              <div class="chat-header-buttons">
-                <button class="clear-chat-btn" onclick="toggleFullscreen()">
-                    <i class="bi bi-fullscreen"></i> <!-- Fullscreen icon initially visible -->
-                    <i class="bi bi-fullscreen-exit d-none"></i> <!-- Exit fullscreen icon initially hidden -->
-                </button>
-                <button class="clear-chat-btn" onclick="clearChatHistory()"><i class="bi bi-trash"></i></button>
-                <button class="close-chat-btn" onclick="toggleChat()"><i class="bi bi-dash-lg"></i></button>
-              </div>
+            Buddy AI 🤘🏻✨
+            <div class="chat-header-buttons">
+              <button class="clear-chat-btn" onclick="toggleFullscreen()">
+                <i class="bi bi-fullscreen"></i>
+                <!-- Fullscreen icon initially visible -->
+                <i class="bi bi-fullscreen-exit d-none"></i>
+                <!-- Exit fullscreen icon initially hidden -->
+              </button>
+              <button class="clear-chat-btn" onclick="clearChatHistory()">
+                <i class="bi bi-trash"></i>
+              </button>
+              <button class="close-chat-btn" onclick="toggleChat()">
+                <i class="bi bi-dash-lg"></i>
+              </button>
+            </div>
           </div>
           <div class="chat-body" id="chatBody"></div>
           <div class="chat-input">
-              <input type="text" id="chatInput" placeholder="Type a query...">
-              <!-- <textarea id="chatInput" rows="1" placeholder="Type a query..." oninput="autoResize(this)"></textarea> -->
-              <button onclick="sendMessage()">Send</button>
+            <input type="text" id="chatInput" placeholder="Type a query..." />
+            <!-- <textarea id="chatInput" rows="1" placeholder="Type a query..." oninput="autoResize(this)"></textarea> -->
+            <button onclick="sendMessage()">Send</button>
           </div>
+        </div>
       </div>
-    </div>
-  
-</main>
+    </main>
 
-<!-- Include Bootstrap JS and dependencies -->
-<script src="{% static 'js/dark_mode.js' %}" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'js/sidebars.js' %}"></script>
-<script src="{% static 'js/toggleTable.js' %}"></script>
-<script src="{% static 'js/bot.js' %}"></script>
-<script src="{% static 'js/terminal.js' %}"></script>
-<script src="{% static 'js/css.js' %}"></script>
-<script src="{% static 'js/actionRedirect.js' %}"></script>
-<script src="{% static 'js/tableSearch.js' %}"></script>
+    <!-- Include Bootstrap JS and dependencies -->
+    <script src="{% static 'js/dark_mode.js' %}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/sidebars.js' %}"></script>
+    <script src="{% static 'js/toggleTable.js' %}"></script>
+    <script src="{% static 'js/bot.js' %}"></script>
+    <script src="{% static 'js/terminal.js' %}"></script>
+    <script src="{% static 'js/css.js' %}"></script>
+    <script src="{% static 'js/actionRedirect.js' %}"></script>
+    <script src="{% static 'js/tableSearch.js' %}"></script>
 
-<script>
-  // current_cluster for cluster dropdown in base.html
-  const current_cluster = "{{current_cluster}}";
-  // Function to get CSRF token from cookies
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
+    <script>
+      // current_cluster for cluster dropdown in base.html
+      const current_cluster = "{{current_cluster}}";
+      // Function to get CSRF token from cookies
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
             const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
             }
+          }
         }
-    }
-    return cookieValue;
-}        
-    // reload
-    function reloadPage() {
-      // Disable the button and show the spinner when clicked
-      var reloadButton = document.getElementById("reload-btn");
-      reloadButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-      reloadButton.disabled = true;
-      // Reload the page after a short delay to show the spinner
-      setTimeout(() => {
-            location.reload();
-        }, 100);  // 1-second delay before reloading
-    }
+        return cookieValue;
+      }
+      // reload
+      function reloadPage() {
+        // Disable the button and show the spinner when clicked
+        var reloadButton = document.getElementById("reload-btn");
+        reloadButton.innerHTML =
+          '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        reloadButton.disabled = true;
+        // Reload the page after a short delay to show the spinner
+        setTimeout(() => {
+          location.reload();
+        }, 100); // 1-second delay before reloading
+      }
 
-    // Reload button event listener
-    document.getElementById("reload-btn").addEventListener("click", reloadPage);
+      // Reload button event listener
+      document
+        .getElementById("reload-btn")
+        .addEventListener("click", reloadPage);
 
-    document.getElementById('toggleSidebar').addEventListener('click', function() {
-    const sidebar = document.getElementById('sidebar');
-    const toggleButton = document.getElementById('toggleSidebar');
-    
-    sidebar.classList.toggle('collapsed');
+      document
+        .getElementById("toggleSidebar")
+        .addEventListener("click", function () {
+          const sidebar = document.getElementById("sidebar");
+          const toggleButton = document.getElementById("toggleSidebar");
 
-    if (sidebar.classList.contains('collapsed')) {
-      // Change icon to chevron-right and move the button
-      toggleButton.innerHTML = "<i class='bi bi-chevron-double-right'></i>";
-      toggleButton.style.left = '.1vw';
-    } else {
-      // Change icon back to chevron-left and reset the position
-      toggleButton.innerHTML = "<i class='bi bi-chevron-double-left'></i>";
-      toggleButton.style.left = '17vw';
-    }
-    toggleButton.style.transition = '.5s ease-in-out';
-    });
+          sidebar.classList.toggle("collapsed");
 
-    document.addEventListener("DOMContentLoaded", function () {
-      document.querySelectorAll(".collapse").forEach((section) => {
-        let id = section.id;
-        let isOpen = localStorage.getItem(id);
-
-        if (isOpen === "true") {
-          section.classList.add("show");
-          section.previousElementSibling.setAttribute("aria-expanded", "true");
-        } else if (isOpen === "false") {
-          section.classList.remove("show");
-          section.previousElementSibling.setAttribute("aria-expanded", "false");
-        }
-
-        section.addEventListener("shown.bs.collapse", () => {
-          localStorage.setItem(id, "true");
-          section.previousElementSibling.setAttribute("aria-expanded", "true");
+          if (sidebar.classList.contains("collapsed")) {
+            // Change icon to chevron-right and move the button
+            toggleButton.innerHTML =
+              "<i class='bi bi-chevron-double-right'></i>";
+            toggleButton.style.left = ".1vw";
+          } else {
+            // Change icon back to chevron-left and reset the position
+            toggleButton.innerHTML =
+              "<i class='bi bi-chevron-double-left'></i>";
+            toggleButton.style.left = "17vw";
+          }
+          toggleButton.style.transition = ".5s ease-in-out";
         });
 
-        section.addEventListener("hidden.bs.collapse", () => {
-          localStorage.setItem(id, "false");
-          section.previousElementSibling.setAttribute("aria-expanded", "false");
-          });
-      });
-    });
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".collapse").forEach((section) => {
+          let id = section.id;
+          let isOpen = localStorage.getItem(id);
 
-    // cluster dropdown
-    // search functionality
-    function searchClusters() {
+          if (isOpen === "true") {
+            section.classList.add("show");
+            section.previousElementSibling.setAttribute(
+              "aria-expanded",
+              "true"
+            );
+          } else if (isOpen === "false") {
+            section.classList.remove("show");
+            section.previousElementSibling.setAttribute(
+              "aria-expanded",
+              "false"
+            );
+          }
+
+          section.addEventListener("shown.bs.collapse", () => {
+            localStorage.setItem(id, "true");
+            section.previousElementSibling.setAttribute(
+              "aria-expanded",
+              "true"
+            );
+          });
+
+          section.addEventListener("hidden.bs.collapse", () => {
+            localStorage.setItem(id, "false");
+            section.previousElementSibling.setAttribute(
+              "aria-expanded",
+              "false"
+            );
+          });
+        });
+      });
+
+      // cluster dropdown
+      // search functionality
+      function searchClusters() {
         var input, filter, list, items, item, textValue;
-        input = document.getElementById('search-bar');
+        input = document.getElementById("search-bar");
         filter = input.value.toLowerCase();
-        list = document.getElementById('cluster-list');
-        items = list.getElementsByClassName('cluster-item');
+        list = document.getElementById("cluster-list");
+        items = list.getElementsByClassName("cluster-item");
 
         if (filter.length > 0 || document.activeElement === input) {
-            list.classList.add("show"); // Show dropdown
+          list.classList.add("show"); // Show dropdown
         } else {
-            list.classList.remove("show"); // Hide dropdown if input is empty
+          list.classList.remove("show"); // Hide dropdown if input is empty
         }
 
-  
-      for (var i = 0; i < items.length; i++) {
-            item = items[i];
-            textValue = item.textContent || item.innerText;
-            if (textValue.toLowerCase().indexOf(filter) > -1) {
-                item.style.display = "";
-            } else {
-                item.style.display = "none";
-            }
+        for (var i = 0; i < items.length; i++) {
+          item = items[i];
+          textValue = item.textContent || item.innerText;
+          if (textValue.toLowerCase().indexOf(filter) > -1) {
+            item.style.display = "";
+          } else {
+            item.style.display = "none";
+          }
         }
-    }
+      }
 
-    document.getElementById('search-bar').addEventListener("focus", function() {
-    var list = document.getElementById('cluster-list');
-    list.classList.add("show");
-    });
+      document
+        .getElementById("search-bar")
+        .addEventListener("focus", function () {
+          var list = document.getElementById("cluster-list");
+          list.classList.add("show");
+        });
 
-    function showDropdown() {
-        document.getElementById('cluster-list').style.display = "block";
-    }
+      function showDropdown() {
+        document.getElementById("cluster-list").style.display = "block";
+      }
 
-    // Hide dropdown when clicking outside
-    document.addEventListener("click", function(event) {
-        var dropdown = document.getElementById('cluster-list');
-        var input = document.getElementById('search-bar');
+      // Hide dropdown when clicking outside
+      document.addEventListener("click", function (event) {
+        var dropdown = document.getElementById("cluster-list");
+        var input = document.getElementById("search-bar");
         if (!dropdown.contains(event.target) && event.target !== input) {
-            dropdown.classList.remove("show");
+          dropdown.classList.remove("show");
         }
-    });
+      });
 
-    
+      document.addEventListener("DOMContentLoaded", function () {
+        let sidebarLinks = document.querySelectorAll("#cluster-list a li");
+        let currentCluster = window.location.pathname.split("/")[1];
 
-    document.addEventListener("DOMContentLoaded", function () {
-    let sidebarLinks = document.querySelectorAll("#cluster-list a li");
-    let currentCluster = window.location.pathname.split("/")[1]
-
-    sidebarLinks.forEach(link => {
-        if (link.innerText === currentCluster) {
+        sidebarLinks.forEach((link) => {
+          if (link.innerText === currentCluster) {
             let searchbar = document.querySelector("#search-bar");
             searchbar.value = currentCluster;
           }
+        });
       });
-    });
-
-  </script>
-</body>
+    </script>
+  </body>
 </html>

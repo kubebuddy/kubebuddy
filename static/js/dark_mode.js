@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // section highlight on select
 document.addEventListener("DOMContentLoaded", function () {
-    let sidebarLinks = document.querySelectorAll(".sidebar a");
+    let sidebarLinks = document.querySelectorAll(".sidebar ul a");
     let currentUrl = window.location.pathname; // Get current path without query param
 
       function updateLinkStyles() {

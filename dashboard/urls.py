@@ -5,11 +5,11 @@ from dashboard.views import dashboard, pods, nodes, replicasets, deployments, po
                                 statefulsets, daemonset, jobs, cronjobs, node_info, \
                                 namespace, limitrange, resourcequotas, persistentvolume, ns_info,\
                                 persistentvolumeclaim, storageclass, sts_info, daemonset_info, \
-                                role, rolebinding, clusterrole, clusterrolebinding, serviceAccount, \
+                                role, rolebinding, clusterrole, clusterrolebinding, service_account, \
                                 service_info, endpoint_info, jobs_info, limitrange_info, \
                                 resourcequota_info, cronjob_info, configmap_info, pvc_info, \
                                 secret_info, role_info, pv_info, storageclass_info, role_binding_info, \
-                                clusterrole_info, cluster_role_binding_info, serviceAccountInfo, \
+                                clusterrole_info, cluster_role_binding_info, service_accountInfo, \
                                 pod_metrics, node_metrics, pdb, pdb_info, np, np_info, ingress, \
                                 ingress_info, execute_command, generate_reports, kube_bench_report, cluster_hotspot
                                 
@@ -102,13 +102,13 @@ urlpatterns = [
     path('<int:cluster_id>/rolebinding', rolebinding, name="rolebinding"),
     path('<int:cluster_id>/clusterrole', clusterrole, name="clusterrole"),
     path('<int:cluster_id>/clusterrolebinding', clusterrolebinding, name="clusterrolebinding"),
-    path('<int:cluster_id>/sa', serviceAccount, name="serviceAccount"),
+    path('<int:cluster_id>/sa', service_account, name="service_account"),
     
     path('<int:cluster_id>/role/<str:namespace>/<str:role_name>/', role_info, name='role_info'),
     path('<int:cluster_id>/clusterrole/<str:cluster_role_name>/', clusterrole_info, name='clusterrole_info'),
     path('<int:cluster_id>/rolebinding/<str:namespace>/<str:role_binding_name>/', role_binding_info, name='role_binding_info'),
     path('<int:cluster_id>/clusterrolebinding/<str:cluster_role_binding_name>/', cluster_role_binding_info, name='cluster_role_binding_info'),
-    path('<int:cluster_id>/sa/<str:namespace>/<str:sa_name>/', serviceAccountInfo, name='serviceAccountInfo'),
+    path('<int:cluster_id>/sa/<str:namespace>/<str:sa_name>/', service_accountInfo, name='service_accountInfo'),
 
     # Pod Metrics
     path('<int:cluster_id>/pod_metrics', pod_metrics, name="pod_metrics"),

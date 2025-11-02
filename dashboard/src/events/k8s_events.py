@@ -1,4 +1,4 @@
-from kubernetes import client, config
+from kubernetes import client
 from datetime import datetime
 from dateutil.tz import tzutc
 from kubebuddy.appLogs import logger

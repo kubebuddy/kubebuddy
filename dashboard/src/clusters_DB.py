@@ -14,6 +14,7 @@ import tempfile
 @csrf_exempt
 def get_cluster_status(request):
     load_dotenv()
+    aws_token = os.getenv("AWS_EKS_TOKEN")
     cluster = json.loads(request.body)
     control_plane_components = [
         {"key": "component", "value": "kube-apiserver"},
@@ -27,14 +28,11 @@ def get_cluster_status(request):
         if cluster.get('context_name', '').startswith('gke_'):
             # Handle GKE
             SCOPES = ['https://www.googleapis.com/auth/cloud-platform']
-            credentials, project = default(scopes=SCOPES)
+            credentials, _ = default(scopes=SCOPES)
             cluster_manager_client = ClusterManagerClient(credentials=credentials)
 
             # Extract GKE details from context_name: gke_{project}_{zone}_{cluster_name}
-            try:
-                _, project_id, zone, cluster_id = cluster['context_name'].split('_', 3)
-            except ValueError:
-                raise ValueError("Invalid GKE context name format. Expected: gke_<project>_<zone>_<cluster_name>")
+            _, project_id, zone, cluster_id = cluster['context_name'].split('_', 3)
 
             gke_cluster = cluster_manager_client.get_cluster(
                 project_id=project_id,
@@ -57,9 +55,10 @@ def get_cluster_status(request):
         else:
             # Load from kubeconfig for non-GKE
             config.load_kube_config(config_file=cluster['kube_config__path'], context=cluster['context_name'])
-            configuration = client.Configuration.get_default_copy()
-            configuration.api_key = {"authorization": f"Bearer {os.getenv('AWS_EKS_TOKEN')}"}
-            client.Configuration.set_default(configuration)
+            if aws_token and cluster['context_name'].startswith("arn:aws:eks:"):
+                configuration = client.Configuration.get_default_copy()
+                configuration.api_key = {"authorization": f"Bearer {aws_token}"}
+                client.Configuration.set_default(configuration)
 
         v1 = client.CoreV1Api()
         nodes = v1.list_node().items

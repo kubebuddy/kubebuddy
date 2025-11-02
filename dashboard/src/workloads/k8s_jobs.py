@@ -6,7 +6,7 @@ from ..utils import calculateAge, filter_annotations, configure_k8s
 import yaml
 
 
-def getJobCount():
+def getJobCount(path, context):
     configure_k8s(path, context)
     v1 = client.BatchV1Api()
     jobs = v1.list_job_for_all_namespaces().items

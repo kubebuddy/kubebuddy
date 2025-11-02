@@ -14,7 +14,7 @@ def getnodes(path, cluster_name):
         node_list.append(node.metadata.name)
     return node_list, len(node_list)
 
-def getNodesStatus(path, context):
+def get_nodes_status(path, context):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     node_list = v1.list_node().items
@@ -34,6 +34,8 @@ def getNodesStatus(path, context):
             not_ready_nodes += 1
 
     return ready_nodes, not_ready_nodes, ready_nodes + not_ready_nodes
+
+NODE_ROLE_PREFIX = "node-role.kubernetes.io/"
 
 def get_nodes_info(path: str, context: str):
     # Load the kube config with the specified path and context
@@ -64,7 +66,7 @@ def get_nodes_info(path: str, context: str):
         
 
         if node.metadata.labels:
-            roles = [label.replace("node-role.kubernetes.io/", "") for label in node.metadata.labels if label.startswith("node-role.kubernetes.io/")]
+            roles = [label.replace(NODE_ROLE_PREFIX, "") for label in node.metadata.labels if label.startswith(NODE_ROLE_PREFIX)]
         else:
             roles = "-"
 
@@ -98,7 +100,7 @@ def get_node_description(path=None, context=None, node_name=None):
     try:
         # Fetch node details
         node = v1.read_node(name=node_name)
-        roles = [key.replace("node-role.kubernetes.io/", "") for key in node.metadata.labels if key.startswith("node-role.kubernetes.io/")]
+        roles = [key.replace(NODE_ROLE_PREFIX, "") for key in node.metadata.labels if key.startswith(NODE_ROLE_PREFIX)]
         
         # Prepare node information
         if node.spec.taints:

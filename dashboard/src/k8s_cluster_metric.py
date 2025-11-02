@@ -1,6 +1,6 @@
 from kubernetes import client, config
 from .utils import configure_k8s
-def getMetrics(path, context):
+def get_metrics(path, context):
     try:
         configure_k8s(path, context)
 

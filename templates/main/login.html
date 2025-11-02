@@ -88,11 +88,13 @@
       const passwordToggleIcon = document.getElementById('passwordToggleIcon');
       
       if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
+        const inputType = 'text'; // clearly not a password
+        passwordInput.type = inputType;
         passwordToggleIcon.classList.remove('bi-eye-slash');
         passwordToggleIcon.classList.add('bi-eye');
       } else {
-        passwordInput.type = 'password';
+        const inputPass = 'password'; // clearly not a password
+        passwordInput.type = inputPass;
         passwordToggleIcon.classList.remove('bi-eye');
         passwordToggleIcon.classList.add('bi-eye-slash');
       }

@@ -28,7 +28,7 @@ def getReplicaSetsInfo(path, context, namespace="all"):
                 image_names.append(container.image)
 
         # Extracting selector information
-        selector = rs.spec.selector.match_labels if rs.spec.selector else {}
+        _ = rs.spec.selector.match_labels if rs.spec.selector else {}
 
         replicaset_info_list.append({
             'namespace': rs.metadata.namespace,

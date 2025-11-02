@@ -34,10 +34,10 @@ def getCronJobsStatus(path, context, namespace="all"):
         return cronjobs_status
     
     except client.exceptions.ApiException as e:
-        logger.error(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger.error(f"Kubernetes API Exception: {e}")
         return []
-    except Exception as e:  # Catch other potential errors (e.g., config issues)
-        logger.error(f"An error occurred: {e}")  # Print other errors to stderr
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
         return []
 
 def getCronJobsList(path, context, namespace="all"):
@@ -73,10 +73,10 @@ def getCronJobsList(path, context, namespace="all"):
         return cronjobs_list
 
     except client.exceptions.ApiException as e:
-        logger.error(f"Kubernetes API Exception: {e}")  # Print API errors to stderr
+        logger.error(f"Kubernetes API Exception: {e}")
         return []
-    except Exception as e:  # Catch other potential errors (e.g., config issues)
-        logger.error(f"An error occurred: {e}")  # Print other errors to stderr
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
         return []
 
 def get_cronjob_description(path=None, context=None, namespace=None, cronjob_name=None):

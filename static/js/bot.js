@@ -2,38 +2,47 @@
 let awaitingProvider = false;
 let awaitingApiKey = false;
 let selectedProvider = "";
-let loadingMessageId = null;
+let providerConfigured = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    checkAPIKey();
+    // Clear chat on fresh login
+    const isNewSession = sessionStorage.getItem('chatSessionStarted');
+    if (!isNewSession) {
+        clearChatHistory();
+        sessionStorage.setItem('chatSessionStarted', 'true');
+    }
+    
+    selectedProvider = sessionStorage.getItem('selectedProvider') || "";
+    providerConfigured = sessionStorage.getItem('providerConfigured') === 'true' || false;
+    
     loadChatHistory();
+
+    // Show welcome message if chat is empty
+    const chatBody = document.getElementById("chatBody");
+    if (!chatBody || chatBody.children.length === 0) {
+        showWelcomeMessage();
+    }
 });
+
+// ✅ Function to show initial greeting
+function showWelcomeMessage() {
+    const chatBody = document.getElementById("chatBody");
+    if (chatBody && chatBody.children.length === 0) {
+        botMessage("👋 Hello! What provider would you like to choose?<br>1️⃣ Gemini<br>2️⃣ OpenAI<br>3️⃣ Ollama<br><br>💡 <small>Tip: Type /change anytime to switch providers</small>");
+        awaitingProvider = true;
+    }
+}
 
 // Toggle Chat Window
 function toggleChat() {
-    var chatWindow = document.getElementById("chatbotWindow");
-    chatWindow.style.display = chatWindow.style.display === "none" || chatWindow.style.display === "" ? "flex" : "none";
+    const chatWindow = document.getElementById("chatbotWindow");
+    const isOpening = chatWindow.style.display === "none" || chatWindow.style.display === "";
+
+    chatWindow.style.display = isOpening ? "flex" : "none";
     chatWindow.classList.add('popup-animation');
-}
 
-// Check if API Key Exists
-async function checkAPIKey() {
-    try {
-        const response = await fetch('/check-api-key/');
-        const data = await response.json();
-
-        const apiKeyMessageShown = sessionStorage.getItem('apiKeyMessageShown');
-
-        if (data.status === "missing" && !apiKeyMessageShown) {
-            botMessage("Hello! To start, please set up your AI API key.");
-            botMessage("Which provider do you want to use? <br> 1) Gemini <br> 2) OpenAI");
-            awaitingProvider = true;
-            sessionStorage.setItem('apiKeyMessageShown', 'true');
-        } else {
-            awaitingProvider = false;
-        }
-    } catch (error) {
-        console.error("Error checking API key:", error);
+    if (isOpening) {
+        scrollChatToBottom();
     }
 }
 
@@ -46,6 +55,12 @@ async function sendMessage() {
     userMessage(message);
     inputField.value = "";
 
+    // Check for change provider command
+    if (message.toLowerCase() === "/change" || message.toLowerCase() === "/switch") {
+        changeProvider();
+        return;
+    }
+
     if (awaitingProvider) {
         handleProviderSelection(message);
         return;
@@ -56,124 +71,107 @@ async function sendMessage() {
         return;
     }
 
-    // Process user query only if API key is set
     processUserQuery(message);
 }
 
-// Handle Provider Selection
-function handleProviderSelection(message) {
+// NEW FUNCTION: Change Provider
+function changeProvider() {
+    botMessage("🔄 Switching provider... Which one would you like?<br>1️⃣ Gemini<br>2️⃣ OpenAI<br>3️⃣ Ollama");
+    awaitingProvider = true;
+    awaitingApiKey = false;
+    selectedProvider = "";
+    providerConfigured = false;
+    sessionStorage.removeItem('selectedProvider');
+    sessionStorage.removeItem('providerConfigured');
+    scrollChatToBottom();
+}
+
+// Handle Provider Selection - NO API KEY INPUT, USES SETTINGS
+async function handleProviderSelection(message) {
     const input = message.toLowerCase();
     let provider = "";
-    
-    // Handle both number and text input
-    if (input === "1" || input === "gemini") {
-        provider = "gemini";
-    } else if (input === "2" || input === "openai") {
-        provider = "openai";
-    } else {
-        botMessage("Invalid selection. Please type '1' or 'Gemini' for Gemini, or '2' or 'OpenAI' for OpenAI or <a href='/settings/?tab=ai-config'>click here</a>");
+
+    if (input === "1" || input === "gemini") provider = "gemini";
+    else if (input === "2" || input === "openai") provider = "openai";
+    else if (input === "3" || input === "ollama") provider = "ollama";
+    else {
+        botMessage(`Invalid selection. Please type:<br>
+        1) Gemini<br>
+        2) OpenAI<br>
+        3) Ollama<br>
+        or <a href='/settings/?tab=ai-config'>click here</a>`);
+        scrollChatToBottom();
         return;
     }
 
     selectedProvider = provider;
+    sessionStorage.setItem('selectedProvider', provider);
     awaitingProvider = false;
-    awaitingApiKey = true;
-    botMessage(`You selected ${provider.charAt(0).toUpperCase() + provider.slice(1)}. Now, please enter your ${provider.toUpperCase()} API key.`);
+    providerConfigured = true;
+    sessionStorage.setItem('providerConfigured', 'true');
+
+    botMessage(`✅ ${provider.charAt(0).toUpperCase() + provider.slice(1)} selected! If not configured, please set it up in <a href='/settings/?tab=ai-config'>Settings</a>. You can now start chatting!`);
+    scrollChatToBottom();
 }
 
-// Handle API Key Input
+// Handle API Key Input - REMOVED, NOT USED ANYMORE
 async function handleApiKeyInput(apiKey) {
-    if (!apiKey) {
-        botMessage("API key cannot be empty. Please enter a valid key.");
+    // This function is now unused but kept for compatibility
+    botMessage("⚠️ Please configure your API key in <a href='/settings/?tab=ai-config'>Settings</a> instead.");
+    scrollChatToBottom();
+}
+
+// Process User Query
+async function processUserQuery(message) {
+    // Check if provider is configured
+    if (!selectedProvider || !providerConfigured) {
+        botMessage("⚠️ Please select and configure a provider first. Type 1 for Gemini, 2 for OpenAI, or 3 for Ollama.");
+        awaitingProvider = true;
+        scrollChatToBottom();
         return;
     }
 
-    // Show loading message while validating API key
-    const loadingMsgId = showLoadingMessage("Validating API key...");
+    const loadingMsgId = showLoadingMessage("Buddy is thinking...");
 
     try {
-        const response = await fetch('/validate-api-key/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ provider: selectedProvider, api_key: apiKey }),
-        });
-
-        const data = await response.json();
-        
-        // Remove loading message
-        removeLoadingMessage(loadingMsgId);
-        
-        if (data.status === "valid") {
-            // If valid, save the API key
-            const saveResponse = await fetch('/set-api-key/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ provider: selectedProvider, api_key: apiKey }),
-            });
-            
-            const saveData = await saveResponse.json();
-            
-            if (saveData.status === "success") {
-                botMessage("API Key validated and saved successfully! You can now ask me technical questions.");
-                awaitingApiKey = false;
-            } else {
-                botMessage("Error saving API key: " + saveData.message);
-            }
-        } else {
-            botMessage("Invalid API key. Please check your key and try again.");
-        }
-    } catch (error) {
-        // Remove loading message on error
-        removeLoadingMessage(loadingMsgId);
-        console.error("Error validating API key:", error);
-        botMessage("An error occurred while validating your API key. Please try again.");
-    }
-}
-
-// Process User Query and Get AI Response
-async function processUserQuery(message) {
-    try {
-        // Show "Buddy is thinking" message
-        const loadingMsgId = showLoadingMessage("Buddy is thinking...");
-        
+        // ALL providers now use the same endpoint
         const response = await fetch('/chatbot-response/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                message: message,
+                provider: selectedProvider  // Send selected provider
+            }),
         });
 
-        // Remove the "Buddy is thinking" message
         removeLoadingMessage(loadingMsgId);
 
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
         const data = await response.json();
-
-        if (data.message) {
-            botMessage(data.message);
+        
+        if (data.status === "error") {
+            // Better error messages for different scenarios
+            if (data.message && data.message.includes('not configured')) {
+                botMessage(`⚠️ ${selectedProvider} is not configured. Please set it up in <a href='/settings/?tab=ai-config'>Settings</a>.`);
+            } else if (data.message && data.message.includes('not found')) {
+                botMessage(`⚠️ The selected model is not available. Please configure it in <a href='/settings/?tab=ai-config'>Settings</a>.`);
+            } else {
+                botMessage(data.message || "Sorry, I couldn't process that.");
+            }
         } else {
-            botMessage("Sorry, I couldn't process that.");
+            botMessage(data.message || "Sorry, I couldn't process that.");
         }
+        scrollChatToBottom();
 
     } catch (error) {
-        // Make sure to remove loading message on error
-        if (loadingMsgId) {
-            removeLoadingMessage(loadingMsgId);
-        }
+        removeLoadingMessage(loadingMsgId);
         console.error("Error processing message:", error);
         botMessage("Oops! Something went wrong. Please try again.");
+        scrollChatToBottom();
     }
 }
 
-// Show a loading message and return its ID
+// Show and remove loading messages
 function showLoadingMessage(text) {
     const chatBody = document.getElementById("chatBody");
     const messageElement = document.createElement("div");
@@ -181,21 +179,17 @@ function showLoadingMessage(text) {
     messageElement.className = "bot-message loading-message";
     messageElement.id = "loading-" + Date.now();
     chatBody.appendChild(messageElement);
-    chatBody.scrollTop = chatBody.scrollHeight;
+    scrollChatToBottom();
     return messageElement.id;
 }
 
-// Remove a loading message by ID
 function removeLoadingMessage(messageId) {
-    if (messageId) {
-        const loadingElement = document.getElementById(messageId);
-        if (loadingElement) {
-            loadingElement.remove();
-        }
-    }
+    if (!messageId) return;
+    const loadingElement = document.getElementById(messageId);
+    if (loadingElement) loadingElement.remove();
 }
 
-// Add User Message to Chat
+// Add messages to chat
 function userMessage(text) {
     const chatBody = document.getElementById("chatBody");
     const messageElement = document.createElement("div");
@@ -203,102 +197,92 @@ function userMessage(text) {
     messageElement.className = "user-message";
     chatBody.appendChild(messageElement);
     saveMessage(text, "user-message");
-    chatBody.scrollTop = chatBody.scrollHeight;
+    scrollChatToBottom();
 }
 
-// Add Bot Message to Chat
 function botMessage(text) {
     const chatBody = document.getElementById("chatBody");
     const messageElement = document.createElement("div");
-
-    messageElement.innerHTML = text; // Use innerHTML to render HTML properly
+    messageElement.innerHTML = text;
     messageElement.className = "bot-message";
-    
     chatBody.appendChild(messageElement);
     saveMessage(text, "bot-message");
-    chatBody.scrollTop = chatBody.scrollHeight;
+    scrollChatToBottom();
 }
 
-// Load Chat History from Session Storage
+// Scroll chat to bottom
+function scrollChatToBottom() {
+    const chatBody = document.getElementById("chatBody");
+    if (chatBody) {
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+}
+
+// Save/load chat history
 function loadChatHistory() {
     const chatBody = document.getElementById("chatBody");
     const chatHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
-    
-    chatBody.innerHTML = ''; // Clear existing messages
-
-    chatHistory.forEach(message => {
+    chatBody.innerHTML = '';
+    chatHistory.forEach(msg => {
         const messageElement = document.createElement("div");
-
-        // Use innerHTML to render formatted text properly
-        messageElement.innerHTML = message.text; 
-        messageElement.className = message.type;
-
+        messageElement.innerHTML = msg.text;
+        messageElement.className = msg.type;
         chatBody.appendChild(messageElement);
     });
-
-    chatBody.scrollTop = chatBody.scrollHeight;
+    scrollChatToBottom();
 }
 
-
-// Save Chat Message to Session Storage
 function saveMessage(text, type) {
     const chatHistory = JSON.parse(sessionStorage.getItem('chatHistory')) || [];
     chatHistory.push({ text, type });
     sessionStorage.setItem('chatHistory', JSON.stringify(chatHistory));
 }
 
-// Clear Chat History
 function clearChatHistory() {
     sessionStorage.removeItem('chatHistory');
-    sessionStorage.removeItem('apiKeyMessageShown'); // Reset the API key message flag
+    sessionStorage.removeItem('apiKeyMessageShown');
+    sessionStorage.removeItem('selectedProvider');
+    sessionStorage.removeItem('providerConfigured');
+    sessionStorage.removeItem('chatSessionStarted');
     const chatBody = document.getElementById("chatBody");
-    chatBody.innerHTML = '';
+    if (chatBody) {
+        chatBody.innerHTML = '';
+    }
 }
 
-// Listen for "Enter" Key Press in Input Field
+// Enter key listener
 document.getElementById("chatInput").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
         if (event.shiftKey) {
             event.preventDefault();
-            this.value += "\n"; // Add a newline
-            autoResize(this); // Adjust height
+            this.value += "\n";
         } else {
             event.preventDefault();
             sendMessage();
-            this.style.height = "auto"; // Reset height after sending
+            this.style.height = "auto";
         }
     }
 });
 
-
-let isFullscreen = false; // Flag to check if the window is in fullscreen mode
-
+// Fullscreen toggle
+let isFullscreen = false;
 function toggleFullscreen() {
     const chatbotWindow = document.querySelector('.chatbot-window');
-    const fullscreenIcon = document.querySelector('.bi-fullscreen'); // Fullscreen icon
-    const exitFullscreenIcon = document.querySelector('.bi-fullscreen-exit'); // Exit fullscreen icon
+    const fullscreenIcon = document.querySelector('.bi-fullscreen');
+    const exitFullscreenIcon = document.querySelector('.bi-fullscreen-exit');
 
-    // Toggle fullscreen state
     if (!isFullscreen) {
-        // Maximize the chat window to fullscreen
-        chatbotWindow.style.width = '80vw'; // Full width
-        chatbotWindow.style.height = '68vh'; // Full height
-        chatbotWindow.style.right = '0'; // Stick to right
-
-        // Show exit fullscreen icon, hide fullscreen icon
-        fullscreenIcon.classList.add('d-none'); // Hide fullscreen icon
-        exitFullscreenIcon.classList.remove('d-none'); // Show exit fullscreen icon
+        chatbotWindow.style.width = '80vw';
+        chatbotWindow.style.height = '68vh';
+        chatbotWindow.style.right = '0';
+        fullscreenIcon.classList.add('d-none');
+        exitFullscreenIcon.classList.remove('d-none');
     } else {
-        // Minimize the chat window to original size
-        chatbotWindow.style.width = '40vw'; // Original width
-        chatbotWindow.style.height = '58vh'; // Original height
-        chatbotWindow.style.right = '0'; // Reset right margin
-
-        // Show fullscreen icon, hide exit fullscreen icon
-        fullscreenIcon.classList.remove('d-none'); // Show fullscreen icon
-        exitFullscreenIcon.classList.add('d-none'); // Hide exit fullscreen icon
+        chatbotWindow.style.width = '40vw';
+        chatbotWindow.style.height = '58vh';
+        chatbotWindow.style.right = '0';
+        fullscreenIcon.classList.remove('d-none');
+        exitFullscreenIcon.classList.add('d-none');
     }
-
-    // Toggle the fullscreen state
     isFullscreen = !isFullscreen;
 }

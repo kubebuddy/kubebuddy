@@ -34,7 +34,7 @@ jobs:
           coverage xml
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@6.0.0
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # Optional if you're not using default http://localhost:9000

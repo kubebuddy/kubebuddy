@@ -153,11 +153,22 @@ def get_sts_events(path, context, namespace, statefulset_name):
     statefulset_events = [event for event in events if event.involved_object.name == statefulset_name and event.involved_object.kind == "StatefulSet"]
     return "\n".join([f"{e.reason}: {e.message}" for e in statefulset_events])
 
-def get_yaml_sts(path, context, namespace, statefulset_name):
+def get_yaml_sts(path, context, namespace, statefulset_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.AppsV1Api()
     statefulset = v1.read_namespaced_stateful_set(name=statefulset_name, namespace=namespace)
     # Filtering Annotations
     if statefulset.metadata:
         statefulset.metadata.annotations = filter_annotations(statefulset.metadata.annotations or {})
-    return yaml.dump(statefulset.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    sts_dict = api_client.sanitize_for_serialization(statefulset)
+
+    # Clean up metadata
+    if "metadata" in sts_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            sts_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(sts_dict, sort_keys=False)

@@ -10,6 +10,8 @@ from google.auth import default
 from google.cloud.container_v1 import ClusterManagerClient
 import base64
 import tempfile
+import boto3
+import subprocess
 
 @csrf_exempt
 def get_cluster_status(request):
@@ -32,8 +34,9 @@ def get_cluster_status(request):
             cluster_manager_client = ClusterManagerClient(credentials=credentials)
 
             # Extract GKE details from context_name: gke_{project}_{zone}_{cluster_name}
-            _, project_id, zone, cluster_id = cluster['context_name'].split('_', 3)
-
+        
+            _, project_id, zone, cluster_id = cluster['context_name'].split('_', 3) # Have removed the try block assuming context is always in this format
+    
             gke_cluster = cluster_manager_client.get_cluster(
                 project_id=project_id,
                 zone=zone,
@@ -52,13 +55,54 @@ def get_cluster_status(request):
             configuration.api_key = {"authorization": "Bearer " + credentials.token}
             client.Configuration.set_default(configuration)
 
+        elif cluster.get('context_name', '').startswith('arn:aws:eks:'):
+            # currently using context for cluster name and user as well, if need be we can read the file and get the relevant data
+            # Get token
+            region = cluster['context_name'].split(':')[3]
+            name = cluster['context_name'].split(':')[5].split('/')[1]
+            eks = boto3.client('eks', region_name=region)
+            cluster_info = eks.describe_cluster(name=name)
+            cluster_cert = cluster_info['cluster']['certificateAuthority']['data']
+            cluster_endpoint = cluster_info['cluster']['endpoint']
+
+            # Generate token
+            token = boto3.client('sts').get_caller_identity()
+            auth_token = subprocess.check_output(
+                ['aws', 'eks', 'get-token', '--cluster-name', name, '--region', region, '--output', 'json']
+            )
+            token_data = json.loads(auth_token)
+            bearer_token = token_data['status']['token']
+            # Build config manually
+
+            config_dict = {
+                'apiVersion': 'v1',
+                'clusters': [{
+                    'cluster': {
+                        'server': cluster_endpoint,
+                        'certificate-authority-data': cluster_cert
+                    },
+                    'name': cluster['cluster_name']
+                }],
+                'contexts': [{
+                    'context': {
+                        'cluster': cluster['cluster_name'],
+                        'user': cluster['context_name']
+                    },
+                    'name': cluster['context_name']
+                }],
+                'current-context': cluster['context_name'],
+                'kind': 'Config',
+                'users': [{
+                    'name': cluster['context_name'],
+                    'user': {
+                        'token': bearer_token
+                    }
+                }]
+            }
+
+            config.load_kube_config_from_dict(config_dict)
         else:
-            # Load from kubeconfig for non-GKE
-            config.load_kube_config(config_file=cluster['kube_config__path'], context=cluster['context_name'])
-            if aws_token and cluster['context_name'].startswith("arn:aws:eks:"):
-                configuration = client.Configuration.get_default_copy()
-                configuration.api_key = {"authorization": f"Bearer {aws_token}"}
-                client.Configuration.set_default(configuration)
+            config.load_kube_config(config_file=cluster["kube_config__path"], context=cluster["context_name"])
 
         v1 = client.CoreV1Api()
         nodes = v1.list_node().items

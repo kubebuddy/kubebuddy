@@ -1,0 +1,230 @@
+{% extends 'dashboard/base.html' %}
+
+{% load static %}
+
+{% block title %}Cluster Hotspots{% endblock %}
+
+{% block favicon %} https://github.com/kubernetes/community/blob/master/icons/png/infrastructure_components/unlabeled/control-plane-128.png?raw=true {% endblock %}
+
+{% block content %}
+
+<div class="container">
+    {% if empty_namespaces %}
+    <div class="table-1">
+        <h2>Empty Namespaces</h2><br>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Status</th>
+                    <th>Labels</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for namespace in empty_namespaces %}
+                    <tr>
+                        <td><a href="/{{cluster_id}}/namespace/{{namespace.name}}?cluster_id={{cluster_id}}">{{namespace.name}}</a></td>
+                        <td>{{namespace.status}}</td>
+                        <td>{{namespace.labels}}</td>
+                        <td>{{namespace.age}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table><br>
+    </div>
+    {% endif %}
+    {% if latest_tag_pods %}
+    <div class="table-2">
+        <h2>Pods with 'latest' image tag</h2><br>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Pod</th>
+                    <th>Image</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pod in latest_tag_pods %}
+                    <tr>
+                        <td>{{pod.namespace}}</td>
+                        <td><a href="/{{cluster_id}}/pods/{{pod.namespace}}/{{pod.pod}}?cluster_id={{cluster_id}}">{{pod.pod}}</a></td>
+                        <td>{{pod.image}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table><br>
+    </div>
+    {% endif %}
+    {% if orphaned_configmaps %}
+    <div class="table-3">
+        <h2>Orphaned Configmaps</h2><br>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Configmap</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cm in orphaned_configmaps %}
+                    <tr>
+                        <td>{{cm.namespace}}</td>
+                        <td><a href="/{{cluster_id}}/configmaps/{{cm.namespace}}/{{cm.configmap}}?cluster_id={{cluster_id}}">{{cm.configmap}}</a></td>
+                        <td>{{cm.age}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table><br>
+    </div>
+    {% endif %}
+    {% if orphaned_secrets %}
+    <div class="table-4">
+        <div class="d-flex justify-content-start align-items-center">
+            <h2>Orphaned Secrets</h2>
+            <a href="#" data-bs-toggle="tooltip"
+                data-bs-title="Unused Secrets. For informational purposes only."
+                disabled="disabled" class="text-decoration-none text-secondary ms-2">
+            <i class="bi bi-exclamation-circle fs-6">
+        </i></a>
+        </div><br>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sc in orphaned_secrets %}
+                    <tr>
+                        <td>{{sc.namespace}}</td>
+                        <td><a href="/{{cluster_id}}/secrets/{{sc.namespace}}/{{sc.secret}}?cluster_id={{cluster_id}}">{{sc.secret}}</a></td>
+                        <td>{{sc.age}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table><br>
+    </div>
+    {% endif %}
+    {% if container_missing_probes %}
+    <div class="table-5">
+        <h2>Containers missing readiness/liveness probes</h2><br>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Pod</th>
+                    <th>Container</th>
+                    <th>Image</th>
+                    <th>Probes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for container in container_missing_probes %}
+                    <tr>
+                        <td style="white-space: nowrap;">{{container.namespace}}</td>
+                        <td><a href="/{{cluster_id}}/pods/{{container.namespace}}/{{container.pod}}?cluster_id={{cluster_id}}">{{container.pod}}</a></td>
+                        <td>{{container.container}}</td>
+                        <td>{{container.image}}</td>
+                        <td style="white-space: nowrap;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="margin-right: 0.5rem;">Liveness Probe</span>
+                            <span>{% if container.missing_probes.liveness_probe %}❌{% else %}✅{% endif %}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="margin-right: 0.5rem;">Readiness Probe</span>
+                            <span>{% if container.missing_probes.readiness_probe %}❌{% else %}✅{% endif %}</span>
+                        </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table><br>
+    </div>
+    {% endif %}
+    {% if container_restart_count %}
+    <div class="table-6">
+        <div class="d-flex justify-content-start align-items-center">
+            <h2>Container Restart Count</h2>
+            <a href="#" data-bs-toggle="tooltip"
+                data-bs-title="Containers with the highest restart count."
+                disabled="disabled" class="text-decoration-none text-secondary ms-2">
+            <i class="bi bi-exclamation-circle fs-6">
+        </i></a>
+        </div><br>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Pod</th>
+                    <th>Container</th>
+                    <th>Restart Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for container in container_restart_count %}
+                    <tr>
+                        <td>{{container.namespace}}</td>
+                        <td><a href="/{{cluster_id}}/pods/{{container.namespace}}/{{container.pod}}?cluster_id={{cluster_id}}">{{container.pod}}</a></td>
+                        <td>{{container.container}}</td>
+                        <td>{{container.restart_count}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table><br>
+    </div>
+    {% endif %}
+    {% if container_restart_count %}
+    <div class="table-7">
+        <h2>Privileged Containers</h2><br>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Namespace</th>
+                    <th>Pod</th>
+                    <th>Container</th>
+                    <th>Image</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for container in priviledged_containers %}
+                    <tr>
+                        <td>{{container.namespace}}</td>
+                        <td><a href="/{{cluster_id}}/pods/{{container.namespace}}/{{container.pod}}?cluster_id={{cluster_id}}">{{container.pod}}</a></td>
+                        <td>{{container.container}}</td>
+                        <td>{{container.image}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table><br>
+    </div>
+    {% endif %}
+    {% if empty_limit %}
+        <div class="table-7">
+            <h2>Containers without any Resource Limit</h2><br>
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Namespace</th>
+                        <th>Pod</th>
+                        <th>Container</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for container in empty_limit %}
+                        <tr>
+                            <td>{{container.namespace}}</td>
+                            <td><a href="/{{cluster_id}}/pods/{{container.namespace}}/{{container.pod}}?cluster_id={{cluster_id}}">{{container.pod}}</a></td>
+                            <td>{{container.container}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table><br>
+        </div>
+        {% endif %}
+</div>
+{% endblock %}

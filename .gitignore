@@ -8,7 +8,7 @@ __pycache__/
 dist/
 build/
 *.whl
-
+buddyenv/
 # Django
 *.log
 *.sqlite3

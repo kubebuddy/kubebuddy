@@ -21,14 +21,23 @@ def get_events(config_file, context, limit, namespace = "all"):
             event_data = {}
             event_data["namespace"] = event.metadata.namespace
             event_data["message"] = event.message
-            event_data["object"] = event.involved_object.kind + "/" + event.involved_object.name
+            kind = event.involved_object.kind or ""
+            name = event.involved_object.name or ""
+            event_data["object"] = f"{kind}/{name}" if kind or name else ""
 
-            if event.source.component:
-                event_data["source"] = event.source.component
-                if event.source.host:
-                    event_data["source"] = event_data["source"] + ", " + event.source.host
+            # Handle the 'source' field safely
+            component = event.source.component
+            host = event.source.host
+
+            if component:
+                event_data["source"] = component
+                if host:
+                    event_data["source"] += f", {host}"
             else:
-                event_data["source"] =  event.reporting_component + ", " + event.reporting_instance
+                reporting_component = event.reporting_component or ""
+                reporting_instance = event.reporting_instance or ""
+                parts = [p for p in [reporting_component, reporting_instance] if p]
+                event_data["source"] = ", ".join(parts) if parts else "unknown"
 
             event_data["count"] = event.count
             current_time = datetime.now(tzutc())

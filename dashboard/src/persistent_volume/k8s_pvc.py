@@ -80,11 +80,22 @@ def get_pvc_events(path, context, namespace, pvc_name):
     ]
     return "\n".join([f"{e.reason}: {e.message}" for e in pvc_events])
 
-def get_pvc_yaml(path, context, namespace, pvc_name):
+def get_pvc_yaml(path, context, namespace, pvc_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pvc = v1.read_namespaced_persistent_volume_claim(name=pvc_name, namespace=namespace)
     # Filtering Annotations
     if pvc.metadata:
         pvc.metadata.annotations = filter_annotations(pvc.metadata.annotations or {})
-    return yaml.dump(pvc.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    pvc_dict = api_client.sanitize_for_serialization(pvc)
+
+    # Clean up metadata
+    if "metadata" in pvc_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            pvc_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(pvc_dict, sort_keys=False)

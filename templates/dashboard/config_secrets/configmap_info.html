@@ -25,6 +25,9 @@
             <li class="nav-item">
                 <a class="nav-link" id="yaml-tab" data-bs-toggle="tab" href="#yaml">YAML</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="edit-tab" data-bs-toggle="tab" href="#edit">Edit</a>
+            </li>
         </ul>
 
         <!-- Tab Content -->
@@ -56,7 +59,27 @@
                     <pre id="yamlContent">{{ configmap_info.yaml }}</pre>
                 </div>
             </div>
-            
+            <div class="tab-pane fade" id="edit">
+                <!-- Modal for YAML changes -->
+                {% if configmap_info.show_modal %}
+                <div class="alert alert-success">
+                    <div>
+                        {{configmap_info.message}}
+                    </div>
+                        <ul>
+                        {% for changes in configmap_info.changes %}
+                            <li>{{changes}}</li>
+                        {% endfor %}
+                        </ul>
+                </div>
+                {% endif %}
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    <div id="editor" style="height: 40rem; width: 100%;">{{configmap_info.edit}}</div>
+                    <textarea id="yaml-output" name="yaml" hidden></textarea>
+                    <button type="submit" class="btn btn-primary mt-3">Apply</button>
+                </form>
+            </div>
         </div>
 
         <a href="/{{cluster_id}}/configmaps?cluster_id={{cluster_id}}" class="btn btn-primary mt-3">Back to ConfigMaps</a>
@@ -64,4 +87,5 @@
     
     {% load static%}
     <script src="{% static 'js/copyYAML.js' %}"></script>
+    <script src="{% static 'js/ace_config.js' %}"></script>
 {% endblock %}

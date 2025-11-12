@@ -143,14 +143,25 @@ def get_deploy_events(path, context, namespace, deployment_name):
     deployment_events = [event for event in events if event.involved_object.name == deployment_name and event.involved_object.kind == "Deployment"]
     return "\n".join([f"{e.reason}: {e.message}" for e in deployment_events])
 
-def get_yaml_deploy(path, context, namespace, deployment_name):
+def get_yaml_deploy(path, context, namespace, deployment_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.AppsV1Api()
     deployment = v1.read_namespaced_deployment(name=deployment_name, namespace=namespace)
     # Filtering Annotations
     if deployment.metadata:
         deployment.metadata.annotations = filter_annotations(deployment.metadata.annotations or {})
-    return yaml.dump(deployment.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    deploy_dict = api_client.sanitize_for_serialization(deployment)
+
+    # Clean up metadata
+    if "metadata" in deploy_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            deploy_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(deploy_dict, sort_keys=False)
 
 def get_deployment_details(namespace=None):
     try:

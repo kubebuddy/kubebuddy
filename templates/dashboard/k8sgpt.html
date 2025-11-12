@@ -1,0 +1,154 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}K8sGPT{% endblock %}
+
+{% block favicon %}https://k8sgpt.ai/images/k8sgpt-icon.svg{% endblock %}
+
+{% block content %}
+
+<style>
+  .rotate-icon {
+    transition: transform 0.3s ease;
+  }
+
+  .rotate-180 {
+    transform: rotate(180deg);
+  }
+</style>
+
+<div class="container">
+    <form method="POST" action="/{{cluster_id}}/k8sgpt?cluster_id={{cluster_id}}" class="d-flex flex-wrap gap-3 align-items-center p-3">
+    {% csrf_token %}
+
+    <div class="form-check d-flex align-items-center fs-6">
+      <input type="checkbox" class="form-check-input me-2" id="explain" name="explain" {% if explain %} checked {% endif %}>
+      <label class="form-check-label" for="explain">Explain</label>
+    </div>
+
+    <div class="d-flex align-items-center">
+      <label for="namespace" class="m-3 fs-6">Namespace</label>
+      <select class="form-select" name="namespace" id="namespace">
+        <option value="all" {% if selected_namespace == 'all' %}selected{% endif %}>All</option>
+        {% for namespace in namespaces %}
+        <option value="{{namespace}}" {% if namespace == selected_namespace %}selected{% endif %}>{{namespace}}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- filter dropdown -->
+    <div class="d-flex align-items-center">
+      <div class="dropdown">
+      <button class=" btn btn-primary dropdown-toggle" type="button" id="k8sDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      Filter
+      </button>
+      <ul class="dropdown-menu p-3" aria-labelledby="k8sDropdown">
+        <li class="form-check">
+          <input class="form-check-input resource-checkbox" type="checkbox" name="resources" value="All" id="All">
+          <label class="form-check-label" for="All">All</label>
+        </li>
+        <hr>
+      {% for resource in filter_list %}
+        <li class="form-check">
+        <input class="form-check-input resource-checkbox" type="checkbox" name="resources" value="{{ resource }}" id="{{ resource }}" {% if resource in filters %}checked{% endif %}>
+        <label class="form-check-label" for="{{ resource }}">{{ resource|capfirst }}</label>
+        </li>
+      {% endfor %}
+      </ul>
+    </div>
+    </div>
+
+    <div class="me-3">
+      <button type="submit" class="btn btn-primary">Check</button>
+    </div> 
+    
+
+
+    <div class="container my-5">
+    <h3 class="mb-4">Kubernetes Analysis</h3>
+    
+    {% if output == "Error" %}
+    <div class="alert alert-warning">
+        Could not retrieve information. Please make sure :
+        <ul>
+            <li>K8sGPT is installed and the `PATH` is setup in environment variable.</li>
+            <li>Backend is configured for utilising `Explain` feature.</li>
+        </ul>
+    </div>
+    {% elif output %}
+    {% for item in output %}
+    <div class="mb-2 border rounded shadow-sm p-3">
+        <div class="card-header">
+            <button class="btn btn-link text-start w-100 d-flex align-items-center"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{ forloop.counter }}"
+                    aria-expanded="false"
+                    aria-controls="collapse{{ forloop.counter }}"
+                    type="button">
+                <span>{{ forloop.counter }}. {{ item.error.0.Text }}</span>
+                <i class="bi bi-chevron-down rotate-icon ms-auto" id="icon-{{ forloop.counter }}"></i>
+            </button>
+        </div>
+        <div id="collapse{{ forloop.counter }}" class="collapse">
+        <div class="p-3">
+            <p><b>Kind: {{item.kind}}</b></p>
+            <p><b>Name:</b> {{item.name}}</p>
+            {% if item.details %}<p><b>Details:</b> {{item.details|linebreaks}}</p>{% endif %}
+        </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const toggles = document.querySelectorAll('[data-bs-toggle="collapse"]');
+
+    toggles.forEach(function (toggle) {
+      const targetId = toggle.getAttribute('data-bs-target');
+      const icon = toggle.querySelector('.rotate-icon');
+      const collapseEl = document.querySelector(targetId);
+
+      collapseEl.addEventListener('show.bs.collapse', function () {
+        icon.classList.add('rotate-180');
+      });
+
+      collapseEl.addEventListener('hide.bs.collapse', function () {
+        icon.classList.remove('rotate-180');
+      });
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    if (dropdownMenu) {
+      dropdownMenu.style.maxHeight = '250px';
+      dropdownMenu.style.overflowY = 'auto';
+    }
+
+    const allCheckbox = document.getElementById('All');
+    const resourceCheckboxes = document.querySelectorAll('.resource-checkbox:not(#All)');
+
+    if (allCheckbox) {
+      allCheckbox.addEventListener('change', function () {
+        if (this.checked) {
+          resourceCheckboxes.forEach(cb => cb.checked = false);
+        }
+      });
+    }
+
+    resourceCheckboxes.forEach(cb => {
+      cb.addEventListener('change', function () {
+        if (this.checked && allCheckbox) {
+          allCheckbox.checked = false;
+        }
+      });
+    });
+  });
+
+
+</script>
+
+{% endblock %}

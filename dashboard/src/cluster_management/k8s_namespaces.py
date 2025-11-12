@@ -63,14 +63,25 @@ def get_namespace_description(path=None, context=None, namespace=None):
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch namespace details: {e.reason}"}
     
-def get_namespace_yaml(path, context, namespace_name):
+def get_namespace_yaml(path, context, namespace_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     namespace = v1.read_namespace(name=namespace_name)
     # Filtering Annotations
     if namespace.metadata:
         namespace.metadata.annotations = filter_annotations(namespace.metadata.annotations or {})
-    return yaml.dump(namespace.to_dict(), default_flow_style=False)
+
+    api_client = client.ApiClient()
+    ns_dict = api_client.sanitize_for_serialization(namespace)
+
+    # Clean up metadata
+    if "metadata" in ns_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            ns_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(ns_dict, sort_keys=False)
 
 def get_namespace_details():
     try:

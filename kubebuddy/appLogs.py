@@ -18,6 +18,7 @@ timed_rotating_file_handler = logging.handlers.TimedRotatingFileHandler(
     interval = 1,
     backupCount=0,
     encoding='utf8',
+    delay=True,
 )
 
 # Overwriting namer method of timed rotating file handler 

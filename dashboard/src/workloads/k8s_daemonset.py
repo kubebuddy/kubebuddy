@@ -4,13 +4,6 @@ from kubebuddy.appLogs import logger
 import yaml
 from ..utils import calculateAge, filter_annotations, configure_k8s
 
-# def getDaemonsetCount(path, context):
-#     configure_k8s(path, context)
-#     v1 = client.AppsV1Api() #Create an API client for the AppsV1Api
-#     deployments = v1.list_daemon_set_for_all_namespaces().items
-
-#     return len(deployments)
-
 def getDaemonsetStatus(path, context, namespace="all"):
     try:
         configure_k8s(path, context)
@@ -156,11 +149,22 @@ def get_daemonset_events(path, context, namespace, daemonset_name):
     ]
     return "\n".join([f"{e.reason}: {e.message}" for e in daemonset_events])
 
-def get_daemonset_yaml(path, context, namespace, daemonset_name):
+def get_daemonset_yaml(path, context, namespace, daemonset_name, managed_fields):
     configure_k8s(path, context)
     v1 = client.AppsV1Api() # Use AppsV1Api
     daemonset = v1.read_namespaced_daemon_set(name=daemonset_name, namespace=namespace)
     # Filtering Annotations
     if daemonset.metadata:
         daemonset.metadata.annotations = filter_annotations(daemonset.metadata.annotations or {})
-    return yaml.dump(daemonset.to_dict(), default_flow_style=False)
+    
+    api_client = client.ApiClient()
+    ds_dict = api_client.sanitize_for_serialization(daemonset)
+
+    # Clean up metadata
+    if "metadata" in ds_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            ds_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(ds_dict, sort_keys=False)

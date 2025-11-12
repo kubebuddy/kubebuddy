@@ -1,4 +1,4 @@
-from kubernetes import client, config
+from kubernetes import client, config, utils
 from kubernetes.config.config_exception import ConfigException
 from datetime import datetime, timezone
 from kubebuddy.appLogs import logger
@@ -196,14 +196,25 @@ def get_pod_events(path, context, namespace, pod_name):
     
     return "\n".join([f"{e.reason}: {e.message}" for e in pod_events])
 
-def get_pod_yaml(path, context, namespace, pod_name):
+def get_pod_yaml(path, context, namespace, pod_name, managed_fields=True):
     configure_k8s(path, context)
     v1 = client.CoreV1Api()
     pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
     # Filtering Annotations
     if pod.metadata:
         pod.metadata.annotations = filter_annotations(pod.metadata.annotations or {})
-    return yaml.dump(pod.to_dict(), default_flow_style=False)
+
+    api_client = client.ApiClient()
+    pod_dict = api_client.sanitize_for_serialization(pod)
+
+    # Clean up metadata
+    if "metadata" in pod_dict and not managed_fields:
+        for meta_field in [
+            "selfLink", "managedFields", "generation"
+        ]:
+            pod_dict["metadata"].pop(meta_field, None)
+
+    return yaml.safe_dump(pod_dict, sort_keys=False)
 
 def get_pod_details(namespace=None):
     try:

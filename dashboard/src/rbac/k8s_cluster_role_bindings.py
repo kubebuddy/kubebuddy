@@ -74,7 +74,7 @@ def get_cluster_role_binding_events(path, context, cluster_role_binding):
 
     return "\n".join([f"{e.reason}: {e.message}" for e in cluster_role_binding_events])
 
-def get_cluster_role_binding_yaml(path, context, cluster_role_binding):
+def get_cluster_role_binding_yaml(path, context, cluster_role_binding, managed_fields):
     configure_k8s(path, context)
     v1 = client.RbacAuthorizationV1Api()
     try:
@@ -82,7 +82,18 @@ def get_cluster_role_binding_yaml(path, context, cluster_role_binding):
         # Filtering Annotations
         if cluster_role_binding.metadata:
             cluster_role_binding.metadata.annotations = filter_annotations(cluster_role_binding.metadata.annotations or {})
-        return yaml.dump(cluster_role_binding.to_dict(), default_flow_style=False)
+        
+        api_client = client.ApiClient()
+        cluster_role_binding_dict = api_client.sanitize_for_serialization(cluster_role_binding)
+
+        # Clean up metadata
+        if "metadata" in cluster_role_binding_dict and not managed_fields:
+            for meta_field in [
+                "selfLink", "managedFields", "generation"
+            ]:
+                cluster_role_binding_dict["metadata"].pop(meta_field, None)
+
+        return yaml.safe_dump(cluster_role_binding_dict, sort_keys=False)
     
     except client.exceptions.ApiException as e:
         return {"error": f"Failed to fetch role_binding details: {e.reason}"}

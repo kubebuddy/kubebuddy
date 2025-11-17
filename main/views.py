@@ -31,6 +31,8 @@ import json
 import markdown
 import bleach
 from google import genai
+import openai
+import ollama
 
 def login_view(request):
     if request.method == 'POST':
@@ -298,13 +300,43 @@ def openai_response(api_key, model, user_message):
     except Exception as e:
         return f"Error generating response: {str(e)}"
 
+def ollama_response(model, user_message):
+    """Generate a response using the Ollama API with system prompt."""
+    try:
+        response = ollama.chat(
+            model=model,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message}
+            ]
+        )
+        
+        # Extract text from response
+        text = ""
+        if hasattr(response, "message"):
+            msg = getattr(response, "message")
+            text = getattr(msg, "content", None) or str(msg)
+        else:
+            text = str(response)
+            
+        return render_markdown(text)
+    except Exception as e:
+        return f"Error generating response: {str(e)}"
+
 @csrf_exempt
 def check_api_key(request):
     config = AIConfig.objects.first()
-    if config and config.api_key:
-        return JsonResponse({"status": "success", "provider": config.provider, "api_key": "********"})
-    else:
-        return JsonResponse({"status": "missing", "message": "Please set the API key and provider."})
+    if config:
+        if config.provider == "ollama":
+            # Ollama doesn't need an API key, just check if model is configured
+            if config.model:
+                return JsonResponse({"status": "success", "provider": config.provider})
+            else:
+                return JsonResponse({"status": "missing", "message": "Ollama model not configured."})
+        elif config.api_key:
+            return JsonResponse({"status": "success", "provider": config.provider, "api_key": "********"})
+    
+    return JsonResponse({"status": "missing", "message": "Please set the API key and provider."})
 
 @csrf_exempt
 def validate_api_key(request):
@@ -313,10 +345,14 @@ def validate_api_key(request):
         provider = data.get("provider")
         api_key = data.get("api_key")
 
-        if provider not in ["openai", "gemini"]:
+        if provider not in ["openai", "gemini", "ollama"]:
             return JsonResponse({"status": "error", "message": "Invalid provider selected."})
 
-        # Basic validation
+        # Ollama doesn't need API key validation
+        if provider == "ollama":
+            return JsonResponse({"status": "valid"})
+
+        # Basic validation for OpenAI and Gemini
         if not api_key:
             return JsonResponse({"status": "invalid", "message": "API key cannot be empty."})
 
@@ -350,10 +386,14 @@ def set_api_key(request):
         provider = data.get("provider")
         api_key = data.get("api_key")
 
-        if provider not in ["openai", "gemini"]:
+        if provider not in ["openai", "gemini", "ollama"]:
             return JsonResponse({"status": "error", "message": "Invalid provider selected."})
 
-        if not api_key:
+        # Ollama doesn't need API key
+        if provider == "ollama":
+            api_key = ""  # Empty API key for Ollama
+
+        if provider in ["openai", "gemini"] and not api_key:
             return JsonResponse({"status": "error", "message": "API key cannot be empty."})
 
         try:
@@ -374,11 +414,33 @@ def chatbot_response(request):
     if request.method == "POST":
         data = json.loads(request.body)
         user_message = data.get("message")
+        provider_from_request = data.get("provider")
 
-        # Get API key
-        config = AIConfig.objects.first()
-        if not config or not config.api_key:
-            message = "API key not set. Please configure it first or <a href='/settings/?tab=ai-config'>click here</a>"
+        # Get the configuration for the requested provider
+        if provider_from_request:
+            try:
+                config = AIConfig.objects.get(provider=provider_from_request)
+            except AIConfig.DoesNotExist:
+                return JsonResponse({
+                    "status": "error", 
+                    "message": f"{provider_from_request} is not configured. Please set it up in <a href='/settings/?tab=ai-config'>Settings</a>."
+                })
+        else:
+            # Fallback to first available config
+            config = AIConfig.objects.first()
+
+        if not config:
+            message = "No AI provider configured. Please set it up in <a href='/settings/?tab=ai-config'>Settings</a>"
+            return JsonResponse({"status": "error", "message": message})
+        
+        # Check API key requirement (not needed for Ollama)
+        if config.provider != "ollama" and not config.api_key:
+            message = f"API key not set for {config.provider}. Please configure it in <a href='/settings/?tab=ai-config'>Settings</a>"
+            return JsonResponse({"status": "error", "message": message})
+
+        # Check if model is configured
+        if not config.model:
+            message = f"Model not configured for {config.provider}. Please configure it in <a href='/settings/?tab=ai-config'>Settings</a>"
             return JsonResponse({"status": "error", "message": message})
         
         provider = config.provider
@@ -390,6 +452,8 @@ def chatbot_response(request):
                 bot_response = gemini_response(api_key, model, user_message)
             elif provider == "openai":
                 bot_response = openai_response(api_key, model, user_message)
+            elif provider == "ollama":
+                bot_response = ollama_response(model, user_message)
             else:
                 bot_response = "Sorry, I couldn't process that request. Invalid provider."
 
@@ -402,6 +466,16 @@ def chatbot_response(request):
 
 def api_key_validation(provider, api_key, model):
     try:
+        # Ollama doesn't need API key validation
+        if provider == "ollama":
+            # Just check if Ollama is accessible (optional)
+            try:
+                # Try to list models or make a simple request
+                ollama.list()
+                return {"status": "valid"}
+            except Exception as e:
+                return {"status": "invalid", "message": f"Ollama connection failed: {str(e)}"}
+        
         # Gemini API validation
         if provider == "gemini":
             client = genai.Client(api_key=api_key)
@@ -445,22 +519,29 @@ def settings(request):
     if request.method == 'POST' and 'save_ai_config' in request.POST:
 
         provider = request.POST.get('provider')
-        api_key = request.POST.get('api_key')
+        api_key = request.POST.get('api_key', '').strip()
         model = request.POST.get('model')  # Get the selected model
 
-        # Validate the API key before saving
-        validation_result = api_key_validation(provider, api_key, model)
-
-        if validation_result["status"] == "invalid":
+        # For Ollama, API key is not required
+        if provider == "ollama":
+            api_key = ""  # Set empty API key for Ollama
+        
+        # Validate the API key before saving (skip for Ollama or if no validation needed)
+        if provider in ["gemini", "openai"] and not api_key:
             return redirect('/settings?ai_config_failed=true&tab=ai-config')
         
-        # Save the AI configuration if the API key is valid
-        else:
-            obj, created = AIConfig.objects.update_or_create(
+        # Validate API key for non-Ollama providers
+        if provider in ["gemini", "openai"]:
+            validation_result = api_key_validation(provider, api_key, model)
+            if validation_result["status"] == "invalid":
+                return redirect('/settings?ai_config_failed=true&tab=ai-config')
+        
+        # Save the AI configuration if the API key is valid or Ollama
+        obj, created = AIConfig.objects.update_or_create(
             provider=provider,
             defaults={'api_key': api_key, 'model': model}
-            )
-            return redirect('/settings?ai_config_success=true&tab=ai-config')
+        )
+        return redirect('/settings?ai_config_success=true&tab=ai-config')
             
     # Add this block for handling API key deletion
     if request.method == 'POST' and 'delete_api_key' in request.POST:
@@ -498,6 +579,7 @@ def settings(request):
     
     gemini_models = AIConfig.MODELS_GEMINI
     openai_models = AIConfig.MODELS_OPENAI
+    ollama_models = AIConfig.MODELS_OLLAMA
 
     return render(request, 'main/settings.html', {
         'username': username,
@@ -506,6 +588,7 @@ def settings(request):
         'ai_configs': ai_configs,
         'gemini_models_json': json.dumps(gemini_models),
         'openai_models_json': json.dumps(openai_models),
+        'ollama_models_json': json.dumps(ollama_models),
         'active_tab': active_tab,  # Pass the active tab to the template
     })
 

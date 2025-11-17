@@ -1,5 +1,5 @@
 {% load static %}
-
+ 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
 <head>
@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="icon" type="image/x-icon" href="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png">
-
+ 
     <script>
         (function() {
           const theme = localStorage.getItem('theme');
@@ -18,7 +18,7 @@
           }
         })();
       </script>
-
+ 
     <!-- Custom styles for this template -->
     <link rel="stylesheet" href="{% static 'css/settings.css' %}">
 </head>
@@ -32,7 +32,7 @@
                     <span class="fs-5 p-2 fw-semibold">KubeBuddy</span>
                 </a>
             </div>
-            
+           
             <!-- Navigation tabs - moved to top of navbar -->
             <div class="nav flex-column nav-pills mb-4" role="tablist" aria-orientation="vertical">
                 <a class="nav-link active link-dark" id="general-settings-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('general-settings-content')">
@@ -52,7 +52,7 @@
                     <span>Documentation</span>
                 </a>
             </div>
-            
+           
             <!-- User/Account Info at Bottom (Optional) -->
             <div class="mt-auto pt-3 border-top">
                 <div class="d-flex align-items-center justify-content-between">
@@ -72,7 +72,7 @@
                 </div>
             </div>
         </div>
-        
+       
         <!-- main content area -->
         <div class="container-fluid p-4 flex-grow-1">
             <!-- Header with action buttons -->
@@ -85,7 +85,7 @@
                     </a>
                 </div>
             </div>
-            
+           
             <!-- Alerts for success and error messages -->
             {% if success_message %}
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -93,14 +93,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             {% endif %}
-            
+           
             {% if error_message %}
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ error_message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             {% endif %}
-            
+           
             <!-- General Settings Content Section - simplified with only Check for Updates button -->
             <div id="general-settings-content" class="content-section active">
                 <!-- Default Kubeconfig Card -->
@@ -123,7 +123,7 @@
                         </button>
                     </div>
                 </div>
-                
+               
                 <!-- Simplified General Settings Card -->
                 <div class="card shadow-sm">
                     <div class="card-header">
@@ -138,7 +138,7 @@
                     </div>
                 </div>
             </div>
-            
+           
             <!-- AI Configuration Content Section -->
             <div id="ai-config-content" class="content-section">
                 <div class="card shadow-sm mb-4">
@@ -157,19 +157,20 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                         {% endif %}
-                        
+                       
                         <form method="POST" action="{% url 'settings' %}">
                             {% csrf_token %}
                             <input type="hidden" name="save_ai_config" value="true">
-                            
+                           
                             <div class="mb-3">
                                 <label for="provider" class="form-label">AI Model Provider</label>
                                 <select class="form-select" id="provider" name="provider">
                                     <option value="gemini" {% if 'gemini' in ai_configs %}selected{% endif %}>Google Gemini</option>
                                     <option value="openai" {% if 'openai' in ai_configs %}selected{% endif %}>OpenAI</option>
+                                    <option value="ollama" {% if 'ollama' in ai_configs %}selected{% endif %}>Ollama</option>
                                 </select>
                             </div>
-
+ 
                             <div class="mb-3">
                                 <label for="model" class="form-label">AI Model</label>
                                 <select class="form-select" id="model" name="model">
@@ -180,14 +181,17 @@
                                     {% if 'openai' in ai_configs and ai_configs.openai.model %}
                                         <option value="{{ ai_configs.openai.model }}" data-provider="openai" selected>{{ ai_configs.openai.model }}</option>
                                     {% endif %}
+                                    {% if 'ollama' in ai_configs and ai_configs.ollama.model %}
+                                        <option value="{{ ai_configs.ollama.model }}" data-provider="ollama" selected>{{ ai_configs.ollama.model }}</option>
+                                    {% endif %}
                                     </select>
                                 <div class="form-text">Select the specific AI model to use.</div>
                             </div>
-                            
-                            <div class="mb-3">
+                           
+                            <div class="mb-3" id="api-key-section">
                                 <label for="api_key" class="form-label">API Key</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="api_key" name="api_key" 
+                                    <input type="password" class="form-control" id="api_key" name="api_key"
                                            value="{% if 'openai' in ai_configs %}{{ ai_configs.openai.api_key }}{% elif 'gemini' in ai_configs %}{{ ai_configs.gemini.api_key }}{% endif %}" required>
                                     <button class="btn btn-outline-secondary" type="button" id="showApiKey">
                                         <i class="bi bi-eye"></i>
@@ -195,12 +199,12 @@
                                 </div>
                                 <div class="form-text">Your API key is stored securely and never shared.</div>
                             </div>
-                            
+                           
                             <button type="submit" class="btn btn-primary bg-gradient">Save AI Settings</button>
                         </form>
                     </div>
                 </div>
-                
+               
                 <!-- Current API Configuration Display -->
                 <div class="card shadow-sm">
                     <div class="card-header">
@@ -224,7 +228,7 @@
                                             <span class="text-muted">**********</span>
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-danger" 
+                                            <button class="btn btn-sm btn-outline-danger"
                                                     onclick="if(confirm('Are you sure you want to delete this API key?')) { deleteApiKey('{{ config.provider }}'); }">
                                                 <i class="bi bi-trash"></i>
                                             </button>
@@ -241,7 +245,7 @@
                     </div>
                 </div>
             </div>
-            
+           
             <!-- Change Password Content Section -->
             <div id="change-password-content" class="content-section">
                 <div class="card shadow-sm">
@@ -276,7 +280,7 @@
                     </div>
                 </div>
             </div>
-            
+           
             <!-- Documentation Content Section -->
             <div id="documentation-content" class="content-section">
                 <div class="card shadow-sm">
@@ -287,21 +291,21 @@
                             Go to Documentation
                         </a>
                     </div>
-                    
+                   
                 </div>
             </div>
         </div>
     </div>
-    
+   
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/cluster_actions.js' %}"></script>
-
+ 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
         const savedTheme = localStorage.getItem('theme');
         const themeToggleBtn = document.getElementById('theme-toggle');
         const rootElement = document.documentElement; // or document.body
-
+ 
         // Apply saved theme or system preference
         if (savedTheme === 'dark') {
             rootElement.classList.add('dark-mode');
@@ -312,24 +316,24 @@
         } else {
             updateThemeIcon('light'); // ← default to light
         }
-
+ 
         // Theme toggle handler
         themeToggleBtn.addEventListener('click', function() {
             rootElement.classList.add('transition');
-
+ 
             const isDark = rootElement.classList.contains('dark-mode');
             const newTheme = isDark ? 'light' : 'dark';
-
+ 
             rootElement.classList.toggle('dark-mode', !isDark);
             localStorage.setItem('theme', newTheme);
-
+ 
             updateThemeIcon(newTheme); // ← call function after theme toggle
-
+ 
             setTimeout(() => {
                 rootElement.classList.remove('transition');
             }, 300);
         });
-
+ 
         // Function to update theme icon
         function updateThemeIcon(theme) {
             if (theme === 'dark') {
@@ -341,12 +345,12 @@
             }
         }
     });
-
+ 
     </script>
-        
-
+       
+ 
     <script>
-        
+       
         // Function to show content sections
         function showContent(contentId) {
             // Hide all content sections
@@ -354,20 +358,20 @@
             contentSections.forEach(section => {
                 section.classList.remove('active');
             });
-            
+           
             // Show the selected content section
             document.getElementById(contentId).classList.add('active');
-            
+           
             // Update active tab
             const tabs = document.querySelectorAll('.nav-link');
             tabs.forEach(tab => {
                 tab.classList.remove('active');
             });
-            
+           
             // Find the related tab and make it active
             const relatedTabId = contentId.replace('-content', '-tab');
             document.getElementById(relatedTabId).classList.add('active');
-            
+           
             // Update section title
             const sectionTitle = document.getElementById('section-title');
             switch(contentId) {
@@ -385,24 +389,24 @@
                     break;
             }
         }
-        
-            
+       
+           
             // Password strength meter
             if (document.getElementById('newPassword')) {
                 document.getElementById('newPassword').addEventListener('input', function() {
                     const password = this.value;
                     let strength = 0;
-                    
+                   
                     // Calculate password strength
                     if (password.length >= 8) strength += 25;
                     if (password.match(/[A-Z]/)) strength += 25;
                     if (password.match(/[0-9]/)) strength += 25;
                     if (password.match(/[^A-Za-z0-9]/)) strength += 25;
-                    
+                   
                     // Update the progress bar
                     const strengthBar = document.getElementById('passwordStrength');
                     strengthBar.style.width = strength + '%';
-                    
+                   
                     // Update the text and color
                     const strengthText = document.getElementById('passwordStrengthText');
                     if (strength < 25) {
@@ -420,13 +424,13 @@
                     }
                 });
             }
-            
+           
             // Show/Hide API Key
             if (document.getElementById('showApiKey')) {
                 document.getElementById('showApiKey').addEventListener('click', function() {
                     const apiKeyInput = document.getElementById('api_key');
                     const eyeIcon = this.querySelector('i');
-                    
+                   
                     if (apiKeyInput.type === 'password') {
                         apiKeyInput.type = 'text';
                         eyeIcon.className = 'bi bi-eye-slash';
@@ -436,20 +440,20 @@
                     }
                 });
             }
-            
+           
             // Check URL parameters for active tab or error/success messages
             const urlParams = new URLSearchParams(window.location.search);
             const tabParam = urlParams.get('tab');
-            
+           
             // First check if there's a tab parameter in the URL
             if (tabParam) {
                 showContent(tabParam + '-content');
-            } 
+            }
             // Otherwise check for error/success messages
             else if (document.querySelector('.alert-danger') || document.querySelector('.alert-success')) {
                 const errorText = document.querySelector('.alert-danger')?.textContent || '';
                 const successText = document.querySelector('.alert-success')?.textContent || '';
-                
+               
                 if (errorText.includes('password') || successText.includes('Password')) {
                     showContent('change-password-content');
                 }
@@ -459,7 +463,7 @@
     // Get the active tab from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const activeTab = urlParams.get('tab');
-    
+   
     if (activeTab) {
       // Find the tab element
       const tabElement = document.getElementById(activeTab + '-tab');
@@ -469,7 +473,7 @@
       }
     }
   });
-        
+       
         // Initialize tooltips
         document.addEventListener("DOMContentLoaded", function () {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -477,12 +481,13 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         });
-
+ 
         // Handle API model selection changes
         document.addEventListener('DOMContentLoaded', function() {
             const providerSelect = document.getElementById('provider');
             const apiKeyInput = document.getElementById('api_key');
-            
+            const apiKeySection = document.getElementById('api-key-section');
+           
             if (providerSelect && apiKeyInput) {
                 // Store API keys for each provider
                 const apiKeys = {
@@ -490,10 +495,27 @@
                     '{{ provider }}': '{{ config.api_key }}',
                     {% endfor %}
                 };
-                
-                // Update API key when model selection changes
+               
+                // Function to toggle API key visibility based on provider
+                function toggleApiKeyVisibility() {
+                    const selectedProvider = providerSelect.value;
+                    if (selectedProvider === 'ollama') {
+                        apiKeySection.style.display = 'none';
+                        apiKeyInput.removeAttribute('required');
+                    } else {
+                        apiKeySection.style.display = 'block';
+                        apiKeyInput.setAttribute('required', 'required');
+                    }
+                }
+               
+                // Initial check on page load
+                toggleApiKeyVisibility();
+               
+                // Update API key when provider selection changes
                 providerSelect.addEventListener('change', function() {
                     const selectedProvider = this.value;
+                    toggleApiKeyVisibility();
+                    
                     if (apiKeys[selectedProvider]) {
                         apiKeyInput.value = apiKeys[selectedProvider];
                     } else {
@@ -502,86 +524,91 @@
                 });
             }
         });
-
+ 
         // Function to delete API key
         function deleteApiKey(provider) {
             // Create a form to submit the delete request
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '{% url "settings" %}';
-            
+           
             // Add CSRF token
             const csrfToken = document.createElement('input');
             csrfToken.type = 'hidden';
             csrfToken.name = 'csrfmiddlewaretoken';
             csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
             form.appendChild(csrfToken);
-            
+           
             // Add delete_api_key parameter
             const deleteParam = document.createElement('input');
             deleteParam.type = 'hidden';
             deleteParam.name = 'delete_api_key';
             deleteParam.value = provider;
             form.appendChild(deleteParam);
-            
+           
             // Submit the form
             document.body.appendChild(form);
             form.submit();
         }
-
+ 
         // Back button logic - replace current page
         document.getElementById('back-btn').addEventListener('click', () => {
             const previousUrl = document.referrer || '/';
             window.location.replace(previousUrl);
         });
-
+ 
     </script>
-
+ 
     <script>
         const providerSelect = document.getElementById('provider');
         const modelSelect = document.getElementById('model');
-
+ 
         const geminiModels = {{ gemini_models_json|safe }};
         const openaiModels = {{ openai_models_json|safe }};
+        const ollamaModels = {{ ollama_models_json|safe }};
         const aiConfigs = {{ ai_configs|safe }}; // Pass the ai_configs dictionary
-
+ 
         function updateModelOptions() {
             const selectedProvider = providerSelect.value;
             modelSelect.innerHTML = '<option value="" selected>-- Select Model --</option>';
-
+ 
             let modelsToShow = [];
-
+ 
             if (selectedProvider === 'gemini') {
                 modelsToShow = geminiModels;
             } else if (selectedProvider === 'openai') {
                 modelsToShow = openaiModels;
+            } else if (selectedProvider === 'ollama') {
+                modelsToShow = ollamaModels;
             }
-
+ 
             modelsToShow.forEach(model => {
                 const option = document.createElement('option');
                 option.value = model[0];
                 option.textContent = model[1];
-
+ 
                 // Attempt to pre-select based on ai_configs
                 let previouslySelected = false;
                 if (selectedProvider === 'gemini' && aiConfigs.hasOwnProperty('gemini') && model[0] === aiConfigs['gemini']['model']) {
                     previouslySelected = true;
                 } else if (selectedProvider === 'openai' && aiConfigs.hasOwnProperty('openai') && model[0] === aiConfigs['openai']['model']) {
                     previouslySelected = true;
+                } else if (selectedProvider === 'ollama' && aiConfigs.hasOwnProperty('ollama') && model[0] === aiConfigs['ollama']['model']) {
+                    previouslySelected = true;
                 }
-
+ 
                 if (previouslySelected) {
                     option.selected = true;
                 }
-
+ 
                 modelSelect.appendChild(option);
             });
         }
-
+ 
         // Initial load and when the provider changes
         updateModelOptions();
         providerSelect.addEventListener('change', updateModelOptions);
     </script>
-
+ 
 </body>
 </html>

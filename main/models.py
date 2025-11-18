@@ -46,12 +46,15 @@ class AIConfig(models.Model):
         'ollama': 'llama3',
     }
 
-    MODELS_OPENAI = [ #update models for openai and gemini only keep latest models.
+    MODELS_OPENAI = [ 
         ('gpt-3.5-turbo', 'GPT-3.5 Turbo'),
         ('gpt-3.5-turbo-16k', 'GPT-3.5 Turbo 16K'),
         ('gpt-3.5-turbo-instruct', 'GPT-3.5 Turbo Instruct'),
         ('gpt-4', 'GPT-4'),
         ('gpt-4-32k', 'GPT-4 32K'),
+           ('gpt-4o', 'GPT-4o'),
+           ('gpt-4o-mini', 'GPT-4o Mini'),('gpt-4.1', 'GPT-4.1'),
+           ('gpt-4.1-mini', 'GPT-4.1 Mini')
     ]
 
     MODELS_GEMINI = [
@@ -60,15 +63,24 @@ class AIConfig(models.Model):
         ('gemini-1.5-flash', 'Gemini 1.5 Flash'),
         ('gemini-1.5-flash-8b', 'Gemini 1.5 Flash-8B'),
         ('gemini-1.5-pro', 'Gemini 1.5 Pro'),
+        ('gemini-2.5-pro', 'Gemini 2.5 Pro'),
+        ('gemini-2.5-flash', 'Gemini 2.5 Flash'),
+        ('gemini-2.5-flash-lite', 'Gemini 2.5 Flash-Lite')
     ]
 
     MODELS_OLLAMA = [
-        ('gemma3:1b', 'Gemma'),    #proper model annotation and name VERIFYYY especially gor gemma
+        ('gemma3:1b', 'Gemma'),   
         ('llama2', 'LLaMA 2'),
         ('llama3', 'LLaMA 3'),
         ('mistral', 'Mistral'),
         ('codellama', 'Code LLaMA'),
         ('phi3', 'Phi-3 Mini'),
+         ('llama3.1', 'LLaMA 3.1'),
+         ('mistral-small', 'Mistral Small'),
+         ('gemma:2b', 'Gemma 2B'),
+         ('gemma:7b', 'Gemma 7B'),
+         ('gemma2:2b', 'Gemma 2 (2B)'),
+         ('gemma2:9b', 'Gemma 2 (9B)')
     ]
 
     provider = models.CharField(max_length=10, choices=PROVIDERS, unique=True)

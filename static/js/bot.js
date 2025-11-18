@@ -106,7 +106,7 @@ function changeProvider() {
     scrollChatToBottom();
 }
 
-// Handle Provider Selection - FIXED VERSION
+// Handle Provider Selection
 async function handleProviderSelection(message) {
     const input = message.toLowerCase().trim();
     let provider = "";
@@ -115,8 +115,19 @@ async function handleProviderSelection(message) {
     else if (input === "2" || input === "openai") provider = "openai";
     else if (input === "3" || input === "ollama") provider = "ollama";
     else {
-        botMessage(`❌ Invalid selection. Please type:<br>1 for Gemini<br>2 for OpenAI<br>3 for Ollama`);
+        // botMessage(`❌ Invalid selection. Please type:<br>1 for Gemini<br>2 for OpenAI<br>3 for Ollama`);
+        // scrollChatToBottom();
+        selectedProvider = "gemini";
+        sessionStorage.setItem('selectedProvider', 'gemini');
+        awaitingProvider = false;
+        providerConfigured = true;
+        sessionStorage.setItem('providerConfigured', 'true');
+
+        updateApiKeyVisibility();
+
+        botMessage("You didn't choose a provider, so I selected **Gemini** for you by default! Processing your message now...");
         scrollChatToBottom();
+        processUserQuery(message)
         return;
     }
 
@@ -259,8 +270,8 @@ function saveMessage(text, type) {
 function clearChatHistory() {
     sessionStorage.removeItem('chatHistory');
     sessionStorage.removeItem('apiKeyMessageShown');
-    sessionStorage.removeItem('selectedProvider');
-    sessionStorage.removeItem('providerConfigured');
+    //sessionStorage.removeItem('selectedProvider');
+    //sessionStorage.removeItem('providerConfigured');
     sessionStorage.removeItem('chatSessionStarted');
     const chatBody = document.getElementById("chatBody");
     if (chatBody) {

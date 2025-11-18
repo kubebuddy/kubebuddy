@@ -12,3 +12,4 @@ xhtml2pdf==0.2.17
 fpdf2==2.8.2
 deepdiff==8.5.0
 boto3==1.37.23
+ollama==0.6.1

@@ -24,6 +24,9 @@ from dashboard.src.clusters_DB import get_cluster_status
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # ALLAUTH URLS - Must come before other patterns
+    path('accounts/', include('allauth.urls')),
 
     # APP URLS
     path('', login_view, name='login'),
@@ -40,5 +43,5 @@ urlpatterns = [
     path('validate-api-key/', validate_api_key, name='validate_api_key'),
     path('settings/', settings, name='settings'),
     path('profile/', profile, name='profile'),
-    path('get_cluster_status/', get_cluster_status ,name = 'get_cluster_status')
+    path('get_cluster_status/', get_cluster_status ,name = 'get_cluster_status'),
 ]

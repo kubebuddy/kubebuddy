@@ -42,6 +42,14 @@ INSTALLED_APPS = [
     'main',
     'dashboard',
 
+    # -------- SSO (ADDED, NOTHING REMOVED) --------
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.github',
+    'allauth.socialaccount.providers.microsoft',
 ]
 
 MIDDLEWARE = [
@@ -50,10 +58,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Add this line
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'kubebuddy.middleware.MaxRetryRedirectMiddleware',
-    'kubebuddy.middleware.CustomExceptionMiddleware',
 ]
 
 
@@ -140,3 +147,22 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # Prevent logs printing in terminal
 LOGGING_CONFIG = None
+
+
+# =========================
+# SSO SETTINGS (ONLY APPENDED)
+# =========================
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+SOCIALACCOUNT_LOGIN_ON_GET = True

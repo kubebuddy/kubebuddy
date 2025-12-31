@@ -51,7 +51,8 @@ class ClusterHotspotViewTests(TestCase):
                 {'namespace': 'ns1', 'pod': 'pod1', 'container': 'c1', 'restart_count': 5},
                 {'namespace': 'ns1', 'pod': 'pod2', 'container': 'c2', 'restart_count': 3}
             ],
-            [{'namespace': 'ns1', 'pod': 'pod1', 'container': 'c1', 'image': 'nginx'}]
+            [{'namespace': 'ns1', 'pod': 'pod1', 'container': 'c1', 'image': 'nginx'}],
+            [{'namespace': 'ns1', 'pod': 'pod1', 'container': 'c1'}]
         )
 
         response = self.client.get(self.url)

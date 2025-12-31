@@ -162,4 +162,5 @@ def get_cluster_hotspot(path, context):
     
     except Exception as e:
         print(f"Error: {e}")
-        return None
+        return [], [], [], [], [], [], [], []
+    

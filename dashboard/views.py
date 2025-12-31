@@ -1386,6 +1386,7 @@ def cluster_hotspot(request, cluster_id):
             
     except Exception as e:
         print('Caught exception: ', e)
+        return HttpResponseServerError(f"Error loading cluster hotspot: {str(e)}")
 
 def k8sgpt_view(request, cluster_id):
     cluster_id, current_cluster, path, registered_clusters, namespaces, context_name = get_utils_data(request)

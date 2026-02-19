@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KubeBuddy</title>
+    <title>KubeBuddy - Settings</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="icon" type="image/x-icon" href="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png">
@@ -25,7 +25,7 @@
 <body>
     <div class="d-flex box">
         <!-- side bar with tabs -->
-        <div class="sidebar p-3 flex-shrink-0 bg-white border-end d-flex flex-column" style="width: 20rem; height:100vh">
+        <div class="sidebar p-3 flex-shrink-0 bg-white border-end d-flex flex-column" style="width: 20rem; height:100vh ; overflow-y: auto;">
             <div class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
                 <a href="/KubeBuddy" class="d-flex align-items-center link-dark text-decoration-none">
                     <img src="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png" width="30" height="30" alt="KubeBuddy Logo">
@@ -33,7 +33,7 @@
                 </a>
             </div>
            
-            <!-- Navigation tabs - moved to top of navbar -->
+            <!-- Navigation tabs -->
             <div class="nav flex-column nav-pills mb-4" role="tablist" aria-orientation="vertical">
                 <a class="nav-link active link-dark" id="general-settings-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('general-settings-content')">
                     <i class="bi bi-gear"></i>
@@ -42,6 +42,10 @@
                 <a class="nav-link link-dark" id="ai-config-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('ai-config-content')">
                     <i class="bi bi-robot"></i>
                     <span>AI Configuration</span>
+                </a>
+                <a class="nav-link link-dark" id="login-settings-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('login-settings-content')">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>Login Settings</span>
                 </a>
                 <a class="nav-link link-dark" id="change-password-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('change-password-content')">
                     <i class="bi bi-key-fill"></i>
@@ -53,7 +57,7 @@
                 </a>
             </div>
            
-            <!-- User/Account Info at Bottom (Optional) -->
+            <!-- User/Account Info at Bottom -->
             <div class="mt-auto pt-3 border-top">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center">
@@ -74,7 +78,7 @@
         </div>
        
         <!-- main content area -->
-        <div class="container-fluid p-4 flex-grow-1">
+        <div class="container-fluid p-4 flex-grow-1" style="height: 100vh; overflow-y: auto;">
             <!-- Header with action buttons -->
             <div class="pb-3 mb-4 border-bottom d-flex justify-content-between">
                 <div id="section-title" class="h4">General Settings</div>
@@ -101,7 +105,7 @@
             </div>
             {% endif %}
            
-            <!-- General Settings Content Section - simplified with only Check for Updates button -->
+            <!-- General Settings Content Section -->
             <div id="general-settings-content" class="content-section active">
                 <!-- Default Kubeconfig Card -->
                 <div class="card shadow-sm mb-4">
@@ -124,7 +128,7 @@
                     </div>
                 </div>
                
-                <!-- Simplified General Settings Card -->
+                <!-- Application Settings Card -->
                 <div class="card shadow-sm">
                     <div class="card-header">
                         Application Settings
@@ -246,6 +250,305 @@
                 </div>
             </div>
            
+            <!-- Login Settings Content Section (NEW) -->
+            <div id="login-settings-content" class="content-section">
+                <!-- SMTP Configuration Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-envelope-fill me-2"></i>SMTP Server Configuration
+                    </div>
+                    <div class="card-body">
+                        {% if request.GET.smtp_config_success %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            SMTP configuration saved successfully!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% elif request.GET.smtp_config_failed %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            SMTP configuration failed. Please check your settings and try again.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endif %}
+                       
+                        <form id="smtp-form" method="POST" action="/smtpdetails/">
+                            {% csrf_token %}
+                           
+                            <div class="mb-3">
+                                <label for="smtp_server" class="form-label">SMTP Server <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="smtp_server" name="smtp_server"
+                                       value="{% if smtp_config %}{{ smtp_config.smtp_server }}{% endif %}"
+                                       placeholder="smtp.gmail.com" required>
+                                <div class="form-text">Enter your SMTP server address (e.g., smtp.gmail.com, smtp.office365.com)</div>
+                            </div>
+                           
+                            <div class="mb-3">
+                                <label for="smtp_port" class="form-label">SMTP Port <span class="text-danger">*</span></label>
+                                <select class="form-select" id="smtp_port" name="smtp_port" required>
+                                    <option value="587" {% if smtp_config and smtp_config.smtp_port == '587' %}selected{% endif %}>587 (TLS/STARTTLS)</option>
+                                    <option value="465" {% if smtp_config and smtp_config.smtp_port == '465' %}selected{% endif %}>465 (SSL)</option>
+                                    <option value="25" {% if smtp_config and smtp_config.smtp_port == '25' %}selected{% endif %}>25 (Non-encrypted)</option>
+                                    <option value="2525" {% if smtp_config and smtp_config.smtp_port == '2525' %}selected{% endif %}>2525 (Alternative)</option>
+                                </select>
+                                <div class="form-text">Select the appropriate port for your SMTP server</div>
+                            </div>
+                           
+                            <div class="mb-3">
+                                <label for="smtp_from_email" class="form-label">From Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="smtp_from_email" name="smtp_from_email"
+                                       value="{% if smtp_config %}{{ smtp_config.smtp_from_email }}{% endif %}"
+                                       placeholder="noreply@example.com" required>
+                                <div class="form-text">Email address that will appear as the sender</div>
+                            </div>
+                           
+                            <div class="mb-3">
+                                <label for="smtp_username" class="form-label">Username <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="smtp_username" name="smtp_username"
+                                       value="{% if smtp_config %}{{ smtp_config.smtp_username }}{% endif %}"
+                                       placeholder="your-email@example.com" required>
+                                <div class="form-text">SMTP authentication username (usually your email address)</div>
+                            </div>
+                           
+                            <div class="mb-3">
+                                <label for="smtp_password" class="form-label">Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="smtp_password" name="smtp_password"
+                                           value="{% if smtp_config %}{{ smtp_config.smtp_password }}{% endif %}"
+                                           placeholder="Enter SMTP password" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="showSmtpPassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">Your SMTP password or app-specific password. Stored securely and encrypted.</div>
+                            </div>
+                           
+                            <div class="mb-3">
+                                <label for="smtp_use_tls" class="form-label">Encryption</label>
+                                <select class="form-select" id="smtp_use_tls" name="smtp_use_tls">
+                                    <option value="true" {% if smtp_config and smtp_config.smtp_use_tls %}selected{% endif %}>Use TLS/STARTTLS (Recommended)</option>
+                                    <option value="false" {% if smtp_config and not smtp_config.smtp_use_tls %}selected{% endif %}>No Encryption</option>
+                                </select>
+                                <div class="form-text">TLS is recommended for secure email transmission</div>
+                            </div>
+                           
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary bg-gradient">
+                                    <i class="bi bi-save me-2"></i>Save SMTP Settings
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="testSmtpConnection">
+                                    <i class="bi bi-send-check me-2"></i>Test Connection
+                                </button>
+                            </div>
+                        </form>
+                       
+                        {% if smtp_config %}
+                        <hr class="my-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <strong>Current Server:</strong>
+                                <p class="text-muted mb-0">{{ smtp_config.smtp_server }}:{{ smtp_config.smtp_port }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <strong>Status:</strong>
+                                <p class="text-muted mb-0">
+                                    <span class="badge bg-success">Configured</span>
+                                </p>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger" onclick="if(confirm('Are you sure you want to delete the SMTP configuration?')) { deleteSmtpConfig(); }">
+                            <i class="bi bi-trash me-2"></i>Delete Configuration
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+               
+                <!-- SSO Configuration Card (NEW) -->
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <i class="bi bi-shield-lock-fill me-2"></i>SSO Provider Configuration
+                    </div>
+                    <div class="card-body">
+                        {% if request.GET.sso_config_success %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            SSO configuration saved successfully!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% elif request.GET.sso_config_failed %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            SSO configuration failed. Please check your settings and try again.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endif %}
+                       
+                        <p class="text-muted mb-4">
+                            Configure Single Sign-On (SSO) providers to allow users to log in with their Google, GitHub, or Microsoft Outlook accounts.
+                        </p>
+                       
+                        <form id="sso-form" method="POST" action="/ssodetails/">
+                            {% csrf_token %}
+                           
+                            <div class="mb-3">
+                                <label for="sso_provider" class="form-label">SSO Provider <span class="text-danger">*</span></label>
+                                <select class="form-select" id="sso_provider" name="provider" required>
+                                    <option value="">-- Select Provider --</option>
+                                    <option value="google">Google</option>
+                                    <option value="github">GitHub</option>
+                                    <option value="outlook">Microsoft Outlook</option>
+                                </select>
+                                <div class="form-text">Choose the authentication provider you want to configure</div>
+                            </div>
+                           
+                            <div class="mb-3">
+                                <label for="sso_client_id" class="form-label">Client ID <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="sso_client_id" name="client_id"
+                                       placeholder="Enter OAuth Client ID" required>
+                                <div class="form-text">OAuth 2.0 Client ID from your provider's developer console</div>
+                            </div>
+                           
+                            <div class="mb-3">
+                                <label for="sso_client_secret" class="form-label">Client Secret <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="sso_client_secret" name="client_secret"
+                                           placeholder="Enter OAuth Client Secret" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="showSsoSecret">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">OAuth 2.0 Client Secret. Keep this secure and never share it.</div>
+                            </div>
+                           
+                            <div class="mb-3">
+                                <label for="sso_redirect_uri" class="form-label">Redirect URI (Optional)</label>
+                                <input type="text" class="form-control" id="sso_redirect_uri" name="redirect_uri"
+                                       placeholder="https://yourapp.com/auth/callback">
+                                <div class="form-text">The callback URL configured in your OAuth app. Leave blank to use default.</div>
+                            </div>
+                           
+                            <button type="submit" class="btn btn-primary bg-gradient">
+                                <i class="bi bi-save me-2"></i>Save SSO Configuration
+                            </button>
+                        </form>
+                       
+                        <!-- Current SSO Configurations Display -->
+                        {% if sso_configs %}
+                        <hr class="my-4">
+                        <h6 class="mb-3">Active SSO Providers</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>Client ID</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for provider, config in sso_configs.items %}
+                                    <tr>
+                                        <td>
+                                            {% if provider == 'google' %}
+                                                <i class="bi bi-google text-danger me-2"></i>
+                                            {% elif provider == 'github' %}
+                                                <i class="bi bi-github text-dark me-2"></i>
+                                            {% elif provider == 'outlook' %}
+                                                <i class="bi bi-microsoft text-primary me-2"></i>
+                                            {% endif %}
+                                            {{ config.display_name }}
+                                        </td>
+                                        <td>
+                                            <code class="text-muted">{{ config.client_id|slice:":20" }}...</code>
+                                        </td>
+                                        <td>
+                                            {% if config.is_active %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary me-2" 
+                                                    onclick="editSsoConfig('{{ provider }}', '{{ config.client_id }}', '{{ config.redirect_uri }}')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="if(confirm('Are you sure you want to delete {{ config.display_name }} SSO configuration?')) { deleteSsoConfig('{{ provider }}'); }">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info mt-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No SSO providers configured yet. Add your first SSO provider above to enable social login.
+                        </div>
+                        {% endif %}
+                       
+                        <!-- Setup Instructions -->
+                        <div class="mt-4">
+                            <h6>Setup Instructions:</h6>
+                            <div class="accordion" id="ssoInstructions">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#googleInstructions">
+                                            <i class="bi bi-google text-danger me-2"></i> Google OAuth Setup
+                                        </button>
+                                    </h2>
+                                    <div id="googleInstructions" class="accordion-collapse collapse" data-bs-parent="#ssoInstructions">
+                                        <div class="accordion-body">
+                                            <ol>
+                                                <li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a></li>
+                                                <li>Create a new OAuth 2.0 Client ID</li>
+                                                <li>Set authorized redirect URIs to: <code>https://yourapp.com/auth/google/callback</code></li>
+                                                <li>Copy the Client ID and Client Secret and paste them above</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#githubInstructions">
+                                            <i class="bi bi-github text-dark me-2"></i> GitHub OAuth Setup
+                                        </button>
+                                    </h2>
+                                    <div id="githubInstructions" class="accordion-collapse collapse" data-bs-parent="#ssoInstructions">
+                                        <div class="accordion-body">
+                                            <ol>
+                                                <li>Go to <a href="https://github.com/settings/developers" target="_blank">GitHub Developer Settings</a></li>
+                                                <li>Create a new OAuth App</li>
+                                                <li>Set callback URL to: <code>https://yourapp.com/auth/github/callback</code></li>
+                                                <li>Copy the Client ID and generate a Client Secret</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#outlookInstructions">
+                                            <i class="bi bi-microsoft text-primary me-2"></i> Microsoft Outlook OAuth Setup
+                                        </button>
+                                    </h2>
+                                    <div id="outlookInstructions" class="accordion-collapse collapse" data-bs-parent="#ssoInstructions">
+                                        <div class="accordion-body">
+                                            <ol>
+                                                <li>Go to <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank">Azure Portal</a></li>
+                                                <li>Register a new application</li>
+                                                <li>Add redirect URI: <code>https://yourapp.com/auth/outlook/callback</code></li>
+                                                <li>Create a client secret in "Certificates & secrets"</li>
+                                                <li>Copy the Application (client) ID and the client secret value</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           
             <!-- Change Password Content Section -->
             <div id="change-password-content" class="content-section">
                 <div class="card shadow-sm">
@@ -291,7 +594,6 @@
                             Go to Documentation
                         </a>
                     </div>
-                   
                 </div>
             </div>
         </div>
@@ -304,17 +606,17 @@
         document.addEventListener("DOMContentLoaded", function() {
         const savedTheme = localStorage.getItem('theme');
         const themeToggleBtn = document.getElementById('theme-toggle');
-        const rootElement = document.documentElement; // or document.body
+        const rootElement = document.documentElement;
  
         // Apply saved theme or system preference
         if (savedTheme === 'dark') {
             rootElement.classList.add('dark-mode');
-            updateThemeIcon('dark'); // ← call the function here
+            updateThemeIcon('dark');
         } else if (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             rootElement.classList.add('dark-mode');
-            updateThemeIcon('dark'); // ← call here too
+            updateThemeIcon('dark');
         } else {
-            updateThemeIcon('light'); // ← default to light
+            updateThemeIcon('light');
         }
  
         // Theme toggle handler
@@ -327,7 +629,7 @@
             rootElement.classList.toggle('dark-mode', !isDark);
             localStorage.setItem('theme', newTheme);
  
-            updateThemeIcon(newTheme); // ← call function after theme toggle
+            updateThemeIcon(newTheme);
  
             setTimeout(() => {
                 rootElement.classList.remove('transition');
@@ -347,10 +649,8 @@
     });
  
     </script>
-       
- 
+   
     <script>
-       
         // Function to show content sections
         function showContent(contentId) {
             // Hide all content sections
@@ -381,6 +681,9 @@
                 case 'ai-config-content':
                     sectionTitle.textContent = 'AI Configuration';
                     break;
+                case 'login-settings-content':
+                    sectionTitle.textContent = 'Login Settings';
+                    break;
                 case 'change-password-content':
                     sectionTitle.textContent = 'Change Password';
                     break;
@@ -390,168 +693,262 @@
             }
         }
        
-           
-            // Password strength meter
-            if (document.getElementById('newPassword')) {
-                document.getElementById('newPassword').addEventListener('input', function() {
-                    const password = this.value;
-                    let strength = 0;
-                   
-                    // Calculate password strength
-                    if (password.length >= 8) strength += 25;
-                    if (password.match(/[A-Z]/)) strength += 25;
-                    if (password.match(/[0-9]/)) strength += 25;
-                    if (password.match(/[^A-Za-z0-9]/)) strength += 25;
-                   
-                    // Update the progress bar
-                    const strengthBar = document.getElementById('passwordStrength');
-                    strengthBar.style.width = strength + '%';
-                   
-                    // Update the text and color
-                    const strengthText = document.getElementById('passwordStrengthText');
-                    if (strength < 25) {
-                        strengthBar.className = 'progress-bar bg-danger';
-                        strengthText.textContent = 'Password strength: Too weak';
-                    } else if (strength < 50) {
-                        strengthBar.className = 'progress-bar bg-warning';
-                        strengthText.textContent = 'Password strength: Weak';
-                    } else if (strength < 75) {
-                        strengthBar.className = 'progress-bar bg-info';
-                        strengthText.textContent = 'Password strength: Good';
-                    } else {
-                        strengthBar.className = 'progress-bar bg-success';
-                        strengthText.textContent = 'Password strength: Strong';
-                    }
-                });
-            }
-           
-            // Show/Hide API Key
-            if (document.getElementById('showApiKey')) {
-                document.getElementById('showApiKey').addEventListener('click', function() {
-                    const apiKeyInput = document.getElementById('api_key');
-                    const eyeIcon = this.querySelector('i');
-                   
-                    if (apiKeyInput.type === 'password') {
-                        apiKeyInput.type = 'text';
-                        eyeIcon.className = 'bi bi-eye-slash';
-                    } else {
-                        apiKeyInput.type = 'password';
-                        eyeIcon.className = 'bi bi-eye';
-                    }
-                });
-            }
-           
-            // Check URL parameters for active tab or error/success messages
-            const urlParams = new URLSearchParams(window.location.search);
-            const tabParam = urlParams.get('tab');
-           
-            // First check if there's a tab parameter in the URL
-            if (tabParam) {
-                showContent(tabParam + '-content');
-            }
-            // Otherwise check for error/success messages
-            else if (document.querySelector('.alert-danger') || document.querySelector('.alert-success')) {
-                const errorText = document.querySelector('.alert-danger')?.textContent || '';
-                const successText = document.querySelector('.alert-success')?.textContent || '';
+        // Password strength meter
+        if (document.getElementById('newPassword')) {
+            document.getElementById('newPassword').addEventListener('input', function() {
+                const password = this.value;
+                let strength = 0;
                
-                if (errorText.includes('password') || successText.includes('Password')) {
-                    showContent('change-password-content');
+                if (password.length >= 8) strength += 25;
+                if (password.match(/[A-Z]/)) strength += 25;
+                if (password.match(/[0-9]/)) strength += 25;
+                if (password.match(/[^A-Za-z0-9]/)) strength += 25;
+               
+                const strengthBar = document.getElementById('passwordStrength');
+                strengthBar.style.width = strength + '%';
+               
+                const strengthText = document.getElementById('passwordStrengthText');
+                if (strength < 25) {
+                    strengthBar.className = 'progress-bar bg-danger';
+                    strengthText.textContent = 'Password strength: Too weak';
+                } else if (strength < 50) {
+                    strengthBar.className = 'progress-bar bg-warning';
+                    strengthText.textContent = 'Password strength: Weak';
+                } else if (strength < 75) {
+                    strengthBar.className = 'progress-bar bg-info';
+                    strengthText.textContent = 'Password strength: Good';
+                } else {
+                    strengthBar.className = 'progress-bar bg-success';
+                    strengthText.textContent = 'Password strength: Strong';
                 }
-            }
-        ;
-        document.addEventListener('DOMContentLoaded', function() {
-    // Get the active tab from URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const activeTab = urlParams.get('tab');
-   
-    if (activeTab) {
-      // Find the tab element
-      const tabElement = document.getElementById(activeTab + '-tab');
-      if (tabElement) {
-        // Simulate a click on the tab
-        tabElement.click();
-      }
-    }
-  });
-       
-        // Initialize tooltips
-        document.addEventListener("DOMContentLoaded", function () {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
+        }
+       
+        // Show/Hide API Key
+        if (document.getElementById('showApiKey')) {
+            document.getElementById('showApiKey').addEventListener('click', function() {
+                const apiKeyInput = document.getElementById('api_key');
+                const eyeIcon = this.querySelector('i');
+               
+                if (apiKeyInput.type === 'password') {
+                    apiKeyInput.type = 'text';
+                    eyeIcon.className = 'bi bi-eye-slash';
+                } else {
+                    apiKeyInput.type = 'password';
+                    eyeIcon.className = 'bi bi-eye';
+                }
+            });
+        }
+       
+        // Show/Hide SMTP Password
+        if (document.getElementById('showSmtpPassword')) {
+            document.getElementById('showSmtpPassword').addEventListener('click', function() {
+                const smtpPasswordInput = document.getElementById('smtp_password');
+                const eyeIcon = this.querySelector('i');
+               
+                if (smtpPasswordInput.type === 'password') {
+                    smtpPasswordInput.type = 'text';
+                    eyeIcon.className = 'bi bi-eye-slash';
+                } else {
+                    smtpPasswordInput.type = 'password';
+                    eyeIcon.className = 'bi bi-eye';
+                }
+            });
+        }
+       
+        // Show/Hide SSO Client Secret (NEW)
+        if (document.getElementById('showSsoSecret')) {
+            document.getElementById('showSsoSecret').addEventListener('click', function() {
+                const ssoSecretInput = document.getElementById('sso_client_secret');
+                const eyeIcon = this.querySelector('i');
+               
+                if (ssoSecretInput.type === 'password') {
+                    ssoSecretInput.type = 'text';
+                    eyeIcon.className = 'bi bi-eye-slash';
+                } else {
+                    ssoSecretInput.type = 'password';
+                    eyeIcon.className = 'bi bi-eye';
+                }
+            });
+        }
+       
+        // Check URL parameters for active tab
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+       
+        if (tabParam) {
+            showContent(tabParam + '-content');
+        } else if (document.querySelector('.alert-danger') || document.querySelector('.alert-success')) {
+            const errorText = document.querySelector('.alert-danger')?.textContent || '';
+            const successText = document.querySelector('.alert-success')?.textContent || '';
+           
+            if (errorText.includes('password') || successText.includes('Password')) {
+                showContent('change-password-content');
+            } else if (errorText.includes('SMTP') || successText.includes('SMTP') || 
+                       errorText.includes('SSO') || successText.includes('SSO')) {
+                showContent('login-settings-content');
+            }
+        }
+ 
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
  
         // Handle API model selection changes
-        document.addEventListener('DOMContentLoaded', function() {
-            const providerSelect = document.getElementById('provider');
-            const apiKeyInput = document.getElementById('api_key');
-            const apiKeySection = document.getElementById('api-key-section');
+        const providerSelect = document.getElementById('provider');
+        const apiKeyInput = document.getElementById('api_key');
+        const apiKeySection = document.getElementById('api-key-section');
+       
+        if (providerSelect && apiKeyInput) {
+            const apiKeys = {
+                {% for provider, config in ai_configs.items %}
+                '{{ provider }}': '{{ config.api_key }}',
+                {% endfor %}
+            };
            
-            if (providerSelect && apiKeyInput) {
-                // Store API keys for each provider
-                const apiKeys = {
-                    {% for provider, config in ai_configs.items %}
-                    '{{ provider }}': '{{ config.api_key }}',
-                    {% endfor %}
-                };
-               
-                // Function to toggle API key visibility based on provider
-                function toggleApiKeyVisibility() {
-                    const selectedProvider = providerSelect.value;
-                    if (selectedProvider === 'ollama') {
-                        apiKeySection.style.display = 'none';
-                        apiKeyInput.removeAttribute('required');
-                    } else {
-                        apiKeySection.style.display = 'block';
-                        apiKeyInput.setAttribute('required', 'required');
-                    }
+            function toggleApiKeyVisibility() {
+                const selectedProvider = providerSelect.value;
+                if (selectedProvider === 'ollama') {
+                    apiKeySection.style.display = 'none';
+                    apiKeyInput.removeAttribute('required');
+                } else {
+                    apiKeySection.style.display = 'block';
+                    apiKeyInput.setAttribute('required', 'required');
                 }
-               
-                // Initial check on page load
-                toggleApiKeyVisibility();
-               
-                // Update API key when provider selection changes
-                providerSelect.addEventListener('change', function() {
-                    const selectedProvider = this.value;
-                    toggleApiKeyVisibility();
-                    
-                    if (apiKeys[selectedProvider]) {
-                        apiKeyInput.value = apiKeys[selectedProvider];
-                    } else {
-                        apiKeyInput.value = '';
-                    }
-                });
             }
-        });
+           
+            toggleApiKeyVisibility();
+           
+            providerSelect.addEventListener('change', function() {
+                const selectedProvider = this.value;
+                toggleApiKeyVisibility();
+                
+                if (apiKeys[selectedProvider]) {
+                    apiKeyInput.value = apiKeys[selectedProvider];
+                } else {
+                    apiKeyInput.value = '';
+                }
+            });
+        }
  
         // Function to delete API key
         function deleteApiKey(provider) {
-            // Create a form to submit the delete request
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '{% url "settings" %}';
            
-            // Add CSRF token
             const csrfToken = document.createElement('input');
             csrfToken.type = 'hidden';
             csrfToken.name = 'csrfmiddlewaretoken';
             csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
             form.appendChild(csrfToken);
            
-            // Add delete_api_key parameter
             const deleteParam = document.createElement('input');
             deleteParam.type = 'hidden';
             deleteParam.name = 'delete_api_key';
             deleteParam.value = provider;
             form.appendChild(deleteParam);
            
-            // Submit the form
             document.body.appendChild(form);
             form.submit();
         }
  
-        // Back button logic - replace current page
+        // Function to delete SMTP configuration
+        function deleteSmtpConfig() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/smtpdetails/';
+           
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = 'csrfmiddlewaretoken';
+            csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            form.appendChild(csrfToken);
+           
+            const deleteParam = document.createElement('input');
+            deleteParam.type = 'hidden';
+            deleteParam.name = 'delete_smtp_config';
+            deleteParam.value = 'true';
+            form.appendChild(deleteParam);
+           
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // Function to delete SSO configuration (NEW)
+        function deleteSsoConfig(provider) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/ssodetails/';
+           
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = 'csrfmiddlewaretoken';
+            csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            form.appendChild(csrfToken);
+           
+            const deleteParam = document.createElement('input');
+            deleteParam.type = 'hidden';
+            deleteParam.name = 'delete_sso_config';
+            deleteParam.value = provider;
+            form.appendChild(deleteParam);
+           
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // Function to edit SSO configuration (NEW)
+        function editSsoConfig(provider, clientId, redirectUri) {
+            document.getElementById('sso_provider').value = provider;
+            document.getElementById('sso_client_id').value = clientId;
+            document.getElementById('sso_redirect_uri').value = redirectUri || '';
+            document.getElementById('sso_client_secret').value = ''; // Clear for security
+            document.getElementById('sso_client_secret').focus();
+        }
+
+        // Function to test SMTP connection
+        document.getElementById('testSmtpConnection').addEventListener('click', function() {
+            const form = document.getElementById('smtp-form');
+            const formData = new FormData(form);
+            formData.append('test_connection', 'true');
+            
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testing...';
+            
+            fetch('/smtpdetails/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                this.disabled = false;
+                this.innerHTML = '<i class="bi bi-send-check me-2"></i>Test Connection';
+                
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${data.success ? 'success' : 'danger'} alert-dismissible fade show mt-3`;
+                alertDiv.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                form.parentElement.insertBefore(alertDiv, form);
+                
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+            })
+            .catch(error => {
+                this.disabled = false;
+                this.innerHTML = '<i class="bi bi-send-check me-2"></i>Test Connection';
+                alert('Error testing connection: ' + error.message);
+            });
+        });
+ 
+        // Back button logic
         document.getElementById('back-btn').addEventListener('click', () => {
             const previousUrl = document.referrer || '/';
             window.location.replace(previousUrl);
@@ -560,13 +957,12 @@
     </script>
  
     <script>
-        const providerSelect = document.getElementById('provider');
         const modelSelect = document.getElementById('model');
  
         const geminiModels = {{ gemini_models_json|safe }};
         const openaiModels = {{ openai_models_json|safe }};
         const ollamaModels = {{ ollama_models_json|safe }};
-        const aiConfigs = {{ ai_configs|safe }}; // Pass the ai_configs dictionary
+        const aiConfigs = {{ ai_configs|safe }};
  
         function updateModelOptions() {
             const selectedProvider = providerSelect.value;
@@ -587,7 +983,6 @@
                 option.value = model[0];
                 option.textContent = model[1];
  
-                // Attempt to pre-select based on ai_configs
                 let previouslySelected = false;
                 if (selectedProvider === 'gemini' && aiConfigs.hasOwnProperty('gemini') && model[0] === aiConfigs['gemini']['model']) {
                     previouslySelected = true;
@@ -605,7 +1000,6 @@
             });
         }
  
-        // Initial load and when the provider changes
         updateModelOptions();
         providerSelect.addEventListener('change', updateModelOptions);
     </script>

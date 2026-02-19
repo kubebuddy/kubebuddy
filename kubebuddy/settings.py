@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -150,7 +153,7 @@ LOGGING_CONFIG = None
 
 
 # =========================
-# SSO SETTINGS (ONLY APPENDED)
+# SSO SETTINGS 
 # =========================
 
 SITE_ID = 1
@@ -166,3 +169,52 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
+
+# =========================
+# GOOGLE & GITHUB SSO CONFIG
+# =========================
+import os
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    },
+    'github': {
+        'APP': {
+            'client_id': os.getenv('GITHUB_CLIENT_ID'),
+            'secret': os.getenv('GITHUB_CLIENT_SECRET'),
+        },
+        'SCOPE': [
+            'user',
+            'user:email',
+        ],
+    }
+}
+
+# Force social login users to be superusers (matches OTP logic)
+#SOCIALACCOUNT_ADAPTER = 'main.adapters.SocialSuperuserAdapter'
+
+
+# =========================
+# EMAIL CONFIGURATION 
+# =========================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-mail.outlook.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ''  # <
+EMAIL_HOST_PASSWORD = ' '  # <<< 
+DEFAULT_FROM_EMAIL = ''  # <<< 
+
+# Cache Configuration (for storing OTPs)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}

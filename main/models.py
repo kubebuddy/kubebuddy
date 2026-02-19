@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
+from django.contrib.auth.models import User
+
 # Create your models here.
 
 class KubeConfig(models.Model):
@@ -52,9 +54,10 @@ class AIConfig(models.Model):
         ('gpt-3.5-turbo-instruct', 'GPT-3.5 Turbo Instruct'),
         ('gpt-4', 'GPT-4'),
         ('gpt-4-32k', 'GPT-4 32K'),
-           ('gpt-4o', 'GPT-4o'),
-           ('gpt-4o-mini', 'GPT-4o Mini'),('gpt-4.1', 'GPT-4.1'),
-           ('gpt-4.1-mini', 'GPT-4.1 Mini')
+        ('gpt-4o', 'GPT-4o'),
+        ('gpt-4o-mini', 'GPT-4o Mini'),
+        ('gpt-4.1', 'GPT-4.1'),
+        ('gpt-4.1-mini', 'GPT-4.1 Mini')
     ]
 
     MODELS_GEMINI = [
@@ -75,12 +78,12 @@ class AIConfig(models.Model):
         ('mistral', 'Mistral'),
         ('codellama', 'Code LLaMA'),
         ('phi3', 'Phi-3 Mini'),
-         ('llama3.1', 'LLaMA 3.1'),
-         ('mistral-small', 'Mistral Small'),
-         ('gemma:2b', 'Gemma 2B'),
-         ('gemma:7b', 'Gemma 7B'),
-         ('gemma2:2b', 'Gemma 2 (2B)'),
-         ('gemma2:9b', 'Gemma 2 (9B)')
+        ('llama3.1', 'LLaMA 3.1'),
+        ('mistral-small', 'Mistral Small'),
+        ('gemma:2b', 'Gemma 2B'),
+        ('gemma:7b', 'Gemma 7B'),
+        ('gemma2:2b', 'Gemma 2 (2B)'),
+        ('gemma2:9b', 'Gemma 2 (9B)')
     ]
 
     provider = models.CharField(max_length=10, choices=PROVIDERS, unique=True)
@@ -118,7 +121,7 @@ class AIConfig(models.Model):
                 f"{', '.join([choice[0] for choice in self.MODELS_OLLAMA])}."
             )
 
-        # Ollama doesn’t need API key
+        # Ollama doesn't need API key
         if self.provider == 'ollama' and self.api_key:
             raise ValidationError("Ollama does not require an API key. Leave it blank.")
 
@@ -133,3 +136,58 @@ class AIConfig(models.Model):
 
     class Meta:
         unique_together = ('provider', 'model')
+
+
+# SMTP Configuration Model
+class SmtpConfig(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='smtp_config')
+    smtp_server = models.CharField(max_length=255, help_text="SMTP server address (e.g., smtp.gmail.com)")
+    smtp_port = models.CharField(max_length=10, help_text="SMTP port (e.g., 587, 465, 25)")
+    smtp_from_email = models.EmailField(help_text="Email address to send from")
+    smtp_username = models.CharField(max_length=255, help_text="SMTP authentication username")
+    smtp_password = models.CharField(max_length=255, help_text="SMTP authentication password")
+    smtp_use_tls = models.BooleanField(default=True, help_text="Use TLS/STARTTLS encryption")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"SMTP Config for {self.user.username} ({self.smtp_server})"
+    
+    class Meta:
+        verbose_name = "SMTP Configuration"
+        verbose_name_plural = "SMTP Configurations"
+
+
+# SSO Configuration Model
+class SsoConfig(models.Model):
+    """
+    Model to store SSO provider configurations (Google, Outlook, GitHub)
+    """
+    PROVIDERS = [
+        ('google', 'Google'),
+        ('outlook', 'Microsoft Outlook'),
+        ('github', 'GitHub'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sso_configs')
+    provider = models.CharField(max_length=20, choices=PROVIDERS, help_text="SSO provider (Google, Outlook, GitHub)")
+    client_id = models.CharField(max_length=500, help_text="OAuth Client ID")
+    client_secret = models.CharField(max_length=500, help_text="OAuth Client Secret (encrypted)")
+    redirect_uri = models.CharField(max_length=500, blank=True, null=True, help_text="OAuth Redirect URI (optional)")
+    is_active = models.BooleanField(default=True, help_text="Whether this SSO provider is active")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "SSO Configuration"
+        verbose_name_plural = "SSO Configurations"
+        unique_together = ('user', 'provider')  # One config per provider per user
+    
+    def __str__(self):
+        return f"{self.get_provider_display()} SSO for {self.user.username}"
+    
+    def get_masked_client_secret(self):
+        """Return masked client secret for display"""
+        if len(self.client_secret) > 8:
+            return f"{self.client_secret[:4]}...{self.client_secret[-4:]}"
+        return "********"

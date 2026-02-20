@@ -947,7 +947,95 @@ def google_login_api(request):
 # ========================================
 
 def github_callback(request):
-    return render(request, 'main/github_callback.html')
+    """Handle GitHub OAuth callback - exchange code for token and log user in"""
+    code = request.GET.get('code')
+    error = request.GET.get('error')
+    
+    if error or not code:
+        return render(request, 'main/login.html', {'error_message': f'GitHub login failed: {error or "No code received"}'})
+    
+    try:
+        # Get stored GitHub SSO config
+        sso = SsoConfig.objects.filter(provider='github', is_active=True).first()
+        if not sso:
+            return render(request, 'main/login.html', {'error_message': 'GitHub SSO is not configured'})
+
+        redirect_uri = sso.redirect_uri or (request.build_absolute_uri('/').rstrip('/') + '/github-callback/')
+
+        # Exchange code for access token
+        token_response = http_requests.post(
+            'https://github.com/login/oauth/access_token',
+            headers={'Accept': 'application/json'},
+            data={
+                'client_id': sso.client_id,
+                'client_secret': sso.client_secret,
+                'code': code,
+                'redirect_uri': redirect_uri,
+            },
+            timeout=10
+        )
+        token_data = token_response.json()
+        access_token = token_data.get('access_token')
+
+        if not access_token:
+            logger.error(f"GitHub token exchange failed: {token_data}")
+            return render(request, 'main/login.html', {'error_message': 'Failed to get access token from GitHub'})
+
+        # Get user info from GitHub
+        user_response = http_requests.get(
+            'https://api.github.com/user',
+            headers={'Authorization': f'token {access_token}', 'Accept': 'application/json'},
+            timeout=10
+        )
+        user_data = user_response.json()
+
+        # Get user email
+        email = user_data.get('email')
+        if not email:
+            email_response = http_requests.get(
+                'https://api.github.com/user/emails',
+                headers={'Authorization': f'token {access_token}', 'Accept': 'application/json'},
+                timeout=10
+            )
+            emails = email_response.json()
+            primary = next((e['email'] for e in emails if e.get('primary') and e.get('verified')), None)
+            email = primary or next((e['email'] for e in emails), None)
+
+        if not email:
+            return render(request, 'main/login.html', {'error_message': 'Could not retrieve email from GitHub'})
+
+        name = user_data.get('name') or user_data.get('login', '')
+
+        # Get or create user
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'username': user_data.get('login', email.split('@')[0]),
+                'first_name': name.split()[0] if name else '',
+                'last_name': ' '.join(name.split()[1:]) if name and len(name.split()) > 1 else '',
+                'is_superuser': True,
+                'is_staff': True,
+            }
+        )
+        if not created and name:
+            user.first_name = name.split()[0]
+            user.last_name = ' '.join(name.split()[1:]) if len(name.split()) > 1 else ''
+            user.save()
+
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        login(request, user)
+        logger.info(f"User logged in via GitHub: {email}")
+
+        kube_config_entry = KubeConfig.objects.first()
+        redirect_url = '/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate'
+        
+        return redirect(redirect_url)
+
+    except Exception as e:
+        logger.error(f"Error in github_callback: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return render(request, 'main/login.html', {'error_message': f'Login error: {str(e)}'})
 
 
 @csrf_exempt
@@ -1048,7 +1136,87 @@ def github_login_api(request):
 # ========================================
 
 def outlook_callback(request):
-    return render(request, 'main/outlook_callback.html')
+    """Handle Microsoft OAuth callback - exchange code for token and log user in"""
+    code = request.GET.get('code')
+    error = request.GET.get('error')
+    
+    if error or not code:
+        return render(request, 'main/login.html', {'error_message': f'Microsoft login failed: {error or "No code received"}'})
+    
+    try:
+        # Get stored Outlook SSO config
+        sso = SsoConfig.objects.filter(provider='outlook', is_active=True).first()
+        if not sso:
+            return render(request, 'main/login.html', {'error_message': 'Microsoft SSO is not configured'})
+
+        redirect_uri = sso.redirect_uri or (request.build_absolute_uri('/').rstrip('/') + '/outlook-callback/')
+
+        # Exchange code for access token
+        token_response = http_requests.post(
+            'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+            data={
+                'client_id': sso.client_id,
+                'client_secret': sso.client_secret,
+                'code': code,
+                'redirect_uri': redirect_uri,
+                'grant_type': 'authorization_code',
+                'scope': 'openid email profile User.Read',
+            },
+            timeout=10
+        )
+        token_data = token_response.json()
+        access_token = token_data.get('access_token')
+
+        if not access_token:
+            logger.error(f"Microsoft token exchange failed: {token_data}")
+            return render(request, 'main/login.html', {'error_message': 'Failed to get access token from Microsoft'})
+
+        # Get user info from Microsoft Graph
+        user_response = http_requests.get(
+            'https://graph.microsoft.com/v1.0/me',
+            headers={'Authorization': f'Bearer {access_token}', 'Accept': 'application/json'},
+            timeout=10
+        )
+        user_data = user_response.json()
+
+        email = user_data.get('mail') or user_data.get('userPrincipalName', '')
+        name = user_data.get('displayName', '')
+        first_name = user_data.get('givenName', '')
+        last_name = user_data.get('surname', '')
+
+        if not email:
+            return render(request, 'main/login.html', {'error_message': 'Could not retrieve email from Microsoft'})
+
+        # Get or create user
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'username': email.split('@')[0],
+                'first_name': first_name or (name.split()[0] if name else ''),
+                'last_name': last_name or (' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''),
+                'is_superuser': True,
+                'is_staff': True,
+            }
+        )
+        if not created:
+            user.first_name = first_name or user.first_name
+            user.last_name = last_name or user.last_name
+            user.save()
+
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        login(request, user)
+        logger.info(f"User logged in via Microsoft: {email}")
+
+        kube_config_entry = KubeConfig.objects.first()
+        redirect_url = '/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate'
+        
+        return redirect(redirect_url)
+
+    except Exception as e:
+        logger.error(f"Error in outlook_callback: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return render(request, 'main/login.html', {'error_message': f'Login error: {str(e)}'})
 
 
 @csrf_exempt

@@ -17,8 +17,47 @@
             document.documentElement.classList.add('dark-mode');
           }
         })();
-      </script>
- 
+    </script>
+
+    <style>
+        /* ── Users table pill styles ── */
+        .users-table-wrap {
+            margin-top: 1rem;
+        }
+        .users-table-wrap table {
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            width: 100%;
+        }
+        .users-table-wrap thead th {
+            background: #ffd97a;
+            color: #333;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 12px 20px;
+            border: none;
+        }
+        .users-table-wrap thead th:first-child  { border-radius: 12px 0 0 12px; }
+        .users-table-wrap thead th:last-child   { border-radius: 0 12px 12px 0; }
+
+        .users-table-wrap tbody tr td {
+            background: #b8f5c8;
+            color: #1a1a1a;
+            padding: 12px 20px;
+            border: none;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+        .users-table-wrap tbody tr td:first-child  { border-radius: 12px 0 0 12px; }
+        .users-table-wrap tbody tr td:last-child   { border-radius: 0 12px 12px 0; }
+
+        /* dark-mode overrides */
+        .dark-mode .users-table-wrap thead th { background: #c8980a; color: #fff; }
+        .dark-mode .users-table-wrap tbody tr td { background: #2d6e42; color: #e8ffe8; }
+    </style>
+
     <!-- Custom styles for this template -->
     <link rel="stylesheet" href="{% static 'css/settings.css' %}">
 </head>
@@ -55,6 +94,14 @@
                     <i class="bi bi-file-text-fill"></i>
                     <span>Documentation</span>
                 </a>
+                <!-- ── USERS NAV ITEM (NEW) ── -->
+                {% if request.user.is_superuser %}
+                <a class="nav-link link-dark" id="users-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('users-content')"
+                   style="background:#ffd97a; color:#333 !important; margin-top:auto; border-radius:10px; font-weight:600;">
+                    <i class="bi bi-people-fill"></i>
+                    <span>users</span>
+                </a>
+                {% endif %}
             </div>
            
             <!-- User/Account Info at Bottom -->
@@ -250,7 +297,7 @@
                 </div>
             </div>
            
-            <!-- Login Settings Content Section (NEW) -->
+            <!-- Login Settings Content Section -->
             <div id="login-settings-content" class="content-section">
                 <!-- SMTP Configuration Card -->
                 <div class="card shadow-sm mb-4">
@@ -361,7 +408,7 @@
                     </div>
                 </div>
                
-                <!-- SSO Configuration Card (NEW) -->
+                <!-- SSO Configuration Card -->
                 <div class="card shadow-sm">
                     <div class="card-header">
                         <i class="bi bi-shield-lock-fill me-2"></i>SSO Provider Configuration
@@ -428,7 +475,6 @@
                             </button>
                         </form>
                        
-                        <!-- Current SSO Configurations Display -->
                         {% if sso_configs %}
                         <hr class="my-4">
                         <h6 class="mb-3">Active SSO Providers</h6>
@@ -487,7 +533,6 @@
                         </div>
                         {% endif %}
                        
-                        <!-- Setup Instructions -->
                         <div class="mt-4">
                             <h6>Setup Instructions:</h6>
                             <div class="accordion" id="ssoInstructions">
@@ -596,6 +641,47 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ══════════════════════════════════════════
+                 USERS Content Section (NEW)
+                 ══════════════════════════════════════════ -->
+            <div id="users-content" class="content-section">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-people-fill"></i> All Users
+                    </div>
+                    <div class="card-body">
+                        {% if users_data %}
+                        <div class="users-table-wrap table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>user name</th>
+                                        <th>user id</th>
+                                        <th>permissions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users_data %}
+                                    <tr>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.user_id }}</td>
+                                        <td>{{ user.permissions }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>No users found.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- ══ END USERS Section ══ -->
+
         </div>
     </div>
    
@@ -608,7 +694,6 @@
         const themeToggleBtn = document.getElementById('theme-toggle');
         const rootElement = document.documentElement;
  
-        // Apply saved theme or system preference
         if (savedTheme === 'dark') {
             rootElement.classList.add('dark-mode');
             updateThemeIcon('dark');
@@ -619,24 +704,16 @@
             updateThemeIcon('light');
         }
  
-        // Theme toggle handler
         themeToggleBtn.addEventListener('click', function() {
             rootElement.classList.add('transition');
- 
             const isDark = rootElement.classList.contains('dark-mode');
             const newTheme = isDark ? 'light' : 'dark';
- 
             rootElement.classList.toggle('dark-mode', !isDark);
             localStorage.setItem('theme', newTheme);
- 
             updateThemeIcon(newTheme);
- 
-            setTimeout(() => {
-                rootElement.classList.remove('transition');
-            }, 300);
+            setTimeout(() => { rootElement.classList.remove('transition'); }, 300);
         });
  
-        // Function to update theme icon
         function updateThemeIcon(theme) {
             if (theme === 'dark') {
                 themeToggleBtn.innerHTML = 'Light Mode <i class="bi bi-sun"></i>';
@@ -647,156 +724,96 @@
             }
         }
     });
- 
     </script>
    
     <script>
-        // Function to show content sections
         function showContent(contentId) {
-            // Hide all content sections
-            const contentSections = document.querySelectorAll('.content-section');
-            contentSections.forEach(section => {
-                section.classList.remove('active');
-            });
-           
-            // Show the selected content section
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             document.getElementById(contentId).classList.add('active');
-           
-            // Update active tab
-            const tabs = document.querySelectorAll('.nav-link');
-            tabs.forEach(tab => {
-                tab.classList.remove('active');
-            });
-           
-            // Find the related tab and make it active
+
+            document.querySelectorAll('.nav-link').forEach(t => t.classList.remove('active'));
             const relatedTabId = contentId.replace('-content', '-tab');
-            document.getElementById(relatedTabId).classList.add('active');
-           
-            // Update section title
-            const sectionTitle = document.getElementById('section-title');
-            switch(contentId) {
-                case 'general-settings-content':
-                    sectionTitle.textContent = 'General Settings';
-                    break;
-                case 'ai-config-content':
-                    sectionTitle.textContent = 'AI Configuration';
-                    break;
-                case 'login-settings-content':
-                    sectionTitle.textContent = 'Login Settings';
-                    break;
-                case 'change-password-content':
-                    sectionTitle.textContent = 'Change Password';
-                    break;
-                case 'documentation-content':
-                    sectionTitle.textContent = 'Documentation';
-                    break;
-            }
+            const tab = document.getElementById(relatedTabId);
+            if (tab) tab.classList.add('active');
+
+            const titles = {
+                'general-settings-content': 'General Settings',
+                'ai-config-content': 'AI Configuration',
+                'login-settings-content': 'Login Settings',
+                'change-password-content': 'Change Password',
+                'documentation-content': 'Documentation',
+                'users-content': 'Users',   // ← NEW
+            };
+            document.getElementById('section-title').textContent = titles[contentId] || '';
         }
        
-        // Password strength meter
         if (document.getElementById('newPassword')) {
             document.getElementById('newPassword').addEventListener('input', function() {
                 const password = this.value;
                 let strength = 0;
-               
                 if (password.length >= 8) strength += 25;
                 if (password.match(/[A-Z]/)) strength += 25;
                 if (password.match(/[0-9]/)) strength += 25;
                 if (password.match(/[^A-Za-z0-9]/)) strength += 25;
-               
                 const strengthBar = document.getElementById('passwordStrength');
                 strengthBar.style.width = strength + '%';
-               
                 const strengthText = document.getElementById('passwordStrengthText');
-                if (strength < 25) {
-                    strengthBar.className = 'progress-bar bg-danger';
-                    strengthText.textContent = 'Password strength: Too weak';
-                } else if (strength < 50) {
-                    strengthBar.className = 'progress-bar bg-warning';
-                    strengthText.textContent = 'Password strength: Weak';
-                } else if (strength < 75) {
-                    strengthBar.className = 'progress-bar bg-info';
-                    strengthText.textContent = 'Password strength: Good';
-                } else {
-                    strengthBar.className = 'progress-bar bg-success';
-                    strengthText.textContent = 'Password strength: Strong';
-                }
+                if (strength < 25) { strengthBar.className = 'progress-bar bg-danger'; strengthText.textContent = 'Password strength: Too weak'; }
+                else if (strength < 50) { strengthBar.className = 'progress-bar bg-warning'; strengthText.textContent = 'Password strength: Weak'; }
+                else if (strength < 75) { strengthBar.className = 'progress-bar bg-info'; strengthText.textContent = 'Password strength: Good'; }
+                else { strengthBar.className = 'progress-bar bg-success'; strengthText.textContent = 'Password strength: Strong'; }
             });
         }
        
-        // Show/Hide API Key
         if (document.getElementById('showApiKey')) {
             document.getElementById('showApiKey').addEventListener('click', function() {
-                const apiKeyInput = document.getElementById('api_key');
-                const eyeIcon = this.querySelector('i');
-               
-                if (apiKeyInput.type === 'password') {
-                    apiKeyInput.type = 'text';
-                    eyeIcon.className = 'bi bi-eye-slash';
-                } else {
-                    apiKeyInput.type = 'password';
-                    eyeIcon.className = 'bi bi-eye';
-                }
+                const inp = document.getElementById('api_key');
+                const icon = this.querySelector('i');
+                inp.type = inp.type === 'password' ? 'text' : 'password';
+                icon.className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             });
         }
-       
-        // Show/Hide SMTP Password
         if (document.getElementById('showSmtpPassword')) {
             document.getElementById('showSmtpPassword').addEventListener('click', function() {
-                const smtpPasswordInput = document.getElementById('smtp_password');
-                const eyeIcon = this.querySelector('i');
-               
-                if (smtpPasswordInput.type === 'password') {
-                    smtpPasswordInput.type = 'text';
-                    eyeIcon.className = 'bi bi-eye-slash';
-                } else {
-                    smtpPasswordInput.type = 'password';
-                    eyeIcon.className = 'bi bi-eye';
-                }
+                const inp = document.getElementById('smtp_password');
+                const icon = this.querySelector('i');
+                inp.type = inp.type === 'password' ? 'text' : 'password';
+                icon.className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             });
         }
-       
-        // Show/Hide SSO Client Secret (NEW)
         if (document.getElementById('showSsoSecret')) {
             document.getElementById('showSsoSecret').addEventListener('click', function() {
-                const ssoSecretInput = document.getElementById('sso_client_secret');
-                const eyeIcon = this.querySelector('i');
-               
-                if (ssoSecretInput.type === 'password') {
-                    ssoSecretInput.type = 'text';
-                    eyeIcon.className = 'bi bi-eye-slash';
-                } else {
-                    ssoSecretInput.type = 'password';
-                    eyeIcon.className = 'bi bi-eye';
-                }
+                const inp = document.getElementById('sso_client_secret');
+                const icon = this.querySelector('i');
+                inp.type = inp.type === 'password' ? 'text' : 'password';
+                icon.className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             });
         }
        
         // Check URL parameters for active tab
         const urlParams = new URLSearchParams(window.location.search);
         const tabParam = urlParams.get('tab');
-       
         if (tabParam) {
             showContent(tabParam + '-content');
         } else if (document.querySelector('.alert-danger') || document.querySelector('.alert-success')) {
             const errorText = document.querySelector('.alert-danger')?.textContent || '';
             const successText = document.querySelector('.alert-success')?.textContent || '';
-           
             if (errorText.includes('password') || successText.includes('Password')) {
                 showContent('change-password-content');
-            } else if (errorText.includes('SMTP') || successText.includes('SMTP') || 
+            } else if (errorText.includes('SMTP') || successText.includes('SMTP') ||
                        errorText.includes('SSO') || successText.includes('SSO')) {
                 showContent('login-settings-content');
             }
         }
+
+        // ── Auto-activate Users tab if active_tab == 'users' (from view) ──
+        {% if active_tab == 'users' %}
+        showContent('users-content');
+        {% endif %}
  
-        // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+        tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el); });
  
-        // Handle API model selection changes
         const providerSelect = document.getElementById('provider');
         const apiKeyInput = document.getElementById('api_key');
         const apiKeySection = document.getElementById('api-key-section');
@@ -807,10 +824,8 @@
                 '{{ provider }}': '{{ config.api_key }}',
                 {% endfor %}
             };
-           
             function toggleApiKeyVisibility() {
-                const selectedProvider = providerSelect.value;
-                if (selectedProvider === 'ollama') {
+                if (providerSelect.value === 'ollama') {
                     apiKeySection.style.display = 'none';
                     apiKeyInput.removeAttribute('required');
                 } else {
@@ -818,128 +833,77 @@
                     apiKeyInput.setAttribute('required', 'required');
                 }
             }
-           
             toggleApiKeyVisibility();
-           
             providerSelect.addEventListener('change', function() {
-                const selectedProvider = this.value;
                 toggleApiKeyVisibility();
-                
-                if (apiKeys[selectedProvider]) {
-                    apiKeyInput.value = apiKeys[selectedProvider];
-                } else {
-                    apiKeyInput.value = '';
-                }
+                apiKeyInput.value = apiKeys[this.value] || '';
             });
         }
  
-        // Function to delete API key
         function deleteApiKey(provider) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '{% url "settings" %}';
-           
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = 'csrfmiddlewaretoken';
-            csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            form.appendChild(csrfToken);
-           
-            const deleteParam = document.createElement('input');
-            deleteParam.type = 'hidden';
-            deleteParam.name = 'delete_api_key';
-            deleteParam.value = provider;
-            form.appendChild(deleteParam);
-           
-            document.body.appendChild(form);
-            form.submit();
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            form.appendChild(csrf);
+            const del = document.createElement('input');
+            del.type = 'hidden'; del.name = 'delete_api_key'; del.value = provider;
+            form.appendChild(del);
+            document.body.appendChild(form); form.submit();
         }
- 
-        // Function to delete SMTP configuration
+
         function deleteSmtpConfig() {
             const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/smtpdetails/';
-           
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = 'csrfmiddlewaretoken';
-            csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            form.appendChild(csrfToken);
-           
-            const deleteParam = document.createElement('input');
-            deleteParam.type = 'hidden';
-            deleteParam.name = 'delete_smtp_config';
-            deleteParam.value = 'true';
-            form.appendChild(deleteParam);
-           
-            document.body.appendChild(form);
-            form.submit();
+            form.method = 'POST'; form.action = '/smtpdetails/';
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            form.appendChild(csrf);
+            const del = document.createElement('input');
+            del.type = 'hidden'; del.name = 'delete_smtp_config'; del.value = 'true';
+            form.appendChild(del);
+            document.body.appendChild(form); form.submit();
         }
 
-        // Function to delete SSO configuration (NEW)
         function deleteSsoConfig(provider) {
             const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/ssodetails/';
-           
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = 'csrfmiddlewaretoken';
-            csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            form.appendChild(csrfToken);
-           
-            const deleteParam = document.createElement('input');
-            deleteParam.type = 'hidden';
-            deleteParam.name = 'delete_sso_config';
-            deleteParam.value = provider;
-            form.appendChild(deleteParam);
-           
-            document.body.appendChild(form);
-            form.submit();
+            form.method = 'POST'; form.action = '/ssodetails/';
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            form.appendChild(csrf);
+            const del = document.createElement('input');
+            del.type = 'hidden'; del.name = 'delete_sso_config'; del.value = provider;
+            form.appendChild(del);
+            document.body.appendChild(form); form.submit();
         }
 
-        // Function to edit SSO configuration (NEW)
         function editSsoConfig(provider, clientId, redirectUri) {
             document.getElementById('sso_provider').value = provider;
             document.getElementById('sso_client_id').value = clientId;
             document.getElementById('sso_redirect_uri').value = redirectUri || '';
-            document.getElementById('sso_client_secret').value = ''; // Clear for security
+            document.getElementById('sso_client_secret').value = '';
             document.getElementById('sso_client_secret').focus();
         }
 
-        // Function to test SMTP connection
         document.getElementById('testSmtpConnection').addEventListener('click', function() {
             const form = document.getElementById('smtp-form');
             const formData = new FormData(form);
             formData.append('test_connection', 'true');
-            
             this.disabled = true;
             this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testing...';
-            
-            fetch('/smtpdetails/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
+            fetch('/smtpdetails/', { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
             .then(data => {
                 this.disabled = false;
                 this.innerHTML = '<i class="bi bi-send-check me-2"></i>Test Connection';
-                
                 const alertDiv = document.createElement('div');
                 alertDiv.className = `alert alert-${data.success ? 'success' : 'danger'} alert-dismissible fade show mt-3`;
-                alertDiv.innerHTML = `
-                    ${data.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
+                alertDiv.innerHTML = `${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
                 form.parentElement.insertBefore(alertDiv, form);
-                
-                setTimeout(() => {
-                    alertDiv.remove();
-                }, 5000);
+                setTimeout(() => alertDiv.remove(), 5000);
             })
             .catch(error => {
                 this.disabled = false;
@@ -948,60 +912,39 @@
             });
         });
  
-        // Back button logic
         document.getElementById('back-btn').addEventListener('click', () => {
-            const previousUrl = document.referrer || '/';
-            window.location.replace(previousUrl);
+            window.location.replace(document.referrer || '/');
         });
- 
     </script>
  
     <script>
         const modelSelect = document.getElementById('model');
- 
         const geminiModels = {{ gemini_models_json|safe }};
         const openaiModels = {{ openai_models_json|safe }};
         const ollamaModels = {{ ollama_models_json|safe }};
         const aiConfigs = {{ ai_configs|safe }};
- 
+        const providerSelectModel = document.getElementById('provider');
+
         function updateModelOptions() {
-            const selectedProvider = providerSelect.value;
+            const selectedProvider = providerSelectModel ? providerSelectModel.value : '';
+            if (!modelSelect) return;
             modelSelect.innerHTML = '<option value="" selected>-- Select Model --</option>';
- 
-            let modelsToShow = [];
- 
-            if (selectedProvider === 'gemini') {
-                modelsToShow = geminiModels;
-            } else if (selectedProvider === 'openai') {
-                modelsToShow = openaiModels;
-            } else if (selectedProvider === 'ollama') {
-                modelsToShow = ollamaModels;
-            }
- 
+            let modelsToShow = selectedProvider === 'gemini' ? geminiModels
+                             : selectedProvider === 'openai' ? openaiModels
+                             : selectedProvider === 'ollama' ? ollamaModels : [];
             modelsToShow.forEach(model => {
                 const option = document.createElement('option');
-                option.value = model[0];
-                option.textContent = model[1];
- 
-                let previouslySelected = false;
-                if (selectedProvider === 'gemini' && aiConfigs.hasOwnProperty('gemini') && model[0] === aiConfigs['gemini']['model']) {
-                    previouslySelected = true;
-                } else if (selectedProvider === 'openai' && aiConfigs.hasOwnProperty('openai') && model[0] === aiConfigs['openai']['model']) {
-                    previouslySelected = true;
-                } else if (selectedProvider === 'ollama' && aiConfigs.hasOwnProperty('ollama') && model[0] === aiConfigs['ollama']['model']) {
-                    previouslySelected = true;
-                }
- 
-                if (previouslySelected) {
+                option.value = model[0]; option.textContent = model[1];
+                if (aiConfigs[selectedProvider] && model[0] === aiConfigs[selectedProvider]['model']) {
                     option.selected = true;
                 }
- 
                 modelSelect.appendChild(option);
             });
         }
- 
-        updateModelOptions();
-        providerSelect.addEventListener('change', updateModelOptions);
+        if (modelSelect && providerSelectModel) {
+            updateModelOptions();
+            providerSelectModel.addEventListener('change', updateModelOptions);
+        }
     </script>
  
 </body>

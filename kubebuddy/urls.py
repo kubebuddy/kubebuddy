@@ -14,6 +14,8 @@ from main.views import (
     smtp_details, test_smtp_connection,
     # SSO config
     sso_details,
+    # RBAC
+    update_user_permissions,
 )
 from dashboard.src.clusters_DB import get_cluster_status
 
@@ -60,4 +62,7 @@ urlpatterns = [
 
     # SSO Configuration
     path('ssodetails/', sso_details, name='sso_details'),
+
+    # RBAC
+    path('api/update-permissions/', update_user_permissions, name='update_user_permissions'),
 ]

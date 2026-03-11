@@ -7,7 +7,7 @@ from kubebuddy.appLogs import logger
 from django.contrib import messages
 from dashboard.src import clusters_DB
 from django.contrib.auth.models import User
-from .models import Cluster, KubeConfig, AIConfig, SmtpConfig, SsoConfig
+from .models import Cluster, KubeConfig, AIConfig, SmtpConfig, SsoConfig, UserProfile
 from django.http import JsonResponse
 from kubernetes import config, client
 from kubernetes.config.config_exception import ConfigException
@@ -29,6 +29,26 @@ from email.mime.multipart import MIMEMultipart
 import requests as http_requests
 
 
+# ========================================
+# RBAC HELPER
+# ========================================
+
+def has_permission(user, permission):
+    if user.is_superuser:
+        return True
+    try:
+        profile = user.profile
+        if profile.role == 'admin':
+            return True
+        return getattr(profile, f'can_{permission}', False)
+    except UserProfile.DoesNotExist:
+        return False
+
+
+# ========================================
+# LOGIN VIEW
+# ========================================
+
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -37,19 +57,17 @@ def login_view(request):
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
             if user is not None:
-                if user.is_superuser:
-                    login(request, user)
-                    kube_config_entry = KubeConfig.objects.first()
-                    if kube_config_entry and os.path.isfile(kube_config_entry.path):
-                        if username == 'admin' and password == 'admin':
-                            request.session['warning'] = "You're using the default password. Please change it for security reasons."
-                            return redirect('/KubeBuddy')
-                        else:
-                            return redirect('/KubeBuddy')
-                    else:
-                        return redirect('/integrate')
+                UserProfile.get_or_create_for_user(user)
+                login(request, user)
+                kube_config_entry = KubeConfig.objects.first()
+                if kube_config_entry and os.path.isfile(kube_config_entry.path):
+                    if username == 'admin' and password == 'admin':
+                        request.session['warning'] = "You're using the default password. Please change it for security reasons."
+                    return redirect('/KubeBuddy')
                 else:
-                    form.add_error(None, 'Only superusers are allowed to log in.')
+                    return redirect('/integrate')
+            else:
+                form.add_error(None, 'Invalid credentials.')
         else:
             form.add_error(None, 'Invalid credentials.')
     else:
@@ -134,6 +152,7 @@ def verify_otp(request):
             if not created and user.email != email:
                 user.email = email
                 user.save()
+            UserProfile.get_or_create_for_user(user)
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             logger.info(f"User logged in via OTP: {email}")
@@ -608,6 +627,51 @@ def sso_details(request):
 
 
 # ========================================
+# RBAC — Update User Permissions
+# ========================================
+
+@login_required
+@csrf_exempt
+def update_user_permissions(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'status': 'error', 'message': 'Unauthorized'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+            permissions = data.get('permissions', [])
+
+            target_user = User.objects.get(id=user_id)
+
+            if target_user.is_superuser:
+                return JsonResponse({'status': 'error', 'message': 'Cannot restrict a superuser.'}, status=400)
+
+            profile, _ = UserProfile.objects.get_or_create(user=target_user)
+            profile.can_workloads          = 'workloads'          in permissions
+            profile.can_cluster_management = 'cluster_management' in permissions
+            profile.can_services           = 'services'           in permissions
+            profile.can_storage            = 'storage'            in permissions
+            profile.can_ingress            = 'ingress'            in permissions
+            profile.can_configmaps         = 'configmaps'         in permissions
+            profile.can_metrics            = 'metrics'            in permissions
+            profile.can_events             = 'events'             in permissions
+            profile.can_rbac               = 'rbac'               in permissions
+            profile.save()
+
+            logger.info(f"Permissions updated for {target_user.username} by {request.user.username}: {permissions}")
+            return JsonResponse({'status': 'success', 'message': f'Permissions updated for {target_user.username}'})
+
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
+        except Exception as e:
+            logger.error(f"Error updating permissions: {str(e)}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+
+
+# ========================================
 # SETTINGS VIEW
 # ========================================
 
@@ -646,24 +710,28 @@ def settings(request):
     except Exception:
         sso_configs = {}
 
-    # ── Build users_data for the Users tab (superadmin only) ──
     users_data = []
     if request.user.is_superuser:
         for i, user in enumerate(User.objects.all().order_by('id'), start=1):
-            user_id = f"kb{i:04d}"
-            if user.is_superuser:
-                permissions = ['Workloads', 'Cluster management', 'Services', 'Storage', 'Ingress']
-            elif user.is_staff:
-                permissions = ['Workloads', 'Services']
-            else:
-                permissions = ['Workloads']
+            profile = UserProfile.get_or_create_for_user(user)
             users_data.append({
+                'id': user.id,
                 'username': user.username,
-                'user_id': user_id,
-                'permissions': ', '.join(permissions),
+                'user_id': f"kb{i:04d}",
+                'email': user.email,
                 'is_superuser': user.is_superuser,
                 'is_active': user.is_active,
-                'email': user.email,
+                'role': profile.role,
+                'permissions': profile.get_permissions_display(),
+                'can_workloads':          profile.can_workloads,
+                'can_cluster_management': profile.can_cluster_management,
+                'can_services':           profile.can_services,
+                'can_storage':            profile.can_storage,
+                'can_ingress':            profile.can_ingress,
+                'can_configmaps':         profile.can_configmaps,
+                'can_metrics':            profile.can_metrics,
+                'can_events':             profile.can_events,
+                'can_rbac':               profile.can_rbac,
             })
 
     if request.method == 'POST' and 'save_ai_config' in request.POST:
@@ -721,7 +789,7 @@ def settings(request):
         'openai_models_json': json.dumps(openai_models),
         'ollama_models_json': json.dumps(ollama_models),
         'active_tab': active_tab,
-        'users_data': users_data,   # ← NEW
+        'users_data': users_data,
     })
 
 
@@ -731,7 +799,7 @@ def profile(request):
 
 
 # ========================================
-# GOOGLE SSO (Standard OAuth with client secret)
+# GOOGLE SSO
 # ========================================
 
 def google_callback(request):
@@ -744,49 +812,37 @@ def google_callback(request):
         if not sso:
             return render(request, 'main/login.html', {'error_message': 'Google SSO is not configured'})
         redirect_uri = sso.redirect_uri or (request.build_absolute_uri('/').rstrip('/') + '/google-callback/')
-        token_response = http_requests.post(
-            'https://oauth2.googleapis.com/token',
+        token_response = http_requests.post('https://oauth2.googleapis.com/token',
             data={'client_id': sso.client_id, 'client_secret': sso.client_secret,
-                  'code': code, 'redirect_uri': redirect_uri, 'grant_type': 'authorization_code'},
-            timeout=10
-        )
+                  'code': code, 'redirect_uri': redirect_uri, 'grant_type': 'authorization_code'}, timeout=10)
         token_data = token_response.json()
         access_token = token_data.get('access_token')
         if not access_token:
-            logger.error(f"Google token exchange failed: {token_data}")
             return render(request, 'main/login.html', {'error_message': 'Failed to get access token from Google'})
-        user_response = http_requests.get(
-            'https://www.googleapis.com/oauth2/v2/userinfo',
-            headers={'Authorization': f'Bearer {access_token}'}, timeout=10
-        )
-        user_data = user_response.json()
+        user_data = http_requests.get('https://www.googleapis.com/oauth2/v2/userinfo',
+            headers={'Authorization': f'Bearer {access_token}'}, timeout=10).json()
         email = user_data.get('email')
-        name = user_data.get('name', '')
-        given_name = user_data.get('given_name', '')
-        family_name = user_data.get('family_name', '')
         if not email:
             return render(request, 'main/login.html', {'error_message': 'Could not retrieve email from Google'})
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults={'username': email.split('@')[0],
-                      'first_name': given_name or (name.split()[0] if name else ''),
-                      'last_name': family_name or (' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''),
-                      'is_superuser': True, 'is_staff': True}
-        )
+        given_name = user_data.get('given_name', '')
+        family_name = user_data.get('family_name', '')
+        name = user_data.get('name', '')
+        user, created = User.objects.get_or_create(email=email, defaults={
+            'username': email.split('@')[0],
+            'first_name': given_name or (name.split()[0] if name else ''),
+            'last_name': family_name or (' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''),
+            'is_superuser': True, 'is_staff': True})
         if not created:
             user.first_name = given_name or user.first_name
             user.last_name = family_name or user.last_name
             user.save()
+        UserProfile.get_or_create_for_user(user)
         user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
-        logger.info(f"User logged in via Google OAuth: {email}")
         kube_config_entry = KubeConfig.objects.first()
-        redirect_url = '/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate'
-        return redirect(redirect_url)
+        return redirect('/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate')
     except Exception as e:
         logger.error(f"Error in google_callback: {str(e)}")
-        import traceback
-        logger.error(traceback.format_exc())
         return render(request, 'main/login.html', {'error_message': f'Login error: {str(e)}'})
 
 
@@ -802,57 +858,42 @@ def google_login_api(request):
             if not sso:
                 return JsonResponse({'error': 'Google SSO is not configured'}, status=400)
             redirect_uri = sso.redirect_uri or (request.build_absolute_uri('/').rstrip('/') + '/google-callback/')
-            token_response = http_requests.post(
-                'https://oauth2.googleapis.com/token',
+            token_data = http_requests.post('https://oauth2.googleapis.com/token',
                 data={'client_id': sso.client_id, 'client_secret': sso.client_secret,
-                      'code': code, 'redirect_uri': redirect_uri, 'grant_type': 'authorization_code'},
-                timeout=10
-            )
-            token_data = token_response.json()
+                      'code': code, 'redirect_uri': redirect_uri, 'grant_type': 'authorization_code'}, timeout=10).json()
             access_token = token_data.get('access_token')
             if not access_token:
-                logger.error(f"Google token exchange failed: {token_data}")
                 return JsonResponse({'error': 'Failed to get access token from Google'}, status=400)
-            user_response = http_requests.get(
-                'https://www.googleapis.com/oauth2/v2/userinfo',
-                headers={'Authorization': f'Bearer {access_token}'}, timeout=10
-            )
-            user_data = user_response.json()
+            user_data = http_requests.get('https://www.googleapis.com/oauth2/v2/userinfo',
+                headers={'Authorization': f'Bearer {access_token}'}, timeout=10).json()
             email = user_data.get('email')
-            name = user_data.get('name', '')
-            given_name = user_data.get('given_name', '')
-            family_name = user_data.get('family_name', '')
             if not email:
                 return JsonResponse({'error': 'Could not retrieve email from Google account'}, status=400)
-            user, created = User.objects.get_or_create(
-                email=email,
-                defaults={'username': email.split('@')[0],
-                          'first_name': given_name or (name.split()[0] if name else ''),
-                          'last_name': family_name or (' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''),
-                          'is_superuser': True, 'is_staff': True}
-            )
+            given_name = user_data.get('given_name', '')
+            family_name = user_data.get('family_name', '')
+            name = user_data.get('name', '')
+            user, created = User.objects.get_or_create(email=email, defaults={
+                'username': email.split('@')[0],
+                'first_name': given_name or (name.split()[0] if name else ''),
+                'last_name': family_name or (' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''),
+                'is_superuser': True, 'is_staff': True})
             if not created:
                 user.first_name = given_name or user.first_name
                 user.last_name = family_name or user.last_name
                 user.save()
+            UserProfile.get_or_create_for_user(user)
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             request.session.save()
             request.session.modified = True
-            logger.info(f"User logged in via Google OAuth: {email}")
             kube_config_entry = KubeConfig.objects.first()
             redirect_url = '/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate'
             response = JsonResponse({'success': True, 'redirect_url': redirect_url})
             if request.session.session_key:
-                response.set_cookie('sessionid', request.session.session_key,
-                                    max_age=1209600, httponly=True, samesite='Lax')
+                response.set_cookie('sessionid', request.session.session_key, max_age=1209600, httponly=True, samesite='Lax')
             return response
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
             logger.error(f"Error in google_login_api: {str(e)}")
-            import traceback
-            logger.error(traceback.format_exc())
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
@@ -871,56 +912,38 @@ def github_callback(request):
         if not sso:
             return render(request, 'main/login.html', {'error_message': 'GitHub SSO is not configured'})
         redirect_uri = sso.redirect_uri or (request.build_absolute_uri('/').rstrip('/') + '/github-callback/')
-        token_response = http_requests.post(
-            'https://github.com/login/oauth/access_token',
+        token_data = http_requests.post('https://github.com/login/oauth/access_token',
             headers={'Accept': 'application/json'},
-            data={'client_id': sso.client_id, 'client_secret': sso.client_secret,
-                  'code': code, 'redirect_uri': redirect_uri},
-            timeout=10
-        )
-        token_data = token_response.json()
+            data={'client_id': sso.client_id, 'client_secret': sso.client_secret, 'code': code, 'redirect_uri': redirect_uri}, timeout=10).json()
         access_token = token_data.get('access_token')
         if not access_token:
-            logger.error(f"GitHub token exchange failed: {token_data}")
             return render(request, 'main/login.html', {'error_message': 'Failed to get access token from GitHub'})
-        user_response = http_requests.get(
-            'https://api.github.com/user',
-            headers={'Authorization': f'token {access_token}', 'Accept': 'application/json'}, timeout=10
-        )
-        user_data = user_response.json()
+        user_data = http_requests.get('https://api.github.com/user',
+            headers={'Authorization': f'token {access_token}', 'Accept': 'application/json'}, timeout=10).json()
         email = user_data.get('email')
         if not email:
-            email_response = http_requests.get(
-                'https://api.github.com/user/emails',
-                headers={'Authorization': f'token {access_token}', 'Accept': 'application/json'}, timeout=10
-            )
-            emails = email_response.json()
-            primary = next((e['email'] for e in emails if e.get('primary') and e.get('verified')), None)
-            email = primary or next((e['email'] for e in emails), None)
+            emails = http_requests.get('https://api.github.com/user/emails',
+                headers={'Authorization': f'token {access_token}', 'Accept': 'application/json'}, timeout=10).json()
+            email = next((e['email'] for e in emails if e.get('primary') and e.get('verified')), None) or next((e['email'] for e in emails), None)
         if not email:
             return render(request, 'main/login.html', {'error_message': 'Could not retrieve email from GitHub'})
         name = user_data.get('name') or user_data.get('login', '')
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults={'username': user_data.get('login', email.split('@')[0]),
-                      'first_name': name.split()[0] if name else '',
-                      'last_name': ' '.join(name.split()[1:]) if name and len(name.split()) > 1 else '',
-                      'is_superuser': True, 'is_staff': True}
-        )
+        user, created = User.objects.get_or_create(email=email, defaults={
+            'username': user_data.get('login', email.split('@')[0]),
+            'first_name': name.split()[0] if name else '',
+            'last_name': ' '.join(name.split()[1:]) if name and len(name.split()) > 1 else '',
+            'is_superuser': True, 'is_staff': True})
         if not created and name:
             user.first_name = name.split()[0]
             user.last_name = ' '.join(name.split()[1:]) if len(name.split()) > 1 else ''
             user.save()
+        UserProfile.get_or_create_for_user(user)
         user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
-        logger.info(f"User logged in via GitHub: {email}")
         kube_config_entry = KubeConfig.objects.first()
-        redirect_url = '/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate'
-        return redirect(redirect_url)
+        return redirect('/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate')
     except Exception as e:
         logger.error(f"Error in github_callback: {str(e)}")
-        import traceback
-        logger.error(traceback.format_exc())
         return render(request, 'main/login.html', {'error_message': f'Login error: {str(e)}'})
 
 
@@ -936,54 +959,37 @@ def github_login_api(request):
             if not sso:
                 return JsonResponse({'error': 'GitHub SSO is not configured'}, status=400)
             redirect_uri = sso.redirect_uri or (request.build_absolute_uri('/').rstrip('/') + '/github-callback/')
-            token_response = http_requests.post(
-                'https://github.com/login/oauth/access_token',
+            token_data = http_requests.post('https://github.com/login/oauth/access_token',
                 headers={'Accept': 'application/json'},
-                data={'client_id': sso.client_id, 'client_secret': sso.client_secret,
-                      'code': code, 'redirect_uri': redirect_uri},
-                timeout=10
-            )
-            token_data = token_response.json()
+                data={'client_id': sso.client_id, 'client_secret': sso.client_secret, 'code': code, 'redirect_uri': redirect_uri}, timeout=10).json()
             access_token = token_data.get('access_token')
             if not access_token:
-                logger.error(f"GitHub token exchange failed: {token_data}")
                 return JsonResponse({'error': 'Failed to get access token from GitHub'}, status=400)
-            user_response = http_requests.get(
-                'https://api.github.com/user',
-                headers={'Authorization': f'token {access_token}', 'Accept': 'application/json'}, timeout=10
-            )
-            user_data = user_response.json()
+            user_data = http_requests.get('https://api.github.com/user',
+                headers={'Authorization': f'token {access_token}', 'Accept': 'application/json'}, timeout=10).json()
             email = user_data.get('email')
             if not email:
-                email_response = http_requests.get(
-                    'https://api.github.com/user/emails',
-                    headers={'Authorization': f'token {access_token}', 'Accept': 'application/json'}, timeout=10
-                )
-                emails = email_response.json()
-                primary = next((e['email'] for e in emails if e.get('primary') and e.get('verified')), None)
-                email = primary or next((e['email'] for e in emails), None)
+                emails = http_requests.get('https://api.github.com/user/emails',
+                    headers={'Authorization': f'token {access_token}', 'Accept': 'application/json'}, timeout=10).json()
+                email = next((e['email'] for e in emails if e.get('primary') and e.get('verified')), None) or next((e['email'] for e in emails), None)
             if not email:
-                return JsonResponse({'error': 'Could not retrieve email from GitHub. Make sure your email is not private, or grant email access.'}, status=400)
+                return JsonResponse({'error': 'Could not retrieve email from GitHub.'}, status=400)
             name = user_data.get('name') or user_data.get('login', '')
-            user, created = User.objects.get_or_create(
-                email=email,
-                defaults={'username': user_data.get('login', email.split('@')[0]),
-                          'first_name': name.split()[0] if name else '',
-                          'last_name': ' '.join(name.split()[1:]) if name and len(name.split()) > 1 else '',
-                          'is_superuser': True, 'is_staff': True}
-            )
+            user, created = User.objects.get_or_create(email=email, defaults={
+                'username': user_data.get('login', email.split('@')[0]),
+                'first_name': name.split()[0] if name else '',
+                'last_name': ' '.join(name.split()[1:]) if name and len(name.split()) > 1 else '',
+                'is_superuser': True, 'is_staff': True})
             if not created and name:
                 user.first_name = name.split()[0]
                 user.last_name = ' '.join(name.split()[1:]) if len(name.split()) > 1 else ''
                 user.save()
+            UserProfile.get_or_create_for_user(user)
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
-            logger.info(f"User logged in via GitHub: {email}")
             kube_config_entry = KubeConfig.objects.first()
             redirect_url = '/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate'
             return JsonResponse({'success': True, 'redirect_url': redirect_url})
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
             logger.error(f"Error in github_login_api: {str(e)}")
             return JsonResponse({'error': str(e)}, status=500)
@@ -1004,50 +1010,36 @@ def outlook_callback(request):
         if not sso:
             return render(request, 'main/login.html', {'error_message': 'Microsoft SSO is not configured'})
         redirect_uri = sso.redirect_uri or (request.build_absolute_uri('/').rstrip('/') + '/outlook-callback/')
-        token_response = http_requests.post(
-            'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-            data={'client_id': sso.client_id, 'client_secret': sso.client_secret,
-                  'code': code, 'redirect_uri': redirect_uri, 'grant_type': 'authorization_code',
-                  'scope': 'openid email profile User.Read'},
-            timeout=10
-        )
-        token_data = token_response.json()
+        token_data = http_requests.post('https://login.microsoftonline.com/common/oauth2/v2.0/token',
+            data={'client_id': sso.client_id, 'client_secret': sso.client_secret, 'code': code,
+                  'redirect_uri': redirect_uri, 'grant_type': 'authorization_code', 'scope': 'openid email profile User.Read'}, timeout=10).json()
         access_token = token_data.get('access_token')
         if not access_token:
-            logger.error(f"Microsoft token exchange failed: {token_data}")
             return render(request, 'main/login.html', {'error_message': 'Failed to get access token from Microsoft'})
-        user_response = http_requests.get(
-            'https://graph.microsoft.com/v1.0/me',
-            headers={'Authorization': f'Bearer {access_token}', 'Accept': 'application/json'}, timeout=10
-        )
-        user_data = user_response.json()
+        user_data = http_requests.get('https://graph.microsoft.com/v1.0/me',
+            headers={'Authorization': f'Bearer {access_token}', 'Accept': 'application/json'}, timeout=10).json()
         email = user_data.get('mail') or user_data.get('userPrincipalName', '')
+        if not email:
+            return render(request, 'main/login.html', {'error_message': 'Could not retrieve email from Microsoft'})
         name = user_data.get('displayName', '')
         first_name = user_data.get('givenName', '')
         last_name = user_data.get('surname', '')
-        if not email:
-            return render(request, 'main/login.html', {'error_message': 'Could not retrieve email from Microsoft'})
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults={'username': email.split('@')[0],
-                      'first_name': first_name or (name.split()[0] if name else ''),
-                      'last_name': last_name or (' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''),
-                      'is_superuser': True, 'is_staff': True}
-        )
+        user, created = User.objects.get_or_create(email=email, defaults={
+            'username': email.split('@')[0],
+            'first_name': first_name or (name.split()[0] if name else ''),
+            'last_name': last_name or (' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''),
+            'is_superuser': True, 'is_staff': True})
         if not created:
             user.first_name = first_name or user.first_name
             user.last_name = last_name or user.last_name
             user.save()
+        UserProfile.get_or_create_for_user(user)
         user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
-        logger.info(f"User logged in via Microsoft: {email}")
         kube_config_entry = KubeConfig.objects.first()
-        redirect_url = '/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate'
-        return redirect(redirect_url)
+        return redirect('/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate')
     except Exception as e:
         logger.error(f"Error in outlook_callback: {str(e)}")
-        import traceback
-        logger.error(traceback.format_exc())
         return render(request, 'main/login.html', {'error_message': f'Login error: {str(e)}'})
 
 
@@ -1063,48 +1055,35 @@ def outlook_login_api(request):
             if not sso:
                 return JsonResponse({'error': 'Microsoft SSO is not configured'}, status=400)
             redirect_uri = sso.redirect_uri or (request.build_absolute_uri('/').rstrip('/') + '/outlook-callback/')
-            token_response = http_requests.post(
-                'https://login.microsoftonline.com/common/oauth2/v2.0/token',
-                data={'client_id': sso.client_id, 'client_secret': sso.client_secret,
-                      'code': code, 'redirect_uri': redirect_uri, 'grant_type': 'authorization_code',
-                      'scope': 'openid email profile User.Read'},
-                timeout=10
-            )
-            token_data = token_response.json()
+            token_data = http_requests.post('https://login.microsoftonline.com/common/oauth2/v2.0/token',
+                data={'client_id': sso.client_id, 'client_secret': sso.client_secret, 'code': code,
+                      'redirect_uri': redirect_uri, 'grant_type': 'authorization_code', 'scope': 'openid email profile User.Read'}, timeout=10).json()
             access_token = token_data.get('access_token')
             if not access_token:
-                logger.error(f"Microsoft token exchange failed: {token_data}")
                 return JsonResponse({'error': 'Failed to get access token from Microsoft'}, status=400)
-            user_response = http_requests.get(
-                'https://graph.microsoft.com/v1.0/me',
-                headers={'Authorization': f'Bearer {access_token}', 'Accept': 'application/json'}, timeout=10
-            )
-            user_data = user_response.json()
+            user_data = http_requests.get('https://graph.microsoft.com/v1.0/me',
+                headers={'Authorization': f'Bearer {access_token}', 'Accept': 'application/json'}, timeout=10).json()
             email = user_data.get('mail') or user_data.get('userPrincipalName', '')
+            if not email:
+                return JsonResponse({'error': 'Could not retrieve email from Microsoft account'}, status=400)
             name = user_data.get('displayName', '')
             first_name = user_data.get('givenName', '')
             last_name = user_data.get('surname', '')
-            if not email:
-                return JsonResponse({'error': 'Could not retrieve email from Microsoft account'}, status=400)
-            user, created = User.objects.get_or_create(
-                email=email,
-                defaults={'username': email.split('@')[0],
-                          'first_name': first_name or (name.split()[0] if name else ''),
-                          'last_name': last_name or (' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''),
-                          'is_superuser': True, 'is_staff': True}
-            )
+            user, created = User.objects.get_or_create(email=email, defaults={
+                'username': email.split('@')[0],
+                'first_name': first_name or (name.split()[0] if name else ''),
+                'last_name': last_name or (' '.join(name.split()[1:]) if name and len(name.split()) > 1 else ''),
+                'is_superuser': True, 'is_staff': True})
             if not created:
                 user.first_name = first_name or user.first_name
                 user.last_name = last_name or user.last_name
                 user.save()
+            UserProfile.get_or_create_for_user(user)
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
-            logger.info(f"User logged in via Microsoft: {email}")
             kube_config_entry = KubeConfig.objects.first()
             redirect_url = '/KubeBuddy' if kube_config_entry and os.path.isfile(kube_config_entry.path) else '/integrate'
             return JsonResponse({'success': True, 'redirect_url': redirect_url})
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
             logger.error(f"Error in outlook_login_api: {str(e)}")
             return JsonResponse({'error': str(e)}, status=500)

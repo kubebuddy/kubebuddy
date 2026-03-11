@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from django.contrib.auth.models import User
 
-# Create your models here.
 
 class KubeConfig(models.Model):
     cluster_id = models.CharField(primary_key=True, max_length=20, unique=True, editable=False)
@@ -23,7 +22,7 @@ class KubeConfig(models.Model):
 
     def __str__(self):
         return f"{self.cluster_id}"
-    
+
 
 class Cluster(models.Model):
     cluster_name = models.CharField(max_length=255)
@@ -32,7 +31,6 @@ class Cluster(models.Model):
 
     def __str__(self):
         return self.cluster_name
-    
 
 
 class AIConfig(models.Model):
@@ -41,14 +39,12 @@ class AIConfig(models.Model):
         ('gemini', 'Google Gemini'),
         ('ollama', 'Ollama'),
     ]
-
     DEFAULT_MODELS = {
         'openai': 'gpt-3.5-turbo',
         'gemini': 'gemini-2.0-flash',
         'ollama': 'llama3',
     }
-
-    MODELS_OPENAI = [ 
+    MODELS_OPENAI = [
         ('gpt-3.5-turbo', 'GPT-3.5 Turbo'),
         ('gpt-3.5-turbo-16k', 'GPT-3.5 Turbo 16K'),
         ('gpt-3.5-turbo-instruct', 'GPT-3.5 Turbo Instruct'),
@@ -59,7 +55,6 @@ class AIConfig(models.Model):
         ('gpt-4.1', 'GPT-4.1'),
         ('gpt-4.1-mini', 'GPT-4.1 Mini')
     ]
-
     MODELS_GEMINI = [
         ('gemini-2.0-flash', 'Gemini 2.0 Flash'),
         ('gemini-2.0-flash-lite', 'Gemini 2.0 Flash-Lite'),
@@ -70,9 +65,8 @@ class AIConfig(models.Model):
         ('gemini-2.5-flash', 'Gemini 2.5 Flash'),
         ('gemini-2.5-flash-lite', 'Gemini 2.5 Flash-Lite')
     ]
-
     MODELS_OLLAMA = [
-        ('gemma3:1b', 'Gemma'),   
+        ('gemma3:1b', 'Gemma'),
         ('llama2', 'LLaMA 2'),
         ('llama3', 'LLaMA 3'),
         ('mistral', 'Mistral'),
@@ -87,45 +81,22 @@ class AIConfig(models.Model):
     ]
 
     provider = models.CharField(max_length=10, choices=PROVIDERS, unique=True)
-    api_key = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="Required only for OpenAI and Gemini. Leave empty for Ollama."
-    )
-    model = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        help_text="Specific model to use for the provider (optional, defaults will be used if not specified)."
-    )
+    api_key = models.CharField(max_length=255, blank=True, null=True)
+    model = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.get_provider_display()} API Key"
 
     def clean(self):
-        if self.provider == 'openai' and self.model and self.model not in [choice[0] for choice in self.MODELS_OPENAI]:
-            raise ValidationError(
-                f"Invalid model '{self.model}' for OpenAI. Choose from: "
-                f"{', '.join([choice[0] for choice in self.MODELS_OPENAI])}."
-            )
-        elif self.provider == 'gemini' and self.model and self.model not in [choice[0] for choice in self.MODELS_GEMINI]:
-            raise ValidationError(
-                f"Invalid model '{self.model}' for Gemini. Choose from: "
-                f"{', '.join([choice[0] for choice in self.MODELS_GEMINI])}."
-            )
-        elif self.provider == 'ollama' and self.model and self.model not in [choice[0] for choice in self.MODELS_OLLAMA]:
-            raise ValidationError(
-                f"Invalid model '{self.model}' for Ollama. Choose from: "
-                f"{', '.join([choice[0] for choice in self.MODELS_OLLAMA])}."
-            )
-
-        # Ollama doesn't need API key
+        if self.provider == 'openai' and self.model and self.model not in [c[0] for c in self.MODELS_OPENAI]:
+            raise ValidationError(f"Invalid model '{self.model}' for OpenAI.")
+        elif self.provider == 'gemini' and self.model and self.model not in [c[0] for c in self.MODELS_GEMINI]:
+            raise ValidationError(f"Invalid model '{self.model}' for Gemini.")
+        elif self.provider == 'ollama' and self.model and self.model not in [c[0] for c in self.MODELS_OLLAMA]:
+            raise ValidationError(f"Invalid model '{self.model}' for Ollama.")
         if self.provider == 'ollama' and self.api_key:
-            raise ValidationError("Ollama does not require an API key. Leave it blank.")
-
-        # OpenAI/Gemini must have API key
+            raise ValidationError("Ollama does not require an API key.")
         if self.provider in ['openai', 'gemini'] and not self.api_key:
             raise ValidationError(f"{self.get_provider_display()} requires an API key.")
 
@@ -138,56 +109,121 @@ class AIConfig(models.Model):
         unique_together = ('provider', 'model')
 
 
-# SMTP Configuration Model
 class SmtpConfig(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='smtp_config')
-    smtp_server = models.CharField(max_length=255, help_text="SMTP server address (e.g., smtp.gmail.com)")
-    smtp_port = models.CharField(max_length=10, help_text="SMTP port (e.g., 587, 465, 25)")
-    smtp_from_email = models.EmailField(help_text="Email address to send from")
-    smtp_username = models.CharField(max_length=255, help_text="SMTP authentication username")
-    smtp_password = models.CharField(max_length=255, help_text="SMTP authentication password")
-    smtp_use_tls = models.BooleanField(default=True, help_text="Use TLS/STARTTLS encryption")
+    smtp_server = models.CharField(max_length=255)
+    smtp_port = models.CharField(max_length=10)
+    smtp_from_email = models.EmailField()
+    smtp_username = models.CharField(max_length=255)
+    smtp_password = models.CharField(max_length=255)
+    smtp_use_tls = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"SMTP Config for {self.user.username} ({self.smtp_server})"
-    
+
     class Meta:
         verbose_name = "SMTP Configuration"
         verbose_name_plural = "SMTP Configurations"
 
 
-# SSO Configuration Model
 class SsoConfig(models.Model):
-    """
-    Model to store SSO provider configurations (Google, Outlook, GitHub)
-    """
     PROVIDERS = [
         ('google', 'Google'),
         ('outlook', 'Microsoft Outlook'),
         ('github', 'GitHub'),
     ]
-    
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sso_configs')
-    provider = models.CharField(max_length=20, choices=PROVIDERS, help_text="SSO provider (Google, Outlook, GitHub)")
-    client_id = models.CharField(max_length=500, help_text="OAuth Client ID")
-    client_secret = models.CharField(max_length=500, help_text="OAuth Client Secret (encrypted)")
-    redirect_uri = models.CharField(max_length=500, blank=True, null=True, help_text="OAuth Redirect URI (optional)")
-    is_active = models.BooleanField(default=True, help_text="Whether this SSO provider is active")
+    provider = models.CharField(max_length=20, choices=PROVIDERS)
+    client_id = models.CharField(max_length=500)
+    client_secret = models.CharField(max_length=500)
+    redirect_uri = models.CharField(max_length=500, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         verbose_name = "SSO Configuration"
         verbose_name_plural = "SSO Configurations"
-        unique_together = ('user', 'provider')  # One config per provider per user
-    
+        unique_together = ('user', 'provider')
+
     def __str__(self):
         return f"{self.get_provider_display()} SSO for {self.user.username}"
-    
+
     def get_masked_client_secret(self):
-        """Return masked client secret for display"""
         if len(self.client_secret) > 8:
             return f"{self.client_secret[:4]}...{self.client_secret[-4:]}"
         return "********"
+
+
+# ═══════════════════════════════════════════════════════
+# RBAC — UserProfile with role field + permission flags
+# ═══════════════════════════════════════════════════════
+
+class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('user',  'User'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+
+    # Permission flags
+    can_workloads           = models.BooleanField(default=True,  help_text="Pods, Deployments, ReplicaSets, etc.")
+    can_cluster_management  = models.BooleanField(default=False, help_text="Nodes, Namespaces, PDB, etc.")
+    can_services            = models.BooleanField(default=False, help_text="Services, Endpoints")
+    can_storage             = models.BooleanField(default=False, help_text="PV, PVC, StorageClass")
+    can_ingress             = models.BooleanField(default=False, help_text="Ingress, Network Policies")
+    can_configmaps          = models.BooleanField(default=False, help_text="ConfigMaps & Secrets")
+    can_metrics             = models.BooleanField(default=False, help_text="Pod Metrics, Node Metrics")
+    can_events              = models.BooleanField(default=False, help_text="All Events")
+    can_rbac                = models.BooleanField(default=False, help_text="Roles, RoleBindings, ClusterRoles, etc.")
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Profile({self.user.username}, role={self.role})"
+
+    def is_admin_role(self):
+        return self.role == 'admin' or self.user.is_superuser
+
+    def get_permissions_list(self):
+        if self.is_admin_role():
+            return ['Workloads', 'Cluster Management', 'Services', 'Storage', 'Ingress', 'ConfigMaps', 'Metrics', 'Events', 'RBAC']
+        perms = []
+        if self.can_workloads:          perms.append('Workloads')
+        if self.can_cluster_management: perms.append('Cluster Management')
+        if self.can_services:           perms.append('Services')
+        if self.can_storage:            perms.append('Storage')
+        if self.can_ingress:            perms.append('Ingress')
+        if self.can_configmaps:         perms.append('ConfigMaps')
+        if self.can_metrics:            perms.append('Metrics')
+        if self.can_events:             perms.append('Events')
+        if self.can_rbac:               perms.append('RBAC')
+        return perms
+
+    def get_permissions_display(self):
+        return ', '.join(self.get_permissions_list()) or 'No permissions'
+
+    @classmethod
+    def get_or_create_for_user(cls, user):
+        profile, created = cls.objects.get_or_create(user=user)
+        if created:
+            if user.is_superuser:
+                profile.role                   = 'admin'
+                profile.can_workloads          = True
+                profile.can_cluster_management = True
+                profile.can_services           = True
+                profile.can_storage            = True
+                profile.can_ingress            = True
+                profile.can_configmaps         = True
+                profile.can_metrics            = True
+                profile.can_events             = True
+                profile.can_rbac               = True
+            else:
+                profile.role          = 'user'
+                profile.can_workloads = True
+            profile.save()
+        return profile

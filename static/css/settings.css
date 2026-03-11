@@ -124,7 +124,7 @@ html.transition *:after {
 }
 
 .dark-mode .form-switch .form-check-input:checked {
-    background-color: #0db5fd !important; /* Change the color */
+    background-color: #0db5fd !important;
     border-color: #0db5fd !important;
 }
 
@@ -149,4 +149,106 @@ html.transition *:after {
 
 .sidebar-bottom-link i {
     margin-right: 0.75rem;
+}
+
+/* ══════════════════════════════════════════
+   USERS TABLE — KubeBuddy blue/black theme
+   ══════════════════════════════════════════ */
+
+/* Light mode — header */
+.users-table-wrap thead th {
+    background: #0db5fd !important;
+    color: #fff !important;
+}
+
+/* Light mode — body rows */
+.users-table-wrap tbody tr td {
+    background: #f0f4f8 !important;
+    color: #1a1a1a !important;
+}
+
+/* Light mode — row hover */
+.users-table-wrap tbody tr:hover td {
+    background: #e2e8f0 !important;
+}
+
+/* permission badges — light mode */
+.perm-badge {
+    background: #fff !important;
+    color: #0d6efd !important;
+    border: 1.5px solid #0d6efd !important;
+}
+
+.perm-badge.locked {
+    background: #f0f4ff !important;
+    color: #6c757d !important;
+    border-color: #adb5bd !important;
+}
+
+/* edit button — light mode */
+.btn-edit-perms {
+    border: 1.5px solid #0d6efd !important;
+    color: #0d6efd !important;
+}
+
+.btn-edit-perms:hover {
+    background: #0d6efd !important;
+    color: #fff !important;
+}
+
+/* "Protected" text in Actions column — light mode */
+.users-table-wrap tbody td .text-muted {
+    color: #5a8fd8 !important;
+}
+
+/* admin badge in username column — light mode */
+.users-table-wrap .badge-admin {
+    background: #0d6efd !important;
+    color: #fff !important;
+}
+
+/* ── Dark mode overrides ── */
+.dark-mode .users-table-wrap thead th {
+    background: #0db5fd !important;
+    color: #fff !important;
+}
+
+.dark-mode .users-table-wrap tbody tr td {
+    background: #1e1e1e !important;
+    color: #e4e4e4 !important;
+}
+
+.dark-mode .users-table-wrap tbody tr:hover td {
+    background: #2a2a2a !important;
+}
+
+.dark-mode .perm-badge {
+    background: #0a1f35 !important;
+    color: #0db5fd !important;
+    border-color: #0db5fd !important;
+}
+
+.dark-mode .perm-badge.locked {
+    background: #1a1a1a !important;
+    color: #888 !important;
+    border-color: #444 !important;
+}
+
+.dark-mode .btn-edit-perms {
+    border-color: #0db5fd !important;
+    color: #0db5fd !important;
+}
+
+.dark-mode .btn-edit-perms:hover {
+    background: #0db5fd !important;
+    color: #fff !important;
+}
+
+.dark-mode .users-table-wrap tbody td .text-muted {
+    color: #aad4ff !important;
+}
+
+.dark-mode .users-table-wrap .badge-admin {
+    background: #0db5fd !important;
+    color: #fff !important;
 }

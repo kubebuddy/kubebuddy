@@ -29,9 +29,11 @@
             border-spacing: 0 10px;
             width: 100%;
         }
+
+        /* Light mode header — cyan blue */
         .users-table-wrap thead th {
-            background: #ffd97a;
-            color: #333;
+            background: #0db5fd;
+            color: #fff;
             font-family: 'Segoe UI', sans-serif;
             font-size: 1rem;
             font-weight: 600;
@@ -41,8 +43,9 @@
         .users-table-wrap thead th:first-child  { border-radius: 12px 0 0 12px; }
         .users-table-wrap thead th:last-child   { border-radius: 0 12px 12px 0; }
 
+        /* Light mode body rows */
         .users-table-wrap tbody tr td {
-            background: #b8f5c8;
+            background: #f0f4f8;
             color: #1a1a1a;
             padding: 12px 20px;
             border: none;
@@ -53,9 +56,99 @@
         .users-table-wrap tbody tr td:first-child  { border-radius: 12px 0 0 12px; }
         .users-table-wrap tbody tr td:last-child   { border-radius: 0 12px 12px 0; }
 
-        /* dark-mode overrides */
-        .dark-mode .users-table-wrap thead th { background: #c8980a; color: #fff; }
-        .dark-mode .users-table-wrap tbody tr td { background: #2d6e42; color: #e8ffe8; }
+        /* Light mode row hover */
+        .users-table-wrap tbody tr:hover td {
+            background: #e2e8f0;
+        }
+
+        /* Dark mode overrides */
+        .dark-mode .users-table-wrap thead th {
+            background: #0db5fd;
+            color: #fff;
+        }
+        .dark-mode .users-table-wrap tbody tr td {
+            background: #1e1e1e;
+            color: #e4e4e4;
+        }
+        .dark-mode .users-table-wrap tbody tr:hover td {
+            background: #2a2a2a;
+        }
+
+        /* permission badges — light mode */
+        .perm-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin: 2px 2px;
+            background: #fff;
+            color: #0d6efd;
+            border: 1.5px solid #0d6efd;
+        }
+        .perm-badge.locked {
+            background: #f0f4ff;
+            color: #6c757d;
+            border-color: #adb5bd;
+        }
+
+        /* permission badges — dark mode */
+        .dark-mode .perm-badge {
+            background: #0a1f35;
+            color: #0db5fd;
+            border-color: #0db5fd;
+        }
+        .dark-mode .perm-badge.locked {
+            background: #1a1a1a;
+            color: #888;
+            border-color: #444;
+        }
+
+        /* edit button — light mode */
+        .btn-edit-perms {
+            background: transparent;
+            border: 1.5px solid #0d6efd;
+            color: #0d6efd;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-edit-perms:hover {
+            background: #0d6efd;
+            color: #fff;
+        }
+
+        /* edit button — dark mode */
+        .dark-mode .btn-edit-perms {
+            border-color: #0db5fd;
+            color: #0db5fd;
+        }
+        .dark-mode .btn-edit-perms:hover {
+            background: #0db5fd;
+            color: #fff;
+        }
+
+        /* admin badge */
+        .badge-admin {
+            background: #0d6efd;
+            color: #fff;
+            font-size: 0.7rem;
+        }
+        .dark-mode .badge-admin {
+            background: #0db5fd;
+            color: #fff;
+        }
+
+        /* Protected text */
+        .users-table-wrap tbody td .text-muted {
+            color: #5a8fd8 !important;
+        }
+        .dark-mode .users-table-wrap tbody td .text-muted {
+            color: #aad4ff !important;
+        }
     </style>
 
     <!-- Custom styles for this template -->
@@ -94,12 +187,10 @@
                     <i class="bi bi-file-text-fill"></i>
                     <span>Documentation</span>
                 </a>
-                <!-- ── USERS NAV ITEM (NEW) ── -->
                 {% if request.user.is_superuser %}
-                <a class="nav-link link-dark" id="users-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('users-content')"
-                   style="background:#ffd97a; color:#333 !important; margin-top:auto; border-radius:10px; font-weight:600;">
+                <a class="nav-link link-dark" id="users-tab" data-bs-toggle="pill" href="#" role="tab" onclick="showContent('users-content')">
                     <i class="bi bi-people-fill"></i>
-                    <span>users</span>
+                    <span>Users</span>
                 </a>
                 {% endif %}
             </div>
@@ -137,7 +228,6 @@
                 </div>
             </div>
            
-            <!-- Alerts for success and error messages -->
             {% if success_message %}
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ success_message }}
@@ -154,11 +244,8 @@
            
             <!-- General Settings Content Section -->
             <div id="general-settings-content" class="content-section active">
-                <!-- Default Kubeconfig Card -->
                 <div class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        General settings
-                    </div>
+                    <div class="card-header">General settings</div>
                     <div class="card-body">
                         <form>
                             <div class="">
@@ -175,16 +262,11 @@
                     </div>
                 </div>
                
-                <!-- Application Settings Card -->
                 <div class="card shadow-sm">
-                    <div class="card-header">
-                        Application Settings
-                    </div>
+                    <div class="card-header">Application Settings</div>
                     <div class=" card-body d-flex justify-content-start align-items-center">
                         <label for="version"> Current Version: </label>
-                        <button id="version" class="btn btn-primary bg-gradient rounded-pill mx-3">
-                            v2.0.0
-                        </button>
+                        <button id="version" class="btn btn-primary bg-gradient rounded-pill mx-3">v2.0.0</button>
                         <button class="btn btn-warning bg-gradient rounded-pill"> <i class="bi bi-cloud-download me-2"></i> Check for Updates</button>
                     </div>
                 </div>
@@ -193,9 +275,7 @@
             <!-- AI Configuration Content Section -->
             <div id="ai-config-content" class="content-section">
                 <div class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        AI Assistant Configuration
-                    </div>
+                    <div class="card-header">AI Assistant Configuration</div>
                     <div class="card-body">
                         {% if request.GET.ai_config_success %}
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -212,7 +292,6 @@
                         <form method="POST" action="{% url 'settings' %}">
                             {% csrf_token %}
                             <input type="hidden" name="save_ai_config" value="true">
-                           
                             <div class="mb-3">
                                 <label for="provider" class="form-label">AI Model Provider</label>
                                 <select class="form-select" id="provider" name="provider">
@@ -221,7 +300,6 @@
                                     <option value="ollama" {% if 'ollama' in ai_configs %}selected{% endif %}>Ollama</option>
                                 </select>
                             </div>
- 
                             <div class="mb-3">
                                 <label for="model" class="form-label">AI Model</label>
                                 <select class="form-select" id="model" name="model">
@@ -235,49 +313,35 @@
                                     {% if 'ollama' in ai_configs and ai_configs.ollama.model %}
                                         <option value="{{ ai_configs.ollama.model }}" data-provider="ollama" selected>{{ ai_configs.ollama.model }}</option>
                                     {% endif %}
-                                    </select>
-                                <div class="form-text">Select the specific AI model to use.</div>
+                                </select>
                             </div>
-                           
                             <div class="mb-3" id="api-key-section">
                                 <label for="api_key" class="form-label">API Key</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="api_key" name="api_key"
                                            value="{% if 'openai' in ai_configs %}{{ ai_configs.openai.api_key }}{% elif 'gemini' in ai_configs %}{{ ai_configs.gemini.api_key }}{% endif %}" required>
-                                    <button class="btn btn-outline-secondary" type="button" id="showApiKey">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
+                                    <button class="btn btn-outline-secondary" type="button" id="showApiKey"><i class="bi bi-eye"></i></button>
                                 </div>
                                 <div class="form-text">Your API key is stored securely and never shared.</div>
                             </div>
-                           
                             <button type="submit" class="btn btn-primary bg-gradient">Save AI Settings</button>
                         </form>
                     </div>
                 </div>
                
-                <!-- Current API Configuration Display -->
                 <div class="card shadow-sm">
-                    <div class="card-header">
-                        Current API Configuration
-                    </div>
+                    <div class="card-header">Current API Configuration</div>
                     <div class="card-body">
                         {% if ai_configs %}
                             <table class="table">
                                 <thead>
-                                    <tr>
-                                        <th>Provider</th>
-                                        <th>API Key</th>
-                                        <th>Last Updated</th>
-                                    </tr>
+                                    <tr><th>Provider</th><th>API Key</th><th>Last Updated</th></tr>
                                 </thead>
                                 <tbody>
                                     {% for provider, config in ai_configs.items %}
                                     <tr>
                                         <td>{{ config.display_name }}</td>
-                                        <td>
-                                            <span class="text-muted">**********</span>
-                                        </td>
+                                        <td><span class="text-muted">**********</span></td>
                                         <td>
                                             <button class="btn btn-sm btn-outline-danger"
                                                     onclick="if(confirm('Are you sure you want to delete this API key?')) { deleteApiKey('{{ config.provider }}'); }">
@@ -289,9 +353,7 @@
                                 </tbody>
                             </table>
                         {% else %}
-                            <div class="alert alert-info">
-                                No API keys configured yet. Please add your first API key above.
-                            </div>
+                            <div class="alert alert-info">No API keys configured yet.</div>
                         {% endif %}
                     </div>
                 </div>
@@ -299,35 +361,20 @@
            
             <!-- Login Settings Content Section -->
             <div id="login-settings-content" class="content-section">
-                <!-- SMTP Configuration Card -->
                 <div class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        <i class="bi bi-envelope-fill me-2"></i>SMTP Server Configuration
-                    </div>
+                    <div class="card-header"><i class="bi bi-envelope-fill me-2"></i>SMTP Server Configuration</div>
                     <div class="card-body">
                         {% if request.GET.smtp_config_success %}
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            SMTP configuration saved successfully!
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+                        <div class="alert alert-success alert-dismissible fade show">SMTP configuration saved successfully!<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
                         {% elif request.GET.smtp_config_failed %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            SMTP configuration failed. Please check your settings and try again.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+                        <div class="alert alert-danger alert-dismissible fade show">SMTP configuration failed.<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
                         {% endif %}
-                       
                         <form id="smtp-form" method="POST" action="/smtpdetails/">
                             {% csrf_token %}
-                           
                             <div class="mb-3">
                                 <label for="smtp_server" class="form-label">SMTP Server <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="smtp_server" name="smtp_server"
-                                       value="{% if smtp_config %}{{ smtp_config.smtp_server }}{% endif %}"
-                                       placeholder="smtp.gmail.com" required>
-                                <div class="form-text">Enter your SMTP server address (e.g., smtp.gmail.com, smtp.office365.com)</div>
+                                <input type="text" class="form-control" id="smtp_server" name="smtp_server" value="{% if smtp_config %}{{ smtp_config.smtp_server }}{% endif %}" placeholder="smtp.gmail.com" required>
                             </div>
-                           
                             <div class="mb-3">
                                 <label for="smtp_port" class="form-label">SMTP Port <span class="text-danger">*</span></label>
                                 <select class="form-select" id="smtp_port" name="smtp_port" required>
@@ -336,103 +383,55 @@
                                     <option value="25" {% if smtp_config and smtp_config.smtp_port == '25' %}selected{% endif %}>25 (Non-encrypted)</option>
                                     <option value="2525" {% if smtp_config and smtp_config.smtp_port == '2525' %}selected{% endif %}>2525 (Alternative)</option>
                                 </select>
-                                <div class="form-text">Select the appropriate port for your SMTP server</div>
                             </div>
-                           
                             <div class="mb-3">
-                                <label for="smtp_from_email" class="form-label">From Email Address <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" id="smtp_from_email" name="smtp_from_email"
-                                       value="{% if smtp_config %}{{ smtp_config.smtp_from_email }}{% endif %}"
-                                       placeholder="noreply@example.com" required>
-                                <div class="form-text">Email address that will appear as the sender</div>
+                                <label for="smtp_from_email" class="form-label">From Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="smtp_from_email" name="smtp_from_email" value="{% if smtp_config %}{{ smtp_config.smtp_from_email }}{% endif %}" required>
                             </div>
-                           
                             <div class="mb-3">
                                 <label for="smtp_username" class="form-label">Username <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="smtp_username" name="smtp_username"
-                                       value="{% if smtp_config %}{{ smtp_config.smtp_username }}{% endif %}"
-                                       placeholder="your-email@example.com" required>
-                                <div class="form-text">SMTP authentication username (usually your email address)</div>
+                                <input type="text" class="form-control" id="smtp_username" name="smtp_username" value="{% if smtp_config %}{{ smtp_config.smtp_username }}{% endif %}" required>
                             </div>
-                           
                             <div class="mb-3">
                                 <label for="smtp_password" class="form-label">Password <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="smtp_password" name="smtp_password"
-                                           value="{% if smtp_config %}{{ smtp_config.smtp_password }}{% endif %}"
-                                           placeholder="Enter SMTP password" required>
-                                    <button class="btn btn-outline-secondary" type="button" id="showSmtpPassword">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
+                                    <input type="password" class="form-control" id="smtp_password" name="smtp_password" value="{% if smtp_config %}{{ smtp_config.smtp_password }}{% endif %}" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="showSmtpPassword"><i class="bi bi-eye"></i></button>
                                 </div>
-                                <div class="form-text">Your SMTP password or app-specific password. Stored securely and encrypted.</div>
                             </div>
-                           
                             <div class="mb-3">
                                 <label for="smtp_use_tls" class="form-label">Encryption</label>
                                 <select class="form-select" id="smtp_use_tls" name="smtp_use_tls">
                                     <option value="true" {% if smtp_config and smtp_config.smtp_use_tls %}selected{% endif %}>Use TLS/STARTTLS (Recommended)</option>
                                     <option value="false" {% if smtp_config and not smtp_config.smtp_use_tls %}selected{% endif %}>No Encryption</option>
                                 </select>
-                                <div class="form-text">TLS is recommended for secure email transmission</div>
                             </div>
-                           
                             <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary bg-gradient">
-                                    <i class="bi bi-save me-2"></i>Save SMTP Settings
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" id="testSmtpConnection">
-                                    <i class="bi bi-send-check me-2"></i>Test Connection
-                                </button>
+                                <button type="submit" class="btn btn-primary bg-gradient"><i class="bi bi-save me-2"></i>Save SMTP Settings</button>
+                                <button type="button" class="btn btn-outline-secondary" id="testSmtpConnection"><i class="bi bi-send-check me-2"></i>Test Connection</button>
                             </div>
                         </form>
-                       
                         {% if smtp_config %}
                         <hr class="my-4">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <strong>Current Server:</strong>
-                                <p class="text-muted mb-0">{{ smtp_config.smtp_server }}:{{ smtp_config.smtp_port }}</p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <strong>Status:</strong>
-                                <p class="text-muted mb-0">
-                                    <span class="badge bg-success">Configured</span>
-                                </p>
-                            </div>
+                            <div class="col-md-6 mb-3"><strong>Current Server:</strong><p class="text-muted mb-0">{{ smtp_config.smtp_server }}:{{ smtp_config.smtp_port }}</p></div>
+                            <div class="col-md-6 mb-3"><strong>Status:</strong><p class="text-muted mb-0"><span class="badge bg-success">Configured</span></p></div>
                         </div>
-                        <button class="btn btn-sm btn-outline-danger" onclick="if(confirm('Are you sure you want to delete the SMTP configuration?')) { deleteSmtpConfig(); }">
-                            <i class="bi bi-trash me-2"></i>Delete Configuration
-                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="if(confirm('Delete SMTP configuration?')) { deleteSmtpConfig(); }"><i class="bi bi-trash me-2"></i>Delete Configuration</button>
                         {% endif %}
                     </div>
                 </div>
                
-                <!-- SSO Configuration Card -->
                 <div class="card shadow-sm">
-                    <div class="card-header">
-                        <i class="bi bi-shield-lock-fill me-2"></i>SSO Provider Configuration
-                    </div>
+                    <div class="card-header"><i class="bi bi-shield-lock-fill me-2"></i>SSO Provider Configuration</div>
                     <div class="card-body">
                         {% if request.GET.sso_config_success %}
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            SSO configuration saved successfully!
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+                        <div class="alert alert-success alert-dismissible fade show">SSO configuration saved successfully!<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
                         {% elif request.GET.sso_config_failed %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            SSO configuration failed. Please check your settings and try again.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+                        <div class="alert alert-danger alert-dismissible fade show">SSO configuration failed.<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
                         {% endif %}
-                       
-                        <p class="text-muted mb-4">
-                            Configure Single Sign-On (SSO) providers to allow users to log in with their Google, GitHub, or Microsoft Outlook accounts.
-                        </p>
-                       
                         <form id="sso-form" method="POST" action="/ssodetails/">
                             {% csrf_token %}
-                           
                             <div class="mb-3">
                                 <label for="sso_provider" class="form-label">SSO Provider <span class="text-danger">*</span></label>
                                 <select class="form-select" id="sso_provider" name="provider" required>
@@ -441,85 +440,44 @@
                                     <option value="github">GitHub</option>
                                     <option value="outlook">Microsoft Outlook</option>
                                 </select>
-                                <div class="form-text">Choose the authentication provider you want to configure</div>
                             </div>
-                           
                             <div class="mb-3">
                                 <label for="sso_client_id" class="form-label">Client ID <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="sso_client_id" name="client_id"
-                                       placeholder="Enter OAuth Client ID" required>
-                                <div class="form-text">OAuth 2.0 Client ID from your provider's developer console</div>
+                                <input type="text" class="form-control" id="sso_client_id" name="client_id" placeholder="Enter OAuth Client ID" required>
                             </div>
-                           
                             <div class="mb-3">
                                 <label for="sso_client_secret" class="form-label">Client Secret <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="sso_client_secret" name="client_secret"
-                                           placeholder="Enter OAuth Client Secret" required>
-                                    <button class="btn btn-outline-secondary" type="button" id="showSsoSecret">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
+                                    <input type="password" class="form-control" id="sso_client_secret" name="client_secret" placeholder="Enter OAuth Client Secret" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="showSsoSecret"><i class="bi bi-eye"></i></button>
                                 </div>
-                                <div class="form-text">OAuth 2.0 Client Secret. Keep this secure and never share it.</div>
                             </div>
-                           
                             <div class="mb-3">
                                 <label for="sso_redirect_uri" class="form-label">Redirect URI (Optional)</label>
-                                <input type="text" class="form-control" id="sso_redirect_uri" name="redirect_uri"
-                                       placeholder="https://yourapp.com/auth/callback">
-                                <div class="form-text">The callback URL configured in your OAuth app. Leave blank to use default.</div>
+                                <input type="text" class="form-control" id="sso_redirect_uri" name="redirect_uri" placeholder="https://yourapp.com/auth/callback">
                             </div>
-                           
-                            <button type="submit" class="btn btn-primary bg-gradient">
-                                <i class="bi bi-save me-2"></i>Save SSO Configuration
-                            </button>
+                            <button type="submit" class="btn btn-primary bg-gradient"><i class="bi bi-save me-2"></i>Save SSO Configuration</button>
                         </form>
-                       
                         {% if sso_configs %}
                         <hr class="my-4">
                         <h6 class="mb-3">Active SSO Providers</h6>
                         <div class="table-responsive">
                             <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Provider</th>
-                                        <th>Client ID</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr><th>Provider</th><th>Client ID</th><th>Status</th><th>Actions</th></tr></thead>
                                 <tbody>
                                     {% for provider, config in sso_configs.items %}
                                     <tr>
                                         <td>
-                                            {% if provider == 'google' %}
-                                                <i class="bi bi-google text-danger me-2"></i>
-                                            {% elif provider == 'github' %}
-                                                <i class="bi bi-github text-dark me-2"></i>
-                                            {% elif provider == 'outlook' %}
-                                                <i class="bi bi-microsoft text-primary me-2"></i>
-                                            {% endif %}
+                                            {% if provider == 'google' %}<i class="bi bi-google text-danger me-2"></i>
+                                            {% elif provider == 'github' %}<i class="bi bi-github text-dark me-2"></i>
+                                            {% elif provider == 'outlook' %}<i class="bi bi-microsoft text-primary me-2"></i>{% endif %}
                                             {{ config.display_name }}
                                         </td>
+                                        <td><code class="text-muted">{{ config.client_id|slice:":20" }}...</code></td>
+                                        <td>{% if config.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
                                         <td>
-                                            <code class="text-muted">{{ config.client_id|slice:":20" }}...</code>
-                                        </td>
-                                        <td>
-                                            {% if config.is_active %}
-                                                <span class="badge bg-success">Active</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Inactive</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-primary me-2" 
-                                                    onclick="editSsoConfig('{{ provider }}', '{{ config.client_id }}', '{{ config.redirect_uri }}')">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" 
-                                                    onclick="if(confirm('Are you sure you want to delete {{ config.display_name }} SSO configuration?')) { deleteSsoConfig('{{ provider }}'); }">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary me-2" onclick="editSsoConfig('{{ provider }}', '{{ config.client_id }}', '{{ config.redirect_uri }}')"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="if(confirm('Delete {{ config.display_name }} SSO?')) { deleteSsoConfig('{{ provider }}'); }"><i class="bi bi-trash"></i></button>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -527,65 +485,33 @@
                             </table>
                         </div>
                         {% else %}
-                        <div class="alert alert-info mt-4">
-                            <i class="bi bi-info-circle me-2"></i>
-                            No SSO providers configured yet. Add your first SSO provider above to enable social login.
-                        </div>
+                        <div class="alert alert-info mt-4"><i class="bi bi-info-circle me-2"></i>No SSO providers configured yet.</div>
                         {% endif %}
-                       
                         <div class="mt-4">
                             <h6>Setup Instructions:</h6>
                             <div class="accordion" id="ssoInstructions">
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#googleInstructions">
-                                            <i class="bi bi-google text-danger me-2"></i> Google OAuth Setup
-                                        </button>
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#googleInstructions"><i class="bi bi-google text-danger me-2"></i> Google OAuth Setup</button>
                                     </h2>
                                     <div id="googleInstructions" class="accordion-collapse collapse" data-bs-parent="#ssoInstructions">
-                                        <div class="accordion-body">
-                                            <ol>
-                                                <li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a></li>
-                                                <li>Create a new OAuth 2.0 Client ID</li>
-                                                <li>Set authorized redirect URIs to: <code>https://yourapp.com/auth/google/callback</code></li>
-                                                <li>Copy the Client ID and Client Secret and paste them above</li>
-                                            </ol>
-                                        </div>
+                                        <div class="accordion-body"><ol><li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a></li><li>Create a new OAuth 2.0 Client ID</li><li>Set authorized redirect URIs</li><li>Copy the Client ID and Secret above</li></ol></div>
                                     </div>
                                 </div>
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#githubInstructions">
-                                            <i class="bi bi-github text-dark me-2"></i> GitHub OAuth Setup
-                                        </button>
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#githubInstructions"><i class="bi bi-github text-dark me-2"></i> GitHub OAuth Setup</button>
                                     </h2>
                                     <div id="githubInstructions" class="accordion-collapse collapse" data-bs-parent="#ssoInstructions">
-                                        <div class="accordion-body">
-                                            <ol>
-                                                <li>Go to <a href="https://github.com/settings/developers" target="_blank">GitHub Developer Settings</a></li>
-                                                <li>Create a new OAuth App</li>
-                                                <li>Set callback URL to: <code>https://yourapp.com/auth/github/callback</code></li>
-                                                <li>Copy the Client ID and generate a Client Secret</li>
-                                            </ol>
-                                        </div>
+                                        <div class="accordion-body"><ol><li>Go to <a href="https://github.com/settings/developers" target="_blank">GitHub Developer Settings</a></li><li>Create a new OAuth App</li><li>Set callback URL</li><li>Copy the Client ID and Secret</li></ol></div>
                                     </div>
                                 </div>
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#outlookInstructions">
-                                            <i class="bi bi-microsoft text-primary me-2"></i> Microsoft Outlook OAuth Setup
-                                        </button>
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#outlookInstructions"><i class="bi bi-microsoft text-primary me-2"></i> Microsoft Outlook OAuth Setup</button>
                                     </h2>
                                     <div id="outlookInstructions" class="accordion-collapse collapse" data-bs-parent="#ssoInstructions">
-                                        <div class="accordion-body">
-                                            <ol>
-                                                <li>Go to <a href="https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank">Azure Portal</a></li>
-                                                <li>Register a new application</li>
-                                                <li>Add redirect URI: <code>https://yourapp.com/auth/outlook/callback</code></li>
-                                                <li>Create a client secret in "Certificates & secrets"</li>
-                                                <li>Copy the Application (client) ID and the client secret value</li>
-                                            </ol>
-                                        </div>
+                                        <div class="accordion-body"><ol><li>Go to <a href="https://portal.azure.com/" target="_blank">Azure Portal</a></li><li>Register a new application</li><li>Add redirect URI</li><li>Create a client secret</li></ol></div>
                                     </div>
                                 </div>
                             </div>
@@ -597,9 +523,7 @@
             <!-- Change Password Content Section -->
             <div id="change-password-content" class="content-section">
                 <div class="card shadow-sm">
-                    <div class="card-header">
-                        Change Password
-                    </div>
+                    <div class="card-header">Change Password</div>
                     <div class="card-body">
                         <form method="POST" action="{% url 'settings' %}">
                             {% csrf_token %}
@@ -611,7 +535,6 @@
                             <div class="mb-3">
                                 <label for="newPassword" class="form-label">New Password</label>
                                 <input type="password" class="form-control" id="newPassword" name="newPassword" required>
-                                <div class="form-text">Password should be 8 characters long and include uppercase, lowercase, numbers, and special characters.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="confirmPassword" class="form-label">Confirm New Password</label>
@@ -635,20 +558,17 @@
                     <div class="card-body text-center">
                         <h5 class="mb-3">KubeBuddy Documentation</h5>
                         <p>To know more about the documentation, please visit the official site:</p>
-                        <a href="https://kubebuddy.org" target="_blank" class="btn btn-primary bg-gradient">
-                            Go to Documentation
-                        </a>
+                        <a href="https://kubebuddy.org" target="_blank" class="btn btn-primary bg-gradient">Go to Documentation</a>
                     </div>
                 </div>
             </div>
 
-            <!-- ══════════════════════════════════════════
-                 USERS Content Section (NEW)
-                 ══════════════════════════════════════════ -->
+            <!-- ══ USERS Content Section with RBAC ══ -->
             <div id="users-content" class="content-section">
                 <div class="card shadow-sm">
                     <div class="card-header d-flex align-items-center gap-2">
                         <i class="bi bi-people-fill"></i> All Users
+                        <span class="ms-2 text-muted" style="font-size:0.85rem;">Click <strong>Edit</strong> on any non-admin user to change their permissions.</span>
                     </div>
                     <div class="card-body">
                         {% if users_data %}
@@ -656,26 +576,69 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>user name</th>
-                                        <th>user id</th>
-                                        <th>permissions</th>
+                                        <th>User Name</th>
+                                        <th>User ID</th>
+                                        <th>Permissions</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for user in users_data %}
                                     <tr>
-                                        <td>{{ user.username }}</td>
+                                        <td>
+                                            {{ user.username }}
+                                            {% if user.is_superuser %}
+                                            <span class="ms-2 badge badge-admin">admin</span>
+                                            {% endif %}
+                                        </td>
                                         <td>{{ user.user_id }}</td>
-                                        <td>{{ user.permissions }}</td>
+                                        <td>
+                                            {% if user.is_superuser %}
+                                                <span class="perm-badge locked">All Permissions</span>
+                                            {% else %}
+                                                {% if user.can_workloads %}<span class="perm-badge">Workloads</span>{% endif %}
+                                                {% if user.can_cluster_management %}<span class="perm-badge">Cluster Mgmt</span>{% endif %}
+                                                {% if user.can_services %}<span class="perm-badge">Services</span>{% endif %}
+                                                {% if user.can_storage %}<span class="perm-badge">Storage</span>{% endif %}
+                                                {% if user.can_ingress %}<span class="perm-badge">Ingress</span>{% endif %}
+                                                {% if user.can_configmaps %}<span class="perm-badge">ConfigMaps</span>{% endif %}
+                                                {% if user.can_metrics %}<span class="perm-badge">Metrics</span>{% endif %}
+                                                {% if user.can_events %}<span class="perm-badge">Events</span>{% endif %}
+                                                {% if user.can_rbac %}<span class="perm-badge">RBAC</span>{% endif %}
+                                                {% if not user.can_workloads and not user.can_cluster_management and not user.can_services and not user.can_storage and not user.can_ingress and not user.can_configmaps and not user.can_metrics and not user.can_events and not user.can_rbac %}
+                                                    <span class="perm-badge locked">No Permissions</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if not user.is_superuser %}
+                                            <button class="btn-edit-perms"
+                                                onclick="openEditModal(
+                                                    {{ user.id }},
+                                                    '{{ user.username }}',
+                                                    {{ user.can_workloads|yesno:'true,false' }},
+                                                    {{ user.can_cluster_management|yesno:'true,false' }},
+                                                    {{ user.can_services|yesno:'true,false' }},
+                                                    {{ user.can_storage|yesno:'true,false' }},
+                                                    {{ user.can_ingress|yesno:'true,false' }},
+                                                    {{ user.can_configmaps|yesno:'true,false' }},
+                                                    {{ user.can_metrics|yesno:'true,false' }},
+                                                    {{ user.can_events|yesno:'true,false' }},
+                                                    {{ user.can_rbac|yesno:'true,false' }}
+                                                )">
+                                                <i class="bi bi-pencil-fill me-1"></i>Edit
+                                            </button>
+                                            {% else %}
+                                            <span class="text-muted" style="font-size:0.82rem;">Protected</span>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                         {% else %}
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>No users found.
-                        </div>
+                        <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>No users found.</div>
                         {% endif %}
                     </div>
                 </div>
@@ -684,69 +647,186 @@
 
         </div>
     </div>
+
+    <!-- ══ RBAC Edit Permissions Modal ══ -->
+    <div class="modal fade" id="editPermsModal" tabindex="-1" aria-labelledby="editPermsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#0d6efd;">
+                    <h5 class="modal-title text-white" id="editPermsModalLabel">
+                        <i class="bi bi-shield-lock-fill me-2"></i>Edit Permissions
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        User: <strong id="modal-username"></strong>
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="perm-workloads">
+                            <label class="form-check-label" for="perm-workloads"><i class="bi bi-box-seam me-1"></i> Workloads</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="perm-cluster-management">
+                            <label class="form-check-label" for="perm-cluster-management"><i class="bi bi-diagram-3 me-1"></i> Cluster Management</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="perm-services">
+                            <label class="form-check-label" for="perm-services"><i class="bi bi-hdd-network me-1"></i> Services</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="perm-storage">
+                            <label class="form-check-label" for="perm-storage"><i class="bi bi-database me-1"></i> Storage</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="perm-ingress">
+                            <label class="form-check-label" for="perm-ingress"><i class="bi bi-arrow-left-right me-1"></i> Ingress</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="perm-configmaps">
+                            <label class="form-check-label" for="perm-configmaps"><i class="bi bi-file-earmark-code me-1"></i> ConfigMaps & Secrets</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="perm-metrics">
+                            <label class="form-check-label" for="perm-metrics"><i class="bi bi-graph-up me-1"></i> Metrics</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="perm-events">
+                            <label class="form-check-label" for="perm-events"><i class="bi bi-bell me-1"></i> Events</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="perm-rbac">
+                            <label class="form-check-label" for="perm-rbac"><i class="bi bi-shield-check me-1"></i> RBAC</label>
+                        </div>
+                    </div>
+                    <div id="perms-alert" class="mt-3" style="display:none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary bg-gradient" id="savePermsBtn" onclick="savePermissions()">
+                        <i class="bi bi-save me-1"></i>Save Permissions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ══ END Modal ══ -->
    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/cluster_actions.js' %}"></script>
  
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-        const savedTheme = localStorage.getItem('theme');
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const rootElement = document.documentElement;
- 
-        if (savedTheme === 'dark') {
-            rootElement.classList.add('dark-mode');
-            updateThemeIcon('dark');
-        } else if (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            rootElement.classList.add('dark-mode');
-            updateThemeIcon('dark');
-        } else {
-            updateThemeIcon('light');
-        }
- 
-        themeToggleBtn.addEventListener('click', function() {
-            rootElement.classList.add('transition');
-            const isDark = rootElement.classList.contains('dark-mode');
-            const newTheme = isDark ? 'light' : 'dark';
-            rootElement.classList.toggle('dark-mode', !isDark);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-            setTimeout(() => { rootElement.classList.remove('transition'); }, 300);
-        });
- 
-        function updateThemeIcon(theme) {
-            if (theme === 'dark') {
-                themeToggleBtn.innerHTML = 'Light Mode <i class="bi bi-sun"></i>';
-                themeToggleBtn.setAttribute('title', 'Switch to light mode');
-            } else {
-                themeToggleBtn.innerHTML = 'Dark Mode <i class="bi bi-moon-stars"></i>';
-                themeToggleBtn.setAttribute('title', 'Switch to dark mode');
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const rootElement = document.documentElement;
+            if (savedTheme === 'dark') { rootElement.classList.add('dark-mode'); updateThemeIcon('dark'); }
+            else if (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches) { rootElement.classList.add('dark-mode'); updateThemeIcon('dark'); }
+            else { updateThemeIcon('light'); }
+            themeToggleBtn.addEventListener('click', function() {
+                rootElement.classList.add('transition');
+                const isDark = rootElement.classList.contains('dark-mode');
+                const newTheme = isDark ? 'light' : 'dark';
+                rootElement.classList.toggle('dark-mode', !isDark);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+                setTimeout(() => { rootElement.classList.remove('transition'); }, 300);
+            });
+            function updateThemeIcon(theme) {
+                if (theme === 'dark') { themeToggleBtn.innerHTML = 'Light Mode <i class="bi bi-sun"></i>'; }
+                else { themeToggleBtn.innerHTML = 'Dark Mode <i class="bi bi-moon-stars"></i>'; }
             }
-        }
-    });
+        });
     </script>
    
     <script>
         function showContent(contentId) {
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             document.getElementById(contentId).classList.add('active');
-
             document.querySelectorAll('.nav-link').forEach(t => t.classList.remove('active'));
-            const relatedTabId = contentId.replace('-content', '-tab');
-            const tab = document.getElementById(relatedTabId);
+            const tab = document.getElementById(contentId.replace('-content', '-tab'));
             if (tab) tab.classList.add('active');
-
             const titles = {
                 'general-settings-content': 'General Settings',
                 'ai-config-content': 'AI Configuration',
                 'login-settings-content': 'Login Settings',
                 'change-password-content': 'Change Password',
                 'documentation-content': 'Documentation',
-                'users-content': 'Users',   // ← NEW
+                'users-content': 'Users',
             };
             document.getElementById('section-title').textContent = titles[contentId] || '';
         }
        
+        // ── RBAC Modal ──
+        let _editUserId = null;
+
+        function openEditModal(userId, username, canWorkloads, canClusterMgmt, canServices, canStorage, canIngress, canConfigmaps, canMetrics, canEvents, canRbac) {
+            _editUserId = userId;
+            document.getElementById('modal-username').textContent = username;
+            document.getElementById('perm-workloads').checked          = canWorkloads;
+            document.getElementById('perm-cluster-management').checked = canClusterMgmt;
+            document.getElementById('perm-services').checked           = canServices;
+            document.getElementById('perm-storage').checked            = canStorage;
+            document.getElementById('perm-ingress').checked            = canIngress;
+            document.getElementById('perm-configmaps').checked         = canConfigmaps;
+            document.getElementById('perm-metrics').checked            = canMetrics;
+            document.getElementById('perm-events').checked             = canEvents;
+            document.getElementById('perm-rbac').checked               = canRbac;
+            document.getElementById('perms-alert').style.display = 'none';
+            new bootstrap.Modal(document.getElementById('editPermsModal')).show();
+        }
+
+        function savePermissions() {
+            const permissions = [];
+            if (document.getElementById('perm-workloads').checked)          permissions.push('workloads');
+            if (document.getElementById('perm-cluster-management').checked) permissions.push('cluster_management');
+            if (document.getElementById('perm-services').checked)           permissions.push('services');
+            if (document.getElementById('perm-storage').checked)            permissions.push('storage');
+            if (document.getElementById('perm-ingress').checked)            permissions.push('ingress');
+            if (document.getElementById('perm-configmaps').checked)         permissions.push('configmaps');
+            if (document.getElementById('perm-metrics').checked)            permissions.push('metrics');
+            if (document.getElementById('perm-events').checked)             permissions.push('events');
+            if (document.getElementById('perm-rbac').checked)               permissions.push('rbac');
+
+            const btn = document.getElementById('savePermsBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+            fetch('/api/update-permissions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: JSON.stringify({ user_id: _editUserId, permissions: permissions }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-save me-1"></i>Save Permissions';
+                const alertDiv = document.getElementById('perms-alert');
+                if (data.status === 'success') {
+                    alertDiv.className = 'alert alert-success mt-3';
+                    alertDiv.textContent = '✓ ' + data.message;
+                    alertDiv.style.display = 'block';
+                    setTimeout(() => { window.location.href = '/settings/?tab=users-content'; }, 1200);
+                } else {
+                    alertDiv.className = 'alert alert-danger mt-3';
+                    alertDiv.textContent = '✗ ' + data.message;
+                    alertDiv.style.display = 'block';
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-save me-1"></i>Save Permissions';
+                const alertDiv = document.getElementById('perms-alert');
+                alertDiv.className = 'alert alert-danger mt-3';
+                alertDiv.textContent = '✗ Error: ' + err.message;
+                alertDiv.style.display = 'block';
+            });
+        }
+
         if (document.getElementById('newPassword')) {
             document.getElementById('newPassword').addEventListener('input', function() {
                 const password = this.value;
@@ -768,124 +848,83 @@
         if (document.getElementById('showApiKey')) {
             document.getElementById('showApiKey').addEventListener('click', function() {
                 const inp = document.getElementById('api_key');
-                const icon = this.querySelector('i');
                 inp.type = inp.type === 'password' ? 'text' : 'password';
-                icon.className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+                this.querySelector('i').className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             });
         }
         if (document.getElementById('showSmtpPassword')) {
             document.getElementById('showSmtpPassword').addEventListener('click', function() {
                 const inp = document.getElementById('smtp_password');
-                const icon = this.querySelector('i');
                 inp.type = inp.type === 'password' ? 'text' : 'password';
-                icon.className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+                this.querySelector('i').className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             });
         }
         if (document.getElementById('showSsoSecret')) {
             document.getElementById('showSsoSecret').addEventListener('click', function() {
                 const inp = document.getElementById('sso_client_secret');
-                const icon = this.querySelector('i');
                 inp.type = inp.type === 'password' ? 'text' : 'password';
-                icon.className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+                this.querySelector('i').className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             });
         }
        
-        // Check URL parameters for active tab
         const urlParams = new URLSearchParams(window.location.search);
         const tabParam = urlParams.get('tab');
-        if (tabParam) {
-            showContent(tabParam + '-content');
-        } else if (document.querySelector('.alert-danger') || document.querySelector('.alert-success')) {
+        if (tabParam) { showContent(tabParam + '-content'); }
+        else if (document.querySelector('.alert-danger') || document.querySelector('.alert-success')) {
             const errorText = document.querySelector('.alert-danger')?.textContent || '';
             const successText = document.querySelector('.alert-success')?.textContent || '';
-            if (errorText.includes('password') || successText.includes('Password')) {
-                showContent('change-password-content');
-            } else if (errorText.includes('SMTP') || successText.includes('SMTP') ||
-                       errorText.includes('SSO') || successText.includes('SSO')) {
-                showContent('login-settings-content');
-            }
+            if (errorText.includes('password') || successText.includes('Password')) { showContent('change-password-content'); }
+            else if (errorText.includes('SMTP') || successText.includes('SMTP') || errorText.includes('SSO') || successText.includes('SSO')) { showContent('login-settings-content'); }
         }
-
-        // ── Auto-activate Users tab if active_tab == 'users' (from view) ──
         {% if active_tab == 'users' %}
         showContent('users-content');
         {% endif %}
- 
+
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el); });
- 
+
         const providerSelect = document.getElementById('provider');
         const apiKeyInput = document.getElementById('api_key');
         const apiKeySection = document.getElementById('api-key-section');
-       
         if (providerSelect && apiKeyInput) {
             const apiKeys = {
-                {% for provider, config in ai_configs.items %}
-                '{{ provider }}': '{{ config.api_key }}',
-                {% endfor %}
+                {% for provider, config in ai_configs.items %}'{{ provider }}': '{{ config.api_key }}',{% endfor %}
             };
             function toggleApiKeyVisibility() {
-                if (providerSelect.value === 'ollama') {
-                    apiKeySection.style.display = 'none';
-                    apiKeyInput.removeAttribute('required');
-                } else {
-                    apiKeySection.style.display = 'block';
-                    apiKeyInput.setAttribute('required', 'required');
-                }
+                if (providerSelect.value === 'ollama') { apiKeySection.style.display = 'none'; apiKeyInput.removeAttribute('required'); }
+                else { apiKeySection.style.display = 'block'; apiKeyInput.setAttribute('required', 'required'); }
             }
             toggleApiKeyVisibility();
-            providerSelect.addEventListener('change', function() {
-                toggleApiKeyVisibility();
-                apiKeyInput.value = apiKeys[this.value] || '';
-            });
+            providerSelect.addEventListener('change', function() { toggleApiKeyVisibility(); apiKeyInput.value = apiKeys[this.value] || ''; });
         }
- 
+
         function deleteApiKey(provider) {
             const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{% url "settings" %}';
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken';
-            csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            form.method = 'POST'; form.action = '{% url "settings" %}';
+            const csrf = document.createElement('input'); csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken'; csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
             form.appendChild(csrf);
-            const del = document.createElement('input');
-            del.type = 'hidden'; del.name = 'delete_api_key'; del.value = provider;
-            form.appendChild(del);
-            document.body.appendChild(form); form.submit();
+            const del = document.createElement('input'); del.type = 'hidden'; del.name = 'delete_api_key'; del.value = provider;
+            form.appendChild(del); document.body.appendChild(form); form.submit();
         }
-
         function deleteSmtpConfig() {
-            const form = document.createElement('form');
-            form.method = 'POST'; form.action = '/smtpdetails/';
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken';
-            csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const form = document.createElement('form'); form.method = 'POST'; form.action = '/smtpdetails/';
+            const csrf = document.createElement('input'); csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken'; csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
             form.appendChild(csrf);
-            const del = document.createElement('input');
-            del.type = 'hidden'; del.name = 'delete_smtp_config'; del.value = 'true';
-            form.appendChild(del);
-            document.body.appendChild(form); form.submit();
+            const del = document.createElement('input'); del.type = 'hidden'; del.name = 'delete_smtp_config'; del.value = 'true';
+            form.appendChild(del); document.body.appendChild(form); form.submit();
         }
-
         function deleteSsoConfig(provider) {
-            const form = document.createElement('form');
-            form.method = 'POST'; form.action = '/ssodetails/';
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken';
-            csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const form = document.createElement('form'); form.method = 'POST'; form.action = '/ssodetails/';
+            const csrf = document.createElement('input'); csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken'; csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
             form.appendChild(csrf);
-            const del = document.createElement('input');
-            del.type = 'hidden'; del.name = 'delete_sso_config'; del.value = provider;
-            form.appendChild(del);
-            document.body.appendChild(form); form.submit();
+            const del = document.createElement('input'); del.type = 'hidden'; del.name = 'delete_sso_config'; del.value = provider;
+            form.appendChild(del); document.body.appendChild(form); form.submit();
         }
-
         function editSsoConfig(provider, clientId, redirectUri) {
             document.getElementById('sso_provider').value = provider;
             document.getElementById('sso_client_id').value = clientId;
             document.getElementById('sso_redirect_uri').value = redirectUri || '';
             document.getElementById('sso_client_secret').value = '';
-            document.getElementById('sso_client_secret').focus();
         }
 
         document.getElementById('testSmtpConnection').addEventListener('click', function() {
@@ -897,24 +936,17 @@
             fetch('/smtpdetails/', { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(r => r.json())
             .then(data => {
-                this.disabled = false;
-                this.innerHTML = '<i class="bi bi-send-check me-2"></i>Test Connection';
+                this.disabled = false; this.innerHTML = '<i class="bi bi-send-check me-2"></i>Test Connection';
                 const alertDiv = document.createElement('div');
                 alertDiv.className = `alert alert-${data.success ? 'success' : 'danger'} alert-dismissible fade show mt-3`;
-                alertDiv.innerHTML = `${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+                alertDiv.innerHTML = `${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
                 form.parentElement.insertBefore(alertDiv, form);
                 setTimeout(() => alertDiv.remove(), 5000);
             })
-            .catch(error => {
-                this.disabled = false;
-                this.innerHTML = '<i class="bi bi-send-check me-2"></i>Test Connection';
-                alert('Error testing connection: ' + error.message);
-            });
+            .catch(error => { this.disabled = false; this.innerHTML = '<i class="bi bi-send-check me-2"></i>Test Connection'; alert('Error: ' + error.message); });
         });
- 
-        document.getElementById('back-btn').addEventListener('click', () => {
-            window.location.replace(document.referrer || '/');
-        });
+
+        document.getElementById('back-btn').addEventListener('click', () => { window.location.replace(document.referrer || '/'); });
     </script>
  
     <script>
@@ -929,23 +961,15 @@
             const selectedProvider = providerSelectModel ? providerSelectModel.value : '';
             if (!modelSelect) return;
             modelSelect.innerHTML = '<option value="" selected>-- Select Model --</option>';
-            let modelsToShow = selectedProvider === 'gemini' ? geminiModels
-                             : selectedProvider === 'openai' ? openaiModels
-                             : selectedProvider === 'ollama' ? ollamaModels : [];
+            let modelsToShow = selectedProvider === 'gemini' ? geminiModels : selectedProvider === 'openai' ? openaiModels : selectedProvider === 'ollama' ? ollamaModels : [];
             modelsToShow.forEach(model => {
                 const option = document.createElement('option');
                 option.value = model[0]; option.textContent = model[1];
-                if (aiConfigs[selectedProvider] && model[0] === aiConfigs[selectedProvider]['model']) {
-                    option.selected = true;
-                }
+                if (aiConfigs[selectedProvider] && model[0] === aiConfigs[selectedProvider]['model']) option.selected = true;
                 modelSelect.appendChild(option);
             });
         }
-        if (modelSelect && providerSelectModel) {
-            updateModelOptions();
-            providerSelectModel.addEventListener('change', updateModelOptions);
-        }
+        if (modelSelect && providerSelectModel) { updateModelOptions(); providerSelectModel.addEventListener('change', updateModelOptions); }
     </script>
- 
 </body>
 </html>

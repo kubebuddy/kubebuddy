@@ -53,7 +53,7 @@
                 
                 <a href="https://github.com/kubebuddy/kubebuddy/releases" target="_blank" class="sidebar-bottom-link link-dark">
                     <i class="bi bi-git"></i>
-                    <span>Current Version: v2.0.0</span>
+                    <span id="appVersion"> Current Version: Loading... </span>
                 </a>
                 
             </div>
@@ -222,5 +222,28 @@
         }
 
     </script>
+
+    <script>
+    (async () => {
+
+        try {
+
+            const response = await fetch("/static/version.json");
+            const data = await response.json();
+
+            document.getElementById("appVersion").innerText =
+                `Current Version: ${data.version}`;
+
+        } catch (err) {
+
+            console.error(err);
+
+            document.getElementById("appVersion").innerText =
+                "Current Version: Unknown";
+        }
+
+    })();
+    </script>
+
 </body>
 </html>

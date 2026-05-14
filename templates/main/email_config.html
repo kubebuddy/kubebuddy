@@ -1,0 +1,320 @@
+cat > email_config.html << 'EOF'
+<!doctype html>
+<html>
+  <head>
+    <title>Email Configuration - KubeBuddy Admin</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 600px;
+        margin: 50px auto;
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      h1 {
+        color: #667eea;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+      button {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      }
+      .message {
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+      }
+      .message.success {
+        background: #d4edda;
+        color: #155724;
+        display: block;
+      }
+      .message.error {
+        background: #f8d7da;
+        color: #721c24;
+        display: block;
+      }
+      .test-section {
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 2px solid #e0e0e0;
+      }
+      .hint {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+      }
+      .provider-select {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .provider-btn {
+        flex: 1;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .provider-btn.active {
+        border-color: #667eea;
+        background: #f0f4ff;
+        color: #667eea;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>⚙️ Email Configuration</h1>
+
+      <div id="message" class="message"></div>
+
+      <div class="provider-select">
+        <button class="provider-btn active" onclick="selectProvider('gmail')">
+          Gmail
+        </button>
+        <button class="provider-btn" onclick="selectProvider('outlook')">
+          Outlook
+        </button>
+        <button class="provider-btn" onclick="selectProvider('sendgrid')">
+          SendGrid
+        </button>
+        <button class="provider-btn" onclick="selectProvider('custom')">
+          Custom
+        </button>
+      </div>
+
+      <form id="emailConfigForm">
+        <div class="form-group">
+          <label>Email Provider</label>
+          <input type="text" id="provider" value="Gmail" readonly />
+        </div>
+
+        <div class="form-group">
+          <label>SMTP Host</label>
+          <input type="text" id="smtpHost" value="smtp.gmail.com" required />
+          <div class="hint">SMTP server address</div>
+        </div>
+
+        <div class="form-group">
+          <label>SMTP Port</label>
+          <input type="number" id="smtpPort" value="587" required />
+          <div class="hint">Usually 587 for TLS</div>
+        </div>
+
+        <div class="form-group">
+          <label>Sender Email</label>
+          <input
+            type="email"
+            id="senderEmail"
+            placeholder="your-email@gmail.com"
+            required
+          />
+          <div class="hint">Email address to send OTPs from</div>
+        </div>
+
+        <div class="form-group">
+          <label>Sender Password</label>
+          <input
+            type="password"
+            id="senderPassword"
+            placeholder="App password or API key"
+            required
+          />
+          <div class="hint" id="passwordHint">
+            For Gmail: Use App Password from
+            <a href="https://myaccount.google.com/apppasswords" target="_blank"
+              >here</a
+            >
+          </div>
+        </div>
+
+        <button type="submit">Save Configuration</button>
+      </form>
+
+      <div class="test-section">
+        <h3>Test Email Configuration</h3>
+        <div class="form-group">
+          <label>Test Email Address</label>
+          <input type="email" id="testEmail" placeholder="test@example.com" />
+        </div>
+        <button onclick="testEmail()">📧 Send Test OTP</button>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:5000/api";
+
+      const providers = {
+        gmail: {
+          name: "Gmail",
+          host: "smtp.gmail.com",
+          port: 587,
+          hint: 'For Gmail: Use App Password from <a href="https://myaccount.google.com/apppasswords" target="_blank">here</a>',
+        },
+        outlook: {
+          name: "Outlook",
+          host: "smtp.office365.com",
+          port: 587,
+          hint: "For Outlook: Use your Microsoft account password or app password",
+        },
+        sendgrid: {
+          name: "SendGrid",
+          host: "smtp.sendgrid.net",
+          port: 587,
+          hint: "For SendGrid: Use API key as password",
+        },
+        custom: {
+          name: "Custom SMTP",
+          host: "",
+          port: 587,
+          hint: "Enter your custom SMTP server details",
+        },
+      };
+
+      function selectProvider(provider) {
+        document.querySelectorAll(".provider-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        event.target.classList.add("active");
+
+        const config = providers[provider];
+        document.getElementById("provider").value = config.name;
+        document.getElementById("smtpHost").value = config.host;
+        document.getElementById("smtpPort").value = config.port;
+        document.getElementById("passwordHint").innerHTML = config.hint;
+
+        if (provider !== "custom") {
+          document.getElementById("smtpHost").readOnly = true;
+          document.getElementById("smtpPort").readOnly = true;
+        } else {
+          document.getElementById("smtpHost").readOnly = false;
+          document.getElementById("smtpPort").readOnly = false;
+        }
+      }
+
+      function showMessage(text, type) {
+        const msg = document.getElementById("message");
+        msg.textContent = text;
+        msg.className = `message ${type}`;
+        setTimeout(() => (msg.className = "message"), 5000);
+      }
+
+      document.getElementById("emailConfigForm").onsubmit = async (e) => {
+        e.preventDefault();
+
+        const config = {
+          smtp_host: document.getElementById("smtpHost").value,
+          smtp_port: parseInt(document.getElementById("smtpPort").value),
+          sender_email: document.getElementById("senderEmail").value,
+          sender_password: document.getElementById("senderPassword").value,
+        };
+
+        try {
+          const response = await fetch(`${API_BASE}/admin/email-config`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(config),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            showMessage(
+              "✅ Email configuration saved successfully!",
+              "success",
+            );
+            localStorage.setItem("emailConfig", JSON.stringify(config));
+          } else {
+            showMessage("❌ " + data.message, "error");
+          }
+        } catch (error) {
+          showMessage("❌ Failed to save configuration", "error");
+        }
+      };
+
+      async function testEmail() {
+        const testEmail = document.getElementById("testEmail").value;
+
+        if (!testEmail) {
+          showMessage("❌ Please enter a test email address", "error");
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE}/admin/test-email`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: testEmail }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            showMessage("✅ Test email sent! Check " + testEmail, "success");
+          } else {
+            showMessage("❌ " + data.message, "error");
+          }
+        } catch (error) {
+          showMessage("❌ Failed to send test email", "error");
+        }
+      }
+
+      // Load saved config on page load
+      window.onload = () => {
+        const saved = localStorage.getItem("emailConfig");
+        if (saved) {
+          const config = JSON.parse(saved);
+          document.getElementById("smtpHost").value = config.smtp_host;
+          document.getElementById("smtpPort").value = config.smtp_port;
+          document.getElementById("senderEmail").value = config.sender_email;
+        }
+      };
+    </script>
+  </body>
+</html>

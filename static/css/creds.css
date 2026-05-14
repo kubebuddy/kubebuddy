@@ -78,18 +78,23 @@ body .dark-mode {
   }
   
   .dark-mode .form-control {
-    background-color: #333;
-    border-color: #444;
-    color: #fff;
+    background-color: #2d2d2d !important;
+    border: 2px solid #444 !important;
+    color: #e4e4e4 !important;
   }
   
   .dark-mode .form-control::placeholder {
-    color: #aaa;
+    color: #aaa !important;
   }
   
   .form-control:focus {
     box-shadow: none;
     border-color: #0071ff;
+  }
+
+  .dark-mode .form-control:focus {
+    border-color: #0db5fd !important;
+    background-color: #333 !important;
   }
   
   /* Common password input group styles */
@@ -110,7 +115,7 @@ body .dark-mode {
   }
   
   .dark-mode .password-toggle {
-    color: #aaa;
+    color: #e4e4e4 !important;
   }
   
   /* Common button styles */
@@ -161,7 +166,7 @@ body .dark-mode {
   }
   
   .dark-mode .footer {
-    color: #aaa;
+    color: #e4e4e4 !important;
   }
 
 /* Cluster Integrate */
@@ -247,7 +252,7 @@ body .dark-mode {
 }
 
 .dark-mode .os-name {
-  color: #aaa;
+  color: #e4e4e4 !important;
 }
 
 .integrate-controls {
@@ -273,15 +278,25 @@ body .dark-mode {
 
 .dark-mode .integrate-controls .form-control,
 .dark-mode .integrate-controls .form-select {
-  background-color: #333;
-  border-color: #444;
-  color: #fff;
+  background-color: #2d2d2d !important;
+  border: 2px solid #444 !important;
+  color: #e4e4e4 !important;
+}
+
+.dark-mode .integrate-controls .form-select option {
+  background-color: #2d2d2d !important;
+  color: #e4e4e4 !important;
 }
 
 .integrate-controls .form-control:focus,
 .integrate-controls .form-select:focus {
   box-shadow: none;
   border-color: #0071ff;
+}
+
+.dark-mode .integrate-controls .form-control:focus,
+.dark-mode .integrate-controls .form-select:focus {
+  border-color: #0db5fd !important;
 }
 
 .integrate-btn {
@@ -305,4 +320,111 @@ body .dark-mode {
   padding: 12px 30px;
   border-radius: 20px;
   font-weight: 500;
+}
+
+/* Additional Dark Mode Fixes */
+
+/* Fix for GitHub login button and outlined buttons */
+.dark-mode .github-btn,
+.dark-mode .btn-outline-dark,
+.dark-mode .btn-outline-secondary {
+  background-color: #2d2d2d !important;
+  border: 2px solid #444 !important;
+  color: #e4e4e4 !important;
+}
+
+.dark-mode .github-btn:hover,
+.dark-mode .btn-outline-dark:hover,
+.dark-mode .btn-outline-secondary:hover {
+  background-color: #3d3d3d !important;
+  border-color: #555 !important;
+}
+
+/* Fix for any divider lines (hr elements or borders) */
+.dark-mode hr,
+.dark-mode .divider {
+  border-color: #444 !important;
+  background-color: #444 !important;
+}
+
+/* Fix for labels in dark mode */
+.dark-mode label,
+.dark-mode .form-label {
+  color: #e4e4e4 !important;
+}
+
+/* Fix for any muted text */
+.dark-mode .text-muted,
+.dark-mode small {
+  color: #aaa !important;
+}
+
+/* Fix for link colors in login page */
+.dark-mode a {
+  color: #0db5fd !important;
+}
+
+.dark-mode a:hover {
+  color: #8ddbff !important;
+}
+
+/* Fix for input groups */
+.dark-mode .input-group-text {
+  background-color: #2d2d2d !important;
+  border: 2px solid #444 !important;
+  color: #e4e4e4 !important;
+}
+
+/* Fix for any badges or pills */
+.dark-mode .badge,
+.dark-mode .pill {
+  background-color: #2d2d2d !important;
+  color: #e4e4e4 !important;
+  border: 1px solid #444 !important;
+}
+
+/* ============================================ */
+/* ============================================ */
+.login-card a.btn,
+.login-card a.btn-outline-dark,
+.login-card a.btn-outline-primary {
+  display: inline-block !important;
+  text-decoration: none !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.login-card .btn-outline-dark {
+  color: #212529 !important;
+  border: 1px solid #212529 !important;
+  background-color: transparent !important;
+}
+
+.login-card .btn-outline-dark:hover {
+  color: #fff !important;
+  background-color: #212529 !important;
+  border-color: #212529 !important;
+}
+
+.dark-mode .login-card .btn-outline-dark {
+  color: #e4e4e4 !important;
+  border: 1px solid #444 !important;
+  background-color: #2d2d2d !important;
+}
+
+.dark-mode .login-card .btn-outline-dark:hover {
+  background-color: #3d3d3d !important;
+  border-color: #555 !important;
+}
+
+.login-card .btn-outline-primary {
+  color: #0071ff !important;
+  border: 1px solid #0071ff !important;
+  background-color: transparent !important;
+}
+
+.login-card .btn-outline-primary:hover {
+  color: #fff !important;
+  background-color: #0071ff !important;
+  border-color: #0071ff !important;
 }

@@ -2,103 +2,667 @@
 
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="author" content="Dheeraj Sain">
-  <title>KubeBuddy Login</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="Dheeraj Sain" />
+    <title>KubeBuddy Login</title>
+    <link
+      rel="icon"
+      href="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png"
+      type="image/x-icon"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
 
-  <link rel="icon" href="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png" type="image/x-icon">
-
-  <!-- Bootstrap core CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
-  <style>
-    html { visibility: hidden; }
-  </style>
-  <script>
-  (function () {
-      const theme = localStorage.getItem("theme");
-      if (theme === "dark") {
-      document.documentElement.classList.add("dark-mode");
+    <style>
+      html {
+        visibility: hidden;
       }
-      document.documentElement.style.visibility = "visible";
-  })();
-  </script>
 
-  <!-- Custom styles for this template -->
-  <link rel="stylesheet" href="{% static 'css/creds.css' %}">
+      .otp-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+      }
+      .otp-modal.active {
+        display: flex;
+      }
+      .otp-modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        max-width: 450px;
+        width: 90%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+      .otp-inputs {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin: 20px 0;
+      }
+      .otp-input {
+        width: 48px;
+        height: 56px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      .otp-input:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      .back-btn-otp {
+        background: none;
+        border: none;
+        color: #667eea;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 16px;
+      }
+      .back-btn-otp:hover {
+        text-decoration: underline;
+      }
+      .otp-message {
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-size: 14px;
+      }
+      .otp-message.success {
+        background: #d4edda;
+        color: #155724;
+      }
+      .otp-message.error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+    </style>
 
-</head>
-<body>
-  <div class="box d-flex w-100 h-100">
-    <div class="login-container">
-      <div class="login-card">
-        <form method="post">
-          {% csrf_token %}
-          <div class="login-brand">
-            <img class="logo" src="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png" width="50" height="50" alt="KubeBuddy Logo">
-          </div>
-          <h2 class="login-title"><span class="text-primary">Kube</span>Buddy Login</h2>
-          
-          <div class="mb-4">
-            <input type="text" name="username" class="form-control" placeholder="Username" value="{{ form.username.value |default:'' }}" required>
-          </div>
-          
-          <div class="mb-4 password-input-group">
-            <input type="password" name="password" id="passwordInput" class="form-control" placeholder="Password" required>
-            <button type="button" class="password-toggle" onclick="togglePassword()">
-              <i class="bi bi-eye-slash" id="passwordToggleIcon"></i>
+    <script>
+      (function () {
+        const theme = localStorage.getItem("theme");
+        if (theme === "dark")
+          document.documentElement.classList.add("dark-mode");
+        document.documentElement.style.visibility = "visible";
+      })();
+    </script>
+
+    <link rel="stylesheet" href="{% static 'css/creds.css' %}" />
+  </head>
+  <body>
+    <div class="box d-flex w-100 h-100">
+      <div class="login-container">
+        <div class="login-card">
+          <form method="post">
+            {% csrf_token %}
+            <div class="login-brand">
+              <img
+                class="logo"
+                src="https://www.thinknyx.com/wp-content/uploads/2025/03/KUBEBUDDY-light.png"
+                width="50"
+                height="50"
+                alt="KubeBuddy Logo"
+              />
+            </div>
+            <h2 class="login-title">
+              <span class="text-primary">Kube</span>Buddy Login
+            </h2>
+
+            <div class="mb-4">
+              <input
+                type="text"
+                name="username"
+                class="form-control"
+                placeholder="Username"
+                value="{{ form.username.value|default:'' }}"
+                required
+              />
+            </div>
+
+            <div class="mb-4 password-input-group">
+              <input
+                type="password"
+                name="password"
+                id="passwordInput"
+                class="form-control"
+                placeholder="Password"
+                required
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                onclick="togglePassword()"
+              >
+                <i class="bi bi-eye-slash" id="passwordToggleIcon"></i>
+              </button>
+            </div>
+
+            <button type="submit" class="btn btn-primary bg-gradient login-btn">
+              Login
+            </button>
+          </form>
+
+          <!-- EMAIL OTP -->
+          <div class="text-center mt-4">
+            <div class="text-muted mb-2">or</div>
+            <button
+              type="button"
+              onclick="openOTPModal()"
+              class="btn btn-outline-primary w-100"
+            >
+              <i class="bi bi-envelope me-2"></i> Sign Up with Email OTP
             </button>
           </div>
-          
-          <button type="submit" class="btn btn-primary bg-gradient login-btn">Login</button>
-        </form>
-        
-        {% if form.non_field_errors %}
+
+          <!-- GOOGLE SSO — only shown if configured -->
+          {% if google_client_id %}
+          <div class="text-center mt-3">
+            <button
+              type="button"
+              onclick="startGoogleLogin()"
+              class="btn btn-outline-dark w-100"
+            >
+              <i class="bi bi-google me-2"></i> Continue with Google
+            </button>
+          </div>
+          {% endif %}
+
+          <!-- GITHUB SSO — only shown if configured -->
+          {% if github_client_id %}
+          <div class="text-center mt-3">
+            <button
+              type="button"
+              onclick="startGithubLogin()"
+              class="btn btn-outline-dark w-100"
+            >
+              <i class="bi bi-github me-2"></i> Continue with GitHub
+            </button>
+          </div>
+          {% endif %}
+
+          <!-- OUTLOOK SSO — only shown if configured -->
+          {% if outlook_client_id %}
+          <div class="text-center mt-3">
+            <button
+              type="button"
+              onclick="startOutlookLogin()"
+              class="btn btn-outline-primary w-100"
+            >
+              <i class="bi bi-microsoft me-2"></i> Continue with Microsoft
+            </button>
+          </div>
+          {% endif %} {% if form.non_field_errors %}
           <div class="error-message mt-3">
             <b>{{ form.non_field_errors }}</b>
           </div>
-        {% endif %}
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="footer">
+        <p class="mb-0">Powered by Thinknyx Technologies LLP</p>
+      </div>
+
+      {% if messages %}{% for message in messages %}{% if message.tags %}
+      <script>
+        alert("{{ message }}");
+      </script>
+      {% endif %}{% endfor %}{% endif %}
+    </div>
+
+    <!-- OTP MODAL -->
+    <div id="otpModal" class="otp-modal">
+      <div class="otp-modal-content">
+        <div id="email-step-modal">
+          <h3 class="text-center mb-3">Sign Up with Email</h3>
+          <p class="text-center text-muted mb-4" style="font-size: 14px">
+            Enter your email to receive a one-time password
+          </p>
+          <div id="message-container-email"></div>
+          <div class="mb-4">
+            <input
+              type="email"
+              id="otp-email-input"
+              class="form-control"
+              placeholder="you@example.com"
+              onkeypress="if (event.key === 'Enter') sendOTP();"
+            />
+          </div>
+          <button
+            onclick="sendOTP()"
+            id="send-otp-btn"
+            class="btn btn-primary w-100 mb-3"
+          >
+            <span id="send-otp-text">Send OTP</span>
+            <span
+              id="send-otp-spinner"
+              class="spinner-border spinner-border-sm ms-2"
+              style="display: none"
+            ></span>
+          </button>
+          <button
+            onclick="closeOTPModal()"
+            class="btn btn-outline-secondary w-100"
+          >
+            Cancel
+          </button>
+        </div>
+
+        <div id="otp-verify-step-modal" style="display: none">
+          <button onclick="backToEmailStep()" class="back-btn-otp">
+            <i class="bi bi-arrow-left"></i> Back
+          </button>
+          <h3 class="text-center mb-3">Enter OTP</h3>
+          <p class="text-center text-muted mb-4" style="font-size: 14px">
+            Code sent to<br /><strong id="sent-email-display"></strong>
+          </p>
+          <div id="message-container-otp"></div>
+          <div class="otp-inputs">
+            <input
+              type="text"
+              class="otp-input"
+              maxlength="1"
+              id="otp-0"
+              inputmode="numeric"
+            />
+            <input
+              type="text"
+              class="otp-input"
+              maxlength="1"
+              id="otp-1"
+              inputmode="numeric"
+            />
+            <input
+              type="text"
+              class="otp-input"
+              maxlength="1"
+              id="otp-2"
+              inputmode="numeric"
+            />
+            <input
+              type="text"
+              class="otp-input"
+              maxlength="1"
+              id="otp-3"
+              inputmode="numeric"
+            />
+            <input
+              type="text"
+              class="otp-input"
+              maxlength="1"
+              id="otp-4"
+              inputmode="numeric"
+            />
+            <input
+              type="text"
+              class="otp-input"
+              maxlength="1"
+              id="otp-5"
+              inputmode="numeric"
+            />
+          </div>
+          <div class="text-center mb-3">
+            <button onclick="resendOTP()" id="resend-btn" class="btn btn-link">
+              Resend code
+            </button>
+            <span
+              id="resend-timer"
+              style="display: none; color: #999; font-size: 14px"
+            ></span>
+          </div>
+        </div>
       </div>
     </div>
-  
-    <div class="footer">
-      <p class="mb-0">Powered by Thinknyx Technologies LLP</p>
-    </div>
-  
 
-  {% if messages %}
-    {% for message in messages %}
-      {% if message.tags %} <script>alert("{{ message }}")</script> {% endif %}
-    {% endfor %}
-  {% endif %}
-  </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Include Bootstrap JS and dependencies -->
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      let resendTimer = 0,
+        resendInterval = null,
+        currentEmail = "";
 
-  <script>
-    
-    // Password toggle functionality
-    function togglePassword() {
-      const passwordInput = document.getElementById('passwordInput');
-      const passwordToggleIcon = document.getElementById('passwordToggleIcon');
-      
-      if (passwordInput.type === 'password') {
-        const inputType = 'text'; // clearly not a password
-        passwordInput.type = inputType;
-        passwordToggleIcon.classList.remove('bi-eye-slash');
-        passwordToggleIcon.classList.add('bi-eye');
-      } else {
-        const inputPass = 'password'; // clearly not a password
-        passwordInput.type = inputPass;
-        passwordToggleIcon.classList.remove('bi-eye');
-        passwordToggleIcon.classList.add('bi-eye-slash');
+      function togglePassword() {
+        const p = document.getElementById("passwordInput");
+        const i = document.getElementById("passwordToggleIcon");
+        if (p.type === "password") {
+          p.type = "text";
+          i.className = "bi bi-eye";
+        } else {
+          p.type = "password";
+          i.className = "bi bi-eye-slash";
+        }
       }
-    }
-  </script>
-</body>
+
+      function openOTPModal() {
+        document.getElementById("otpModal").classList.add("active");
+      }
+      function closeOTPModal() {
+        document.getElementById("otpModal").classList.remove("active");
+        document.getElementById("email-step-modal").style.display = "block";
+        document.getElementById("otp-verify-step-modal").style.display = "none";
+        clearMessage("message-container-email");
+        clearMessage("message-container-otp");
+        document.getElementById("otp-email-input").value = "";
+        document.querySelectorAll(".otp-input").forEach((i) => (i.value = ""));
+      }
+
+      async function sendOTP() {
+        const email = document.getElementById("otp-email-input").value.trim();
+        if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+          showMessage(
+            "Please enter a valid email address",
+            "error",
+            "message-container-email",
+          );
+          return;
+        }
+        const btn = document.getElementById("send-otp-btn");
+        const btnText = document.getElementById("send-otp-text");
+        const spinner = document.getElementById("send-otp-spinner");
+        btn.disabled = true;
+        btnText.textContent = "Sending...";
+        spinner.style.display = "inline-block";
+        clearMessage("message-container-email");
+        try {
+          const response = await fetch("/api/send-otp/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({ email }),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            currentEmail = email;
+            document.getElementById("sent-email-display").textContent = email;
+            document.getElementById("email-step-modal").style.display = "none";
+            document.getElementById("otp-verify-step-modal").style.display =
+              "block";
+            document.getElementById("otp-0").focus();
+            startResendTimer();
+            showMessage(
+              "OTP sent! Check your email.",
+              "success",
+              "message-container-otp",
+            );
+          } else {
+            showMessage(
+              data.error || "Failed to send OTP",
+              "error",
+              "message-container-email",
+            );
+          }
+        } catch {
+          showMessage(
+            "Network error. Please try again.",
+            "error",
+            "message-container-email",
+          );
+        } finally {
+          btn.disabled = false;
+          btnText.textContent = "Send OTP";
+          spinner.style.display = "none";
+        }
+      }
+
+      function setupOTPInputs() {
+        const inputs = document.querySelectorAll(".otp-input");
+        inputs.forEach((input, index) => {
+          input.addEventListener("input", (e) => {
+            const value = e.target.value;
+            if (value && !/^\d$/.test(value)) {
+              e.target.value = "";
+              return;
+            }
+            if (value.length === 1 && index < 5) inputs[index + 1].focus();
+            if (index === 5 && value.length === 1)
+              setTimeout(() => verifyOTP(), 100);
+          });
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace" && !input.value && index > 0)
+              inputs[index - 1].focus();
+          });
+          input.addEventListener("paste", (e) => {
+            e.preventDefault();
+            const pasted = e.clipboardData.getData("text").trim().slice(0, 6);
+            if (/^\d+$/.test(pasted)) {
+              pasted.split("").forEach((char, i) => {
+                if (inputs[i]) inputs[i].value = char;
+              });
+              if (pasted.length === 6) setTimeout(() => verifyOTP(), 100);
+            }
+          });
+        });
+      }
+
+      async function verifyOTP() {
+        const otp = Array.from(document.querySelectorAll(".otp-input"))
+          .map((i) => i.value)
+          .join("");
+        if (otp.length !== 6) {
+          showMessage(
+            "Please enter all 6 digits",
+            "error",
+            "message-container-otp",
+          );
+          return;
+        }
+        clearMessage("message-container-otp");
+        try {
+          const response = await fetch("/api/verify-otp/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({ email: currentEmail, otp }),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            showMessage(
+              "Success! Redirecting...",
+              "success",
+              "message-container-otp",
+            );
+            setTimeout(() => {
+              window.location.href = data.redirect_url || "/KubeBuddy";
+            }, 1500);
+          } else {
+            showMessage(
+              data.error || "Invalid OTP",
+              "error",
+              "message-container-otp",
+            );
+            document
+              .querySelectorAll(".otp-input")
+              .forEach((i) => (i.value = ""));
+            document.getElementById("otp-0").focus();
+          }
+        } catch {
+          showMessage(
+            "Network error. Please try again.",
+            "error",
+            "message-container-otp",
+          );
+        }
+      }
+
+      async function resendOTP() {
+        if (resendTimer > 0) return;
+        clearMessage("message-container-otp");
+        try {
+          const response = await fetch("/api/send-otp/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({ email: currentEmail }),
+          });
+          if (response.ok) {
+            showMessage("New OTP sent!", "success", "message-container-otp");
+            startResendTimer();
+          } else
+            showMessage(
+              "Failed to resend OTP",
+              "error",
+              "message-container-otp",
+            );
+        } catch {
+          showMessage("Network error", "error", "message-container-otp");
+        }
+      }
+
+      function startResendTimer() {
+        resendTimer = 60;
+        const resendBtn = document.getElementById("resend-btn");
+        const timerSpan = document.getElementById("resend-timer");
+        resendBtn.style.display = "none";
+        timerSpan.style.display = "inline";
+        if (resendInterval) clearInterval(resendInterval);
+        resendInterval = setInterval(() => {
+          resendTimer--;
+          timerSpan.textContent = `Resend in ${resendTimer}s`;
+          if (resendTimer <= 0) {
+            clearInterval(resendInterval);
+            resendBtn.style.display = "inline";
+            timerSpan.style.display = "none";
+          }
+        }, 1000);
+      }
+
+      function backToEmailStep() {
+        document.getElementById("otp-verify-step-modal").style.display = "none";
+        document.getElementById("email-step-modal").style.display = "block";
+        document.querySelectorAll(".otp-input").forEach((i) => (i.value = ""));
+        clearMessage("message-container-otp");
+        clearMessage("message-container-email");
+        if (resendInterval) clearInterval(resendInterval);
+      }
+
+      function showMessage(message, type, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = `<div class="otp-message ${type}">${message}</div>`;
+      }
+
+      function clearMessage(containerId) {
+        const container = document.getElementById(containerId);
+        if (container) container.innerHTML = "";
+      }
+
+      function getCookie(name) {
+        let val = null;
+        document.cookie.split(";").forEach((c) => {
+          c = c.trim();
+          if (c.startsWith(name + "="))
+            val = decodeURIComponent(c.slice(name.length + 1));
+        });
+        return val;
+      }
+
+      setupOTPInputs();
+
+      // =====================================================
+      // GOOGLE SSO (Standard OAuth) — reads client ID from DB
+      // =====================================================
+      const GOOGLE_CLIENT_ID = "{{ google_client_id|default:'' }}";
+
+      // ===== PKCE CODE (COMMENTED OUT — keeping for reference) =====
+      // function generateRandomString(length = 43) {
+      //   const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+      //   const randomValues = new Uint8Array(length);
+      //   crypto.getRandomValues(randomValues);
+      //   return Array.from(randomValues).map(v => charset[v % charset.length]).join('');
+      // }
+      //
+      // async function sha256(plain) {
+      //   const data = new TextEncoder().encode(plain);
+      //   const hash = await crypto.subtle.digest("SHA-256", data);
+      //   return btoa(String.fromCharCode(...new Uint8Array(hash)))
+      //     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      // }
+      //
+      // async function startGoogleLogin() {
+      //   const codeVerifier = generateRandomString();
+      //   const codeChallenge = await sha256(codeVerifier);
+      //   sessionStorage.setItem("google_code_verifier", codeVerifier);
+      //   const params = new URLSearchParams({
+      //     client_id: GOOGLE_CLIENT_ID,
+      //     redirect_uri: window.location.origin + "/google-callback/",
+      //     response_type: "code",
+      //     scope: "openid email profile",
+      //     code_challenge: codeChallenge,
+      //     code_challenge_method: "S256",
+      //   });
+      //   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+      // }
+      // ===== END PKCE CODE =====
+
+      // Standard OAuth (uses client secret on server)
+      function startGoogleLogin() {
+        const params = new URLSearchParams({
+          client_id: GOOGLE_CLIENT_ID,
+          redirect_uri: window.location.origin + "/google-callback/",
+          response_type: "code",
+          scope: "openid email profile",
+        });
+        window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+      }
+
+      // =====================================================
+      // GITHUB SSO — reads client ID from DB
+      // =====================================================
+      const GITHUB_CLIENT_ID = "{{ github_client_id|default:'' }}";
+
+      function startGithubLogin() {
+        const params = new URLSearchParams({
+          client_id: GITHUB_CLIENT_ID,
+          redirect_uri: window.location.origin + "/github-callback/",
+          scope: "read:user user:email",
+        });
+        window.location.href = `https://github.com/login/oauth/authorize?${params}`;
+      }
+
+      // =====================================================
+      // MICROSOFT OUTLOOK SSO — reads client ID from DB
+      // =====================================================
+      const OUTLOOK_CLIENT_ID = "{{ outlook_client_id|default:'' }}";
+
+      function startOutlookLogin() {
+        const params = new URLSearchParams({
+          client_id: OUTLOOK_CLIENT_ID,
+          redirect_uri: window.location.origin + "/outlook-callback/",
+          response_type: "code",
+          scope: "openid email profile User.Read",
+          response_mode: "query",
+        });
+        window.location.href = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
+      }
+    </script>
+  </body>
 </html>

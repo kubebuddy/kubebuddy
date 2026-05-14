@@ -333,7 +333,7 @@ def gemini_response(api_key, model, user_message):
             )
         except Exception:
             combined_prompt = f"{SYSTEM_PROMPT}\n\nUser: {user_message}\nBuddy AI:"
-            response = client.models.generate_content(model="gemini-2.0-flash", contents=combined_prompt)
+            response = client.models.generate_content(model="gemini-2.5-flash", contents=combined_prompt)
         return render_markdown(response.text)
     except Exception as e:
         return f"Error generating response: {str(e)}"
@@ -398,7 +398,7 @@ def validate_api_key(request):
         try:
             if provider == "gemini":
                 client = genai.Client(api_key=api_key)
-                client.models.generate_content(model="gemini-2.0-flash", contents="Test")
+                client.models.generate_content(model="gemini-2.5-flash", contents="Test")
                 return JsonResponse({"status": "valid"})
             elif provider == "openai":
                 client = openai.OpenAI(api_key=api_key)

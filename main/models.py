@@ -41,7 +41,7 @@ class AIConfig(models.Model):
     ]
     DEFAULT_MODELS = {
         'openai': 'gpt-3.5-turbo',
-        'gemini': 'gemini-2.0-flash',
+        'gemini': 'gemini-2.5-flash',
         'ollama': 'llama3',
     }
     MODELS_OPENAI = [
@@ -55,16 +55,16 @@ class AIConfig(models.Model):
         ('gpt-4.1', 'GPT-4.1'),
         ('gpt-4.1-mini', 'GPT-4.1 Mini')
     ]
+
     MODELS_GEMINI = [
-        ('gemini-2.0-flash', 'Gemini 2.0 Flash'),
-        ('gemini-2.0-flash-lite', 'Gemini 2.0 Flash-Lite'),
-        ('gemini-1.5-flash', 'Gemini 1.5 Flash'),
-        ('gemini-1.5-flash-8b', 'Gemini 1.5 Flash-8B'),
-        ('gemini-1.5-pro', 'Gemini 1.5 Pro'),
+        ('gemini-3.1-pro-preview', 'Gemini 3.1 Pro (Preview)'),
+        ('gemini-3-flash-preview', 'Gemini 3 Flash (Preview)'),
+        ('gemini-3.1-flash-lite', 'Gemini 3.1 Flash-Lite'),
         ('gemini-2.5-pro', 'Gemini 2.5 Pro'),
         ('gemini-2.5-flash', 'Gemini 2.5 Flash'),
-        ('gemini-2.5-flash-lite', 'Gemini 2.5 Flash-Lite')
+        ('gemini-2.5-flash-lite', 'Gemini 2.5 Flash-Lite'),
     ]
+
     MODELS_OLLAMA = [
         ('gemma3:1b', 'Gemma'),
         ('llama2', 'LLaMA 2'),
